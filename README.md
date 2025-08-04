@@ -58,7 +58,7 @@
 
 ## 시스템 아키텍쳐
 
-## 유스케이스
+## 유스케이스 다이어그램
 
 ## 서비스 흐름도
 
@@ -83,11 +83,11 @@
     <td>이름</td>
   </tr>
   <tr>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
+    <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
+    <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
+    <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
+    <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
+    <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
   <tr>
     <td>GitHub아이디</td>
