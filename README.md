@@ -55,3 +55,46 @@
     <td>https://github.com/smilegate-ai/korean_unsmile_dataset</td>
   </tr>
 </table>
+
+## 시스템 아키텍쳐
+
+## 유스케이스
+
+## 서비스 흐름도
+
+## ER다이어그램
+
+## 화면 구성
+
+## 팀원 역할
+<table>
+  <tr>
+    <td>이미지</td>
+    <td>이미지</td>
+    <td>이미지</td>
+    <td>이미지</td>
+    <td>이미지</td>
+  </tr>
+  <tr>
+    <td>이름</td>
+    <td>이름</td>
+    <td>이름</td>
+    <td>이름</td>
+    <td>이름</td>
+  </tr>
+  <tr>
+    <td>역할</td>
+    <td>역할</td>
+    <td>역할</td>
+    <td>역할</td>
+    <td>역할</td>
+  </tr>
+  <tr>
+    <td>GitHub아이디</td>
+    <td>GitHub아이디</td>
+    <td>GitHub아이디</td>
+    <td>GitHub아이디</td>
+    <td>GitHub아이디</td>
+  </tr>
+</table>
+
