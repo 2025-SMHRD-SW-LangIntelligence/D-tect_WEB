@@ -28,7 +28,7 @@ public class Upload {
 
     // 회원 인덱스
 	@ManyToOne
-	 @JoinColumn(name = "mem_idx", nullable = false)
+    @JoinColumn(name = "mem_idx", nullable = false)
     private Member member;
 
     // 자료 파일
