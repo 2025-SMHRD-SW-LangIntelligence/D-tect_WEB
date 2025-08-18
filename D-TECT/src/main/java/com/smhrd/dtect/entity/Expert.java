@@ -26,7 +26,11 @@ public class Expert {
 
     @Column(name = "office_address")
     private String officeAddress;
-
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ExpertStatus status;
+    
     @ManyToOne
     @JoinColumn(name = "mem_idx", nullable = false)
     private Member member;

@@ -13,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -52,4 +53,11 @@ public class Analysis {
 	// 결과 보고서 경로
 	@Column(name = "report_path",nullable = false)
 	private String reportPath;
+	
+	// 날짜 자동 기입 함수
+	@PrePersist
+	protected void onCreate() {
+	    this.createdAt = new Timestamp(System.currentTimeMillis());
+	}
+
 }

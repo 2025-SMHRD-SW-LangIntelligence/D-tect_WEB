@@ -1,7 +1,5 @@
 package com.smhrd.dtect.controller;
 
-import java.net.http.WebSocket;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,9 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.smhrd.dtect.entity.AnalRate;
-import com.smhrd.dtect.entity.Analysis;
-import com.smhrd.dtect.entity.Upload;
 import com.smhrd.dtect.service.AnalysisResultService;
 
 @Controller
