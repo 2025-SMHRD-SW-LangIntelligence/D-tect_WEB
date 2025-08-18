@@ -1,13 +1,9 @@
 package com.smhrd.dtect.repository;
 
+import com.smhrd.dtect.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.smhrd.dtect.entity.Analysis;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AnalysisResultRepository extends JpaRepository<Analysis, Long> {
-	
-	
-	
+public interface UserRepository extends JpaRepository<User, Long> {
 }
