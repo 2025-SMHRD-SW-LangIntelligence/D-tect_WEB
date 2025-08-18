@@ -1,6 +1,5 @@
 package com.smhrd.dtect.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,47 +9,20 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.smhrd.dtect.service.UserDetailsServiceImpl;
 
-//@Configuration
-//public class SecurityConfiguration {
-//
-//    @Autowired
-//    private UserDetailsServiceImpl userDetailsService;
-//
-//    @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-//    }
-//
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//            .authorizeHttpRequests(auth -> auth
-//                .requestMatchers("/signup", "/css/**", "/js/**", "/images/**").permitAll()  // 회원가입, 정적리소스는 모두 허용
-//                .anyRequest().authenticated() // 나머지 요청은 인증 필요
-//            )
-//            .formLogin(form -> form
-//                //.loginPage("/LoginPage") // 직접 만든 로그인 페이지가 없으니 기본 로그인 페이지 사용
-//                .permitAll()
-//            )
-//            .logout(logout -> logout
-//                .permitAll()
-//            );
-//
-//        return http.build();
-//    }
-//}
 
 @Configuration
 public class SecurityConfiguration {
+    
+    private final UserDetailsServiceImpl userDetailsService;
 
-
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-
+    public SecurityConfiguration(UserDetailsServiceImpl userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -69,5 +41,36 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
+    
+/* 최종 통합시 복구할 시큐리티 코드부분 */    
+    
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//        http
+//            .authorizeHttpRequests(auth -> auth
+//                .requestMatchers("/signup", "/css/**", "/js/**", "/images/**").permitAll()
+//                .requestMatchers("/admin/**").hasRole("ADMIN") // 관리자만 접근
+//                .anyRequest().authenticated()
+//            )
+//            .formLogin(form -> form
+//                .loginPage("/login")
+//                .loginProcessingUrl("/login")
+//                .defaultSuccessUrl("/user", true)
+//                .failureUrl("/login?error")
+//                .permitAll()
+//            )
+//            .logout(logout -> logout
+//                .logoutUrl("/logout")
+//                .logoutSuccessUrl("/login?logout")
+//                .permitAll()
+//            )
+//            .userDetailsService(userDetailsService);
+//
+//        return http.build();
+//    }
+    
+
 }
+
 

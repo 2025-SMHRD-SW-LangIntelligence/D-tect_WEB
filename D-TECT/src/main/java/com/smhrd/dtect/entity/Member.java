@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -67,9 +68,20 @@ public class Member {
 	@Column(name = "joined_at", nullable = false)
     private Timestamp joinedAt;
 	
+	// 회원 활동 가능 여부
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private MemberStatus status;
+	
+	// 날짜 자동 기입 함수
+	@PrePersist
+	protected void onCreate() {
+	    this.joinedAt = new Timestamp(System.currentTimeMillis());
+	}
+	
 	// 비밀번호 암호화 함수
-	public void encodePassword(PasswordEncoder passwordEncoder, String password) {
-        this.password = passwordEncoder.encode(password);
+    public void encodePassword(PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(this.password);
     }
 	
 }
