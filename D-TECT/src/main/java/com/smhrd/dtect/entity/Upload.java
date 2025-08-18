@@ -1,6 +1,8 @@
 package com.smhrd.dtect.entity;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,22 +32,11 @@ public class Upload {
     @JoinColumn(name = "expert_idx", nullable = false)
     private Expert expert;
 
-    // 자료 내용
-    @Column(name = "upload_content", columnDefinition="TEXT", nullable = false)
-    private String uploadContent;
-
-    // 자료 인코딩
-	@Column(name = "upload_encoding", columnDefinition="MEDIUMTEXT", nullable = false)
-    @Lob
-    private String uploadEncoding;
-
-    // 자료 벡터
-	@Column(name = "upload_vector", nullable = false)
-    @Lob
-    private byte[] uploadVector;
-
     // 업로드 날짜
-	@Column(name = "created_at", nullable = false)
+	@Column(name = "created_at")
     private Timestamp createdAt;
 
+    // 양방향 매핑
+    @OneToMany(mappedBy = "upload", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UploadFile> uploadFileList = new ArrayList<>();
 }
