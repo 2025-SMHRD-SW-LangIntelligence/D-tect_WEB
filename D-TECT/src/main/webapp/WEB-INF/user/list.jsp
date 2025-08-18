@@ -5,11 +5,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>메인 페이지</title>
 </head>
 <body>
 	
-	<h2><sec:authentication property="principal.member.username"/>님 환영합니다</h2>
+	<h2><sec:authentication property="principal.username"/>님 환영합니다</h2>
 	
 	<a href = "/user/logout">로그아웃</a>
 	

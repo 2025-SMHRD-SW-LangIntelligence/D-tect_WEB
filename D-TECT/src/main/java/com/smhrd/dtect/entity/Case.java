@@ -28,14 +28,14 @@ public class Case {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long case_idx;
 
-    // 자료 식별자
+    // 분석 식별자
 	@ManyToOne
-	@JoinColumn(name = "upload_idx", nullable = false)
-    private Upload upload;
+	@JoinColumn(name = "anal_idx", nullable = false)
+    private Analysis analysis;
 
     // 분류 유형
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-    private Field_name case_type;
+    private FieldName case_type;
 	
 }

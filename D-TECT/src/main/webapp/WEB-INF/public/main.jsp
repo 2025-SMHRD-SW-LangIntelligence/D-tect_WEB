@@ -4,17 +4,17 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>로그인</title>
 </head>
 <body>
 	
-	<h1>메인페이지입니다.</h1>
+	<h1>로그인 페이지</h1>
 	
 	<form action = "/member/login" method = "POST">
 	
 		id : <input name = "username"><br>
-		pw : <input name = "password"><br>
-		<input type = "submit">
+		pw : <input type = "password" name = "password"><br>
+		<input type = "submit" value = "로그인">
 	
 	</form>
 	

@@ -1,6 +1,6 @@
 package com.smhrd.dtect.entity;
 
-public enum Field_name {
+public enum FieldName {
 	
 	VIOLENCE, DEFAMATION, STALKING, SEXUAL, LEAK, BULLYING, CHANTAGE, EXTORTION
 	

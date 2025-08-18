@@ -1,7 +1,8 @@
 package com.smhrd.dtect.entity;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,10 +40,14 @@ public class Member {
     // 회원 이름
 	@Column(nullable = false)
     private String name;
+	
+	// 회원 전화번호
+	@Column(nullable = false)
+	private String phone;
 
     // 회원 주소
 	@Column(nullable = false)
-    private String addr;
+    private String address;
 
     // 회원 이메일
 	@Column(nullable = false)
@@ -55,7 +60,7 @@ public class Member {
     // 회원 유형
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-    private Mem_role mem_role;
+    private MemRole mem_role;
 
     // 사무실 이름
 	@Column(nullable = false)
@@ -64,5 +69,10 @@ public class Member {
     // 가입 일자
 	@Column(nullable = false)
     private Timestamp joined_at;
+	
+	// 비밀번호 암호화 함수
+	public void encodePassword(PasswordEncoder passwordEncoder, String password) {
+        this.password = passwordEncoder.encode(password);
+    }
 	
 }

@@ -1,6 +1,6 @@
 package com.smhrd.dtect.entity;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 
 
@@ -42,10 +42,13 @@ public class Analysis {
     // 분석 등급
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-    private Anal_rate anal_rate;
+    private AnalRate anal_rate;
 
     // 분석 날짜
 	@Column(nullable = false)
     private Timestamp created_at;
 	
+	// 결과 보고서 경로
+	@Column(nullable = false)
+	private String report_path;
 }

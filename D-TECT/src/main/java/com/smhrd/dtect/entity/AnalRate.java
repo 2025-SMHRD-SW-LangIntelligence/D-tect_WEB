@@ -1,6 +1,6 @@
 package com.smhrd.dtect.entity;
 
-public enum Anal_rate {
+public enum AnalRate {
 	
 	NORMAL, WANNING, DANGER
 	

@@ -35,6 +35,6 @@ public class Field {
     // 전문 분야
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-    private Field_name field_name;
+    private FieldName field_name;
 	
 }

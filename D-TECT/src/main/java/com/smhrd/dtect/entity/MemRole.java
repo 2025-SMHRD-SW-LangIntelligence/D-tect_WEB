@@ -1,6 +1,6 @@
 package com.smhrd.dtect.entity;
 
-public enum Mem_role {
+public enum MemRole {
 	
 	USER, EXPERT, ADMIN
 	
