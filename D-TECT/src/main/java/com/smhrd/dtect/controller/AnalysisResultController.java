@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,7 +18,7 @@ import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.entity.Upload;
 import com.smhrd.dtect.service.AnalysisResultService;
 
-
+@Controller
 public class AnalysisResultController {
 	
 	@Autowired

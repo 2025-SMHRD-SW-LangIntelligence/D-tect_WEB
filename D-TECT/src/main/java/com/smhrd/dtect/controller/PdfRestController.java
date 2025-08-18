@@ -28,7 +28,6 @@ public class PdfRestController {
 	        public ResponseEntity<?> receivePdfResult(@RequestBody Analysis pdfResult) {
 	            // 1. NCP Object Storage 업로드 (pdfResult.getFileUrl()에서 다운로드 후 업로드)
 	            // 2. 업로드 경로 DB 저장
-	            // 예시로 DB 저장만
 
 	            return ResponseEntity.ok("PDF 저장 프로세스 완료");
 	        }
