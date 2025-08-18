@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.smhrd.dtect.entity.MemRole;
 import com.smhrd.dtect.entity.Member;
+import com.smhrd.dtect.entity.MemberStatus;
 import com.smhrd.dtect.repository.MemberRepository;
 
 @Service
@@ -28,7 +29,8 @@ public class UserService {
         if (member.getMemRole() == null) {
             member.setMemRole(MemRole.USER);
         }
-
+        
+        member.setStatus(MemberStatus.ACTIVE);
         // 저장
         return memberRepository.save(member);
     }
