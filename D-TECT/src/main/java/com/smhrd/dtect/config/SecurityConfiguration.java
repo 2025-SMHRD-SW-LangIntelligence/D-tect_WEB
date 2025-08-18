@@ -9,6 +9,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.smhrd.dtect.service.UserDetailsServiceImpl;
 
+
 @Configuration
 public class SecurityConfiguration {
     
@@ -17,13 +18,11 @@ public class SecurityConfiguration {
     public SecurityConfiguration(UserDetailsServiceImpl userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
-    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
-    
-    
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -42,6 +41,7 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
     
 /* 최종 통합시 복구할 시큐리티 코드부분 */    
     
@@ -72,3 +72,5 @@ public class SecurityConfiguration {
     
 
 }
+
+
