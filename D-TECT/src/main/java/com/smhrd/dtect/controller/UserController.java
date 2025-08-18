@@ -1,24 +1,22 @@
 package com.smhrd.dtect.controller;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.smhrd.dtect.entity.MemRole;
 import com.smhrd.dtect.entity.Member;
-import com.smhrd.dtect.repository.UserRepository;
+import com.smhrd.dtect.repository.MemberRepository;
 
 @Controller
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;

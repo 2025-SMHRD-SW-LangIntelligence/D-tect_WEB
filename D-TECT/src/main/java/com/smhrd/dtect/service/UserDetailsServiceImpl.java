@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.smhrd.dtect.entity.CustomUser;
 import com.smhrd.dtect.entity.Member;
-import com.smhrd.dtect.repository.UserRepository;
+import com.smhrd.dtect.repository.MemberRepository;
 
 
 @Service
@@ -17,7 +17,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	// Spring Security 내부 인증필터 로그인 실제 기능을 해주는 Class
 	
 	@Autowired
-	private UserRepository repository;
+	private MemberRepository repository;
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
