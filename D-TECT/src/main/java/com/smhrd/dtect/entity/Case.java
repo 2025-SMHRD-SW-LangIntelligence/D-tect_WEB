@@ -24,6 +24,7 @@ public class Case {
     // 유형 식별자
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="code_idx")
     private Long case_idx;
 
     // 분석 식별자
@@ -32,7 +33,7 @@ public class Case {
     private Analysis analysis;
 
     // 분류 유형
-	@Column(nullable = false)
+	@Column(name = "case_type", nullable = false)
 	@Enumerated(EnumType.STRING)
     private FieldName case_type;
 	

@@ -25,15 +25,16 @@ public class Field {
 	// 분야 인덱스
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "field_idx")
     private Long field_idx;
 
     // 회원 인덱스
 	@ManyToOne
-	@JoinColumn(name = "mem_idx", nullable = false)
-    private Member member;
+	@JoinColumn(name = "expert_idx", nullable = false)
+    private Expert expert;
 
     // 전문 분야
-	@Column(nullable = false)
+	@Column(name = "field_name", nullable = false)
 	@Enumerated(EnumType.STRING)
     private FieldName field_name;
 	

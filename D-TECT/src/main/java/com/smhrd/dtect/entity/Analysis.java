@@ -28,27 +28,28 @@ public class Analysis {
     // 분석 식별자
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="anal_idx")
     private Long anal_idx;
 
     // 자료 식별자
 	@ManyToOne
-	@JoinColumn(name = "upload_idx", nullable = false)
-    private Upload upload;
+	@JoinColumn(name = "user_idx", nullable = false)
+    private User user;
 
     // 분석 결과
-	@Column(nullable = false)
+	@Column(name = "anal_result", columnDefinition="TEXT", nullable = false)
     private String anal_result;
 
     // 분석 등급
-	@Column(nullable = false)
+	@Column(name = "anal_rate", nullable = false)
 	@Enumerated(EnumType.STRING)
     private AnalRate anal_rate;
 
     // 분석 날짜
-	@Column(nullable = false)
+	@Column(name = "created_at", nullable = false)
     private Timestamp created_at;
 	
 	// 결과 보고서 경로
-	@Column(nullable = false)
+	@Column(name = "report_path",nullable = false)
 	private String report_path;
 }

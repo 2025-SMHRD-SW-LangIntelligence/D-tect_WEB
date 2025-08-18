@@ -36,7 +36,6 @@ public class UserController {
     	member.setEmail(email);
     	member.setTerms_agree(terms_agree);	
     	member.setMem_role(role);
-    	member.setOffice_name(null);				// 전문가 등록 페이지에서 추가 예정이므로 회원가입 시에는 null로 처리
     	member.setJoined_at(joined_at);
     	
     }

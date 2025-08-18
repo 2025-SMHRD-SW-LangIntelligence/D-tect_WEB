@@ -2,16 +2,17 @@ package com.smhrd.dtect.entity;
 
 import java.util.Collection;
 
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 
 import lombok.Data;
 
-@Data
+@Getter
 public class CustomUser extends User{
 	
-	private Member member;
+	private final Member member;
 
 	public CustomUser(Member member) {
 		

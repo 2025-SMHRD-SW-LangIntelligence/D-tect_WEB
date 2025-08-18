@@ -27,6 +27,7 @@ public class Member {
     // 회원 인덱스
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "mem_idx")
     private Long memIdx;
 
     // 회원 아이디
@@ -54,20 +55,16 @@ public class Member {
     private String email;
 
     // 회원 약관동의
-	@Column(nullable = false)
+	@Column(name = "terms_agree", nullable = false)
     private String terms_agree;
 
     // 회원 유형
-	@Column(nullable = false)
+	@Column(name = "mem_role", nullable = false)
 	@Enumerated(EnumType.STRING)
     private MemRole mem_role;
 
-    // 사무실 이름
-	@Column(nullable = false)
-    private String office_name;
-
     // 가입 일자
-	@Column(nullable = false)
+	@Column(name = "joined_at", nullable = false)
     private Timestamp joined_at;
 	
 	// 비밀번호 암호화 함수

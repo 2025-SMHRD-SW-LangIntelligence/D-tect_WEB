@@ -1,15 +1,8 @@
 package com.smhrd.dtect.entity;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,31 +17,35 @@ public class Upload {
     // 자료 식별자
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "upload_idx")
     private Long uploadIdx;
 
-    // 회원 인덱스
+    // 사용자 인덱스
 	@ManyToOne
-    @JoinColumn(name = "mem_idx", nullable = false)
-    private Member member;
+    @JoinColumn(name = "user_idx", nullable = false)
+    private User user;
 
-    // 자료 파일
-	@Column(nullable = false)
-    private String upload_file;
+    // 전문가 인덱스
+    @ManyToOne
+    @JoinColumn(name = "expert_idx", nullable = false)
+    private Expert expert;
 
     // 자료 내용
-	@Column(nullable = false)
+    @Column(name = "upload_content", columnDefinition="TEXT", nullable = false)
     private String upload_content;
 
     // 자료 인코딩
-	@Column(nullable = false)
-    private byte[] upload_encoding;
+	@Column(name = "upload_encoding", columnDefinition="MEDIUMTEXT", nullable = false)
+    @Lob
+    private String upload_encoding;
 
     // 자료 벡터
-	@Column(nullable = false)
+	@Column(name = "upload_vector", nullable = false)
+    @Lob
     private byte[] upload_vector;
 
     // 업로드 날짜
-	@Column(nullable = false)
+	@Column(name = "created_at", nullable = false)
     private Timestamp created_at;
 
 }

@@ -20,10 +20,11 @@ public class Phrase {
     // 문구 식별자
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "phrase_idx")
     private Long phrase_idx;
 
     // 문구 내용
-	@Column(nullable = false)
+    @Column(name = "phrase_content", columnDefinition="TEXT", nullable = false)
     private String phrase_content;
 	
 }
