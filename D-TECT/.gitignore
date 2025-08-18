@@ -19,6 +19,11 @@ target/
 *.iml
 *.ipr
 
+/.idea/
+/D-TECT/.idea/
+/*.iml
+/D-TECT/*.iml
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -31,3 +36,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# 디폴트 무시된 파일
+/shelf/
+/workspace.xml
+# 에디터 기반 HTTP 클라이언트 요청
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+

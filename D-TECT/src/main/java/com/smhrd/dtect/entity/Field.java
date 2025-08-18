@@ -29,7 +29,7 @@ public class Field {
 
     // 회원 인덱스
 	@ManyToOne
-	 @JoinColumn(name = "mem_idx", nullable = false)
+	@JoinColumn(name = "mem_idx", nullable = false)
     private Member member;
 
     // 전문 분야
