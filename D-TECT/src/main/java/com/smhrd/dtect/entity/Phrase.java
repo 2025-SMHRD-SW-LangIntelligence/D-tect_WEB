@@ -21,10 +21,10 @@ public class Phrase {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "phrase_idx")
-    private Long phrase_idx;
+    private Long phraseIdx;
 
     // 문구 내용
     @Column(name = "phrase_content", columnDefinition="TEXT", nullable = false)
-    private String phrase_content;
+    private String phraseContent;
 	
 }

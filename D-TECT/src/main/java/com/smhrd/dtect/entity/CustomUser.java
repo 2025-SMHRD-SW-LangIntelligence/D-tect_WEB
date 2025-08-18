@@ -17,7 +17,7 @@ public class CustomUser extends User{
 	public CustomUser(Member member) {
 		
 		super(member.getUsername(), member.getPassword(), 
-			  AuthorityUtils.createAuthorityList("ROLE_" + member.getMem_role().toString()));
+			  AuthorityUtils.createAuthorityList("ROLE_" + member.getMemRole().toString()));
 		
 		this.member = member;
 		

@@ -25,7 +25,7 @@ public class Case {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="code_idx")
-    private Long case_idx;
+    private Long caseIdx;
 
     // 분석 식별자
 	@ManyToOne
@@ -35,6 +35,6 @@ public class Case {
     // 분류 유형
 	@Column(name = "case_type", nullable = false)
 	@Enumerated(EnumType.STRING)
-    private FieldName case_type;
+    private FieldName caseType;
 	
 }

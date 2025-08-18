@@ -26,7 +26,7 @@ public class Field {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "field_idx")
-    private Long field_idx;
+    private Long fieldIdx;
 
     // 회원 인덱스
 	@ManyToOne
@@ -36,6 +36,6 @@ public class Field {
     // 전문 분야
 	@Column(name = "field_name", nullable = false)
 	@Enumerated(EnumType.STRING)
-    private FieldName field_name;
+    private FieldName fieldName;
 	
 }

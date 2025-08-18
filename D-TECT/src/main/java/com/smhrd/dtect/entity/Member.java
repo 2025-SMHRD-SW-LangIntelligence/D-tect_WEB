@@ -56,16 +56,16 @@ public class Member {
 
     // 회원 약관동의
 	@Column(name = "terms_agree", nullable = false)
-    private String terms_agree;
+    private String termsAgree;
 
     // 회원 유형
 	@Column(name = "mem_role", nullable = false)
 	@Enumerated(EnumType.STRING)
-    private MemRole mem_role;
+    private MemRole memRole;
 
     // 가입 일자
 	@Column(name = "joined_at", nullable = false)
-    private Timestamp joined_at;
+    private Timestamp joinedAt;
 	
 	// 비밀번호 암호화 함수
 	public void encodePassword(PasswordEncoder passwordEncoder, String password) {

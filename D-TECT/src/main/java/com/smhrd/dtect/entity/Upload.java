@@ -32,20 +32,20 @@ public class Upload {
 
     // 자료 내용
     @Column(name = "upload_content", columnDefinition="TEXT", nullable = false)
-    private String upload_content;
+    private String uploadContent;
 
     // 자료 인코딩
 	@Column(name = "upload_encoding", columnDefinition="MEDIUMTEXT", nullable = false)
     @Lob
-    private String upload_encoding;
+    private String uploadEncoding;
 
     // 자료 벡터
 	@Column(name = "upload_vector", nullable = false)
     @Lob
-    private byte[] upload_vector;
+    private byte[] uploadVector;
 
     // 업로드 날짜
 	@Column(name = "created_at", nullable = false)
-    private Timestamp created_at;
+    private Timestamp createdAt;
 
 }

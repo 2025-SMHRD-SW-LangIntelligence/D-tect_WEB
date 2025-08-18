@@ -22,7 +22,7 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
     
     @PostMapping("/register.do")
-    public void register(@RequestParam Long memIdx, @RequestParam String username, @RequestParam String password, @RequestParam String name, @RequestParam String phone, @RequestParam String address, @RequestParam String email, @RequestParam String terms_agree, @RequestParam MemRole role, @RequestParam String office_name, @RequestParam Timestamp joined_at) {
+    public void register(@RequestParam Long memIdx, @RequestParam String username, @RequestParam String password, @RequestParam String name, @RequestParam String phone, @RequestParam String address, @RequestParam String email, @RequestParam String termsAgree, @RequestParam MemRole role, @RequestParam Timestamp joinedAt) {
     	
     	Member member = new Member();
     	role = MemRole.USER;
@@ -32,9 +32,9 @@ public class UserController {
     	member.setPhone(phone);
     	member.setAddress(address);
     	member.setEmail(email);
-    	member.setTerms_agree(terms_agree);	
-    	member.setMem_role(role);
-    	member.setJoined_at(joined_at);
+    	member.setTermsAgree(termsAgree);
+    	member.setMemRole(role);
+    	member.setJoinedAt(joinedAt);
     	
     }
     

@@ -38,18 +38,18 @@ public class Analysis {
 
     // 분석 결과
 	@Column(name = "anal_result", columnDefinition="TEXT", nullable = false)
-    private String anal_result;
+    private String analResult;
 
     // 분석 등급
 	@Column(name = "anal_rate", nullable = false)
 	@Enumerated(EnumType.STRING)
-    private AnalRate anal_rate;
+    private AnalRate analRate;
 
     // 분석 날짜
 	@Column(name = "created_at", nullable = false)
-    private Timestamp created_at;
+    private Timestamp createdAt;
 	
 	// 결과 보고서 경로
 	@Column(name = "report_path",nullable = false)
-	private String report_path;
+	private String reportPath;
 }
