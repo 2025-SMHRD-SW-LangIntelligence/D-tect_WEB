@@ -100,10 +100,19 @@ public class ExpertAdminService {
 
     // 승인
     public void approve(Long expertIdx) {
-        Expert e = expertRepository.findById(expertIdx)
+        Expert expert = expertRepository.findById(expertIdx)
                 .orElseThrow(() -> new IllegalArgumentException("전문가 없음: " + expertIdx));
-        e.setExpertStatus(ExpertStatus.APPROVED);
-        expertRepository.save(e);
+
+        // 1) 전문가 승인
+        expert.setExpertStatus(ExpertStatus.APPROVED);
+        expertRepository.save(expert);
+
+        // 2) 연결된 멤버 테이블의 역할도 Expert로 설정!
+        Member member = expert.getMember();
+        if (member != null && member.getMemRole() != MemRole.EXPERT) {
+            member.setMemRole(MemRole.EXPERT);
+            memberRepository.save(member);
+        }
     }
 
     // 거절
