@@ -11,14 +11,15 @@ import java.util.List;
 @Repository
 public interface UploadRepository extends JpaRepository<Upload, Long> {
 
+    // 매칭 기준으로 업로드 목록
+    List<Upload> findByMatching_MatchingIdx(Long matchingId);
+
     @Query("""
         select distinct u
         from Upload u
         left join fetch u.uploadFileList f
         where u.matching.matchingIdx = :matchingId
-        order by u.createdAt desc
+        order by u.uploadIdx asc
     """)
     List<Upload> findWithFiles(@Param("matchingId") Long matchingId);
-
-    List<Upload> findByMatching_MatchingIdx(Long matchingId);
 }
