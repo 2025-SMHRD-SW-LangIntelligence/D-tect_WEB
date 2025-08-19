@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko" xmln:th="http://www.thymleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D-tect | 분석</title>
+    <link rel="stylesheet" th:href="@{/css/analysis.css}" />
+</head>
+
+<body>
+    <!-- 헤더 -->
+    <header class="topbar">
+        <div class="left">
+            <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo" />
+            <h1 id="pageTitle">분석 진행중</h1>
+        </div>
+        <div class="right">
+            <button class="icon-btn" id="btnAI" aria-label="챗봇 열기">
+                <img th:src="{/images/AI.png}" alt="AI" />
+            </button>
+            <a class="icon-btn" href="./mypage.html" aria-label="마이페이지로 이동">
+                <img src="@{/images/mypage.png}" alt="마이페이지" />
+            </a>
+        </div>
+    </header>
+
+    <!-- 콘텐츠 -->
+    <main class="container">
+
+        <!-- 1) 분석 섹션 -->
+        <section id="panelLoading" class="panel">
+            <div class="card loading">
+                <div class="spinner-wrap">
+                    <div class="spinner">
+                        <!-- 단순 로더 -->
+                        <div class="slice s1"></div>
+                        <div class="slice s2"></div>
+                        <div class="slice s3"></div>
+                        <div class="slice s4"></div>
+                        <div class="slice s5"></div>
+                        <div class="slice s6"></div>
+                        <div class="slice s7"></div>
+                        <div class="slice s8"></div>
+                        <div class="slice s9"></div>
+                        <div class="slice s10"></div>
+                        <div class="slice s11"></div>
+                        <div class="slice s12"></div>
+                    </div>
+                    <p class="loading-text"><span id="progress">0%</span> 분석중입니다</p>
+                </div>
+            </div>
+
+            <button id="btnAnalyze" class="btn primary">분석</button>
+        </section>
+
+        <!-- 2) 결과 섹션 -->
+        <section id="panelResult" class="panel hidden" aria-live="polite">
+            <div class="card result">
+                <div class="chart-head">모델 분석 결과</div>
+                <canvas id="radar" width="520" height="400" aria-label="욕설 카테고리 레이더 차트"></canvas>
+                <div class="legend">
+                    <span class="key red"></span> 검출 비율(%) &nbsp;|&nbsp;
+                    <span class="key gray"></span> 기준축
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="btnPdf" class="btn ghost">PDF 다운로드</button>
+                <a href="./consult.html" class="btn primary">법률전문가와 상담하기</a>
+            </div>
+        </section>
+
+    </main>
+
+    <script th:src="@{/js/analysis.js}"></script>
+</body>
+
+</html>
