@@ -26,52 +26,36 @@ public class FileController {
     private final FileService fileService;
     private final UploadFileRepository uploadFileRepository;
 
-    // 매칭 화면 (여러 파일 업로드 폼 + 목록)
-    // 테스트를 위한 defaultValue = "1"
-    // 추후 해당 코드는 수정 예정입니다람쥐
+    // 매칭 화면
     @GetMapping("/match")
-    public String matchPage(@RequestParam(name = "matchingId", defaultValue = "1") Long matchingId,
-                            Model model) {
-
-        List<Upload> uploads = fileService.list(matchingId);
+    public String matchPage(@RequestParam Long matchingId, Model model) {
+        List<Upload> uploads = fileService.listByMatching(matchingId);
         model.addAttribute("matchingId", matchingId);
-        model.addAttribute("uploads", uploads); // u.uploadFileList 사용
+        model.addAttribute("uploads", uploads);
         return "match";
     }
 
-    // 여러 파일 업로드 (한 매칭에 다중 파일)
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String upload(@RequestParam Long matchingId,
-                         @RequestParam("files") List<MultipartFile> files) throws Exception {
+    // 여러 파일 업로드
+    @PostMapping(value = "/upload/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String uploadMultiple(@RequestParam Long matchingId,
+                                 @RequestParam("files") List<MultipartFile> files) throws Exception {
         fileService.uploadFiles(matchingId, files);
-        return "redirect:/match?matchingId=" + matchingId;
+        return "redirect:/matching/detail/" + matchingId;
     }
 
-    // 파일 다운로드
+    // 파일 단건 다운로드
     @GetMapping("/download/file/{fileId}")
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long fileId) {
-
-        // 1) 파일 메타 조회
         Optional<UploadFile> opt = uploadFileRepository.findById(fileId);
-        if (opt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+
         UploadFile f = opt.get();
-
-        // 2) 복호화된 바이트 얻기(실패/없음 → 404)
         byte[] bytes = fileService.downloadFilePlain(fileId);
-        if (bytes == null || bytes.length == 0) {
-            return ResponseEntity.notFound().build();
-        }
+        if (bytes == null || bytes.length == 0) return ResponseEntity.notFound().build();
 
-        // 3) 파일명: DB 저장 그대로 사용 (비어있으면 기본값)
-        String filename = f.getFileName();
-        if (!StringUtils.hasText(filename)) {
-            filename = "download.bin";
-        }
-        // 헤더 인젝션 방지(개행/따옴표 치환)
-        String safe = filename.replaceAll("[\\r\\n\"]", "_");
-        String encoded = URLEncoder.encode(safe, StandardCharsets.UTF_8).replace("+", "%20");
+        String filename = StringUtils.hasText(f.getFileName()) ? f.getFileName() : "download.bin";
+        String safe     = filename.replaceAll("[\\r\\n\"]", "_");
+        String encoded  = URLEncoder.encode(safe, StandardCharsets.UTF_8).replace("+", "%20");
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded);

@@ -69,7 +69,7 @@ public class Member {
     private Timestamp joinedAt;
 	
 	// 회원 활동 가능 여부
-	@Column(name = "mem_status", nullable = false)
+	@Column(name = "member_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private MemberStatus memberStatus;
 	
