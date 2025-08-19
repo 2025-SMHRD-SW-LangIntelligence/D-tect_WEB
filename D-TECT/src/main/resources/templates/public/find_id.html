@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymleaf.org">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 아이디 찾기</title>
-    <link rel="stylesheet" href="./css/find_id.css" />
+    <link rel="stylesheet" th:href="@{/css/find_id.css}" />
 </head>
 
 <body>
     <!-- 좌상단 로고 (200px, 홈 이동 예정) -->
     <a href="/" class="logo" aria-label="D-tect 홈으로">
-        <img src="./images/logo.png" alt="D-tect 로고">
+        <img th:src="./images/logo.png" alt="D-tect 로고">
     </a>
 
     <!-- 검색 카드 -->
@@ -49,7 +49,7 @@
         </section>
     </main>
 
-    <script src="./js/find_id.js"></script>
+    <script th:src="@{/js/find_id.js}"></script>
 </body>
 
 </html>
