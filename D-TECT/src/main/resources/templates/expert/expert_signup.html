@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmln:th="http://www.thymleaf.org">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 전문가 회원가입</title>
-    <link rel="stylesheet" href="./css/expert_signup.css" />
+    <link rel="stylesheet" th:href="@{/css/expert_signup.css}" />
 </head>
 
 <body>
     <!-- 좌상단 로고(200px) -->
     <a href="/" class="logo" aria-label="D-tect 홈">
-        <img src="./images/logo.png" alt="D-tect 로고" />
+        <img th:src="@{./images/logo.png}" alt="D-tect 로고" />
     </a>
 
     <main class="frame">
@@ -108,7 +108,7 @@
         </section>
     </main>
 
-    <script src="./js/expert_signup.js"></script>
+    <script th:src="@{/js/expert_signup.js}"></script>
 </body>
 
 </html>

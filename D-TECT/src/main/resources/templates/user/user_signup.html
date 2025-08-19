@@ -5,13 +5,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 일반 사용자 회원가입</title>
-    <link rel="stylesheet" href="./css/user_signup.css" />
+    <link rel="stylesheet" th:href="@{/css/user_signup.css}" />
 </head>
 
 <body>
     <!-- 좌상단 로고 200px -->
     <a href="/" class="logo" aria-label="D-tect 홈">
-        <img src="./images/logo.png" alt="D-tect 로고" />
+        <img th:src="@{/images/logo.png}" alt="D-tect 로고" />
     </a>
 
     <main class="frame">
@@ -87,7 +87,7 @@
         </section>
     </main>
 
-    <script src="./js/user_signup.js"></script>
+    <script src="@{/js/user_signup.js}"></script>
 </body>
 
 </html>
