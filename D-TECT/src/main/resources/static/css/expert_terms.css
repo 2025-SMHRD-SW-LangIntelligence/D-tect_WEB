@@ -1,0 +1,139 @@
+:root {
+    --bg: #1f1f1f;
+    --text: #f5f7fa;
+    --muted: #cfd8e3;
+    --line: #F0DD08;
+    /* 포인트 노랑 */
+}
+
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(1100px 600px at 50% 10%, #2b2b2b, var(--bg) 60%),
+        var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px 40px;
+}
+
+/* 좌상단 로고 200px */
+.logo {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 10;
+}
+
+.logo img {
+    width: 200px;
+    height: auto;
+    display: block;
+}
+
+/* 패널 */
+.wrap {
+    width: min(1100px, 100%);
+}
+
+.panel {
+    background: var(--line);
+    border: 2px solid #35a9ff20;
+    /* 살짝 파란 외곽 느낌(선택) */
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .35);
+}
+
+/* 약관 박스 */
+.terms-box {
+    background: #ffffff;
+    color: #222;
+    border-radius: 14px;
+    padding: 20px 18px;
+    height: clamp(300px, 48vh, 420px);
+    overflow: auto;
+    border: 1px solid #e6e6e6;
+}
+
+/* 동의 영역 */
+.agree {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    margin: 18px 0 10px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #161616;
+    background: #ffffffaa;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, .08);
+}
+
+.option input {
+    width: 18px;
+    height: 18px;
+}
+
+/* 액션 */
+.actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btn.black {
+    width: min(320px, 80%);
+    height: 48px;
+    border: none;
+    border-radius: 999px;
+    background: #222;
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: .4px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .35);
+    cursor: pointer;
+    transition: transform .15s ease, filter .15s ease, opacity .15s ease;
+}
+
+.btn.black:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    filter: none;
+    transform: none;
+}
+
+.btn.black:not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.link {
+    margin-top: 4px;
+    background: transparent;
+    border: none;
+    color: #222;
+    /* 노란 배경과 대비 */
+    font-size: .9rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
