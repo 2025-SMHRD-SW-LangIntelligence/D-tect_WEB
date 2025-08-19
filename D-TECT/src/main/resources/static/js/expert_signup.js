@@ -8,6 +8,9 @@ const btnFile = document.getElementById('btnFile');
 const inputFile = document.getElementById('cert');
 const drop = document.getElementById('drop');
 const goTerms = document.getElementById('goTerms');
+const specialtyChipsWrap = document.getElementById('specialtyChips');
+const specialtiesHidden = document.getElementById('specialties');
+
 
 // ===== 데모 핸들러(실 서비스 연동 시 교체) =====
 
@@ -45,11 +48,63 @@ function validatePasswords(showMsg = true) {
 }
 pwd.addEventListener('input', () => validatePasswords(false));
 pwd2.addEventListener('input', () => validatePasswords(true));
+
 // 주소 찾기(샘플)
 btnAddr.addEventListener('click', () => {
     // TODO: 우편번호/주소 API(카카오, 다음 등) 연결
     alert('주소 검색 모달을 띄웁니다(데모).');
 });
+// 칩으로 표시할 전문분야 옵션 (원하는 대로 수정/추가)
+const SPECIALTY_OPTIONS = [
+    '외모·신체 비하',
+    '성희롱·성적발언',
+    '인신공격·모욕',
+    '콘텐츠·실력비하',
+    '혐오발언',
+    '스팸·채팅도배'
+
+];
+function renderSpecialtyChips() {
+    specialtyChipsWrap.innerHTML = '';
+    SPECIALTY_OPTIONS.forEach((label, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip selectable';
+        btn.textContent = label;
+
+        // 접근성: 체크박스 역할/상태
+        btn.setAttribute('role', 'checkbox');
+        btn.setAttribute('tabindex', '0');
+        btn.setAttribute('aria-checked', 'false');
+        btn.dataset.value = label;
+
+        // 클릭/엔터/스페이스로 토글
+        const toggle = () => {
+            const selected = btn.getAttribute('aria-checked') === 'true';
+            btn.setAttribute('aria-checked', String(!selected));
+            btn.classList.toggle('selected', !selected);
+            updateSpecialtiesHidden();
+        };
+        btn.addEventListener('click', toggle);
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+
+        specialtyChipsWrap.appendChild(btn);
+    });
+}
+
+function updateSpecialtiesHidden() {
+    const selected = [...specialtyChipsWrap.querySelectorAll('.chip.selectable[aria-checked="true"]')]
+        .map(el => el.dataset.value);
+    specialtiesHidden.value = selected.join(',');
+
+    // 필요 시 커스텀 유효성 처리
+    specialtiesHidden.setCustomValidity(selected.length ? '' : '전문분야를 최소 1개 이상 선택해 주세요.');
+}
+
+// 초기 렌더링
+renderSpecialtyChips();
 
 // 파일 버튼
 btnFile.addEventListener('click', () => inputFile.click());
@@ -94,6 +149,14 @@ form.addEventListener('submit', (e) => {
 
 // 약관 보기로 이동 (기본 유효성 검사 + 세션 저장)
 goTerms.addEventListener('click', () => {
+    updateSpecialtiesHidden();
+    if (!specialtiesHidden.value) {
+        specialtiesHidden.reportValidity();   // 브라우저 기본 에러 풍선
+        specialtyChipsWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+
     if (!form.reportValidity()) return; // HTML 표준 검증 메시지
 
     const data = {
