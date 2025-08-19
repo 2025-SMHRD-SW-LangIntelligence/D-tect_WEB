@@ -32,6 +32,7 @@ public class PageController {
     public String chooseRole() {
     	return "public/chooseRole";			// 회원 유형 선택 페이지
     }
+    
 
     @GetMapping(value = "/joinUserPage")
     public String userSignup() {
