@@ -64,4 +64,9 @@ public class PageController {
     	model.addAttribute("userlist", userList);
     	return "admin/userBlock";			// 관리자 회원 관리 페이지
     }
+    
+    @GetMapping(value = "/adminInfoUpdatePage")
+    public String infoUpdate() {
+    	return "admin/infoUpdate";
+    }
 }

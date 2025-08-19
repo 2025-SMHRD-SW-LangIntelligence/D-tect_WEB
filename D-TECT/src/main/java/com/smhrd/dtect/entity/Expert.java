@@ -31,7 +31,7 @@ public class Expert {
     
     // 변호사 인증 파일
     @Column(name = "certification_file")
-    private File certificationFile;
+    private String certificationFile;
     
     // 자료 인코딩
     @Lob
