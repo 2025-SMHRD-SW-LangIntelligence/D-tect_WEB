@@ -1,8 +1,5 @@
 package com.smhrd.dtect.entity;
 
-
-import java.io.File;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +28,7 @@ public class Expert {
     
     // 변호사 인증 파일
     @Column(name = "certification_file")
-    private File certificationFile;
+    private String certificationFile;
     
     // 자료 인코딩
     @Lob

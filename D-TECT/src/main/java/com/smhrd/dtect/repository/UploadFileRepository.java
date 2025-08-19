@@ -13,4 +13,6 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, Long> {
 
     // 여러 업로드 묶음의 파일을 한 번에
     List<UploadFile> findAllByUpload_UploadIdxIn(List<Long> uploadIdxList);
+
+    List<UploadFile> findByUpload_Matching_MatchingIdx(Long matchingId);
 }

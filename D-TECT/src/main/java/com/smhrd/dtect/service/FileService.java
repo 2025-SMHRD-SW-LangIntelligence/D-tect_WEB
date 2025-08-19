@@ -15,10 +15,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -34,25 +35,20 @@ public class FileService {
 
     private byte[] aesKey; // SHA-256(pathfinder) 결과(32바이트)
 
-    public static String guessContentType(String filename) {
-        String type = URLConnection.guessContentTypeFromName(filename);
-        return (type != null) ? type : "application/octet-stream";
-    }
-
     @PostConstruct
     void initKey() throws Exception {
         this.aesKey = MessageDigest.getInstance("SHA-256")
                 .digest(aesSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // 한 번의 업로드에 여러 파일 저장 — 매칭 기준
+    // 한 매칭에 여러파일 업로드
     public Upload uploadFiles(Long matchingId, List<MultipartFile> files) throws Exception {
         Matching matching = matchingRepository.findById(matchingId)
                 .orElseThrow(() -> new IllegalArgumentException("매칭을 찾을 수 없습니다: " + matchingId));
 
-        // Upload.createdAt은 @PrePersist에서 자동 세팅
         Upload upload = new Upload();
         upload.setMatching(matching);
+        upload.setCreatedAt(Timestamp.from(Instant.now()));
         Upload saved = uploadRepository.save(upload);
 
         for (MultipartFile file : files) {
@@ -65,16 +61,16 @@ public class FileService {
             UploadFile uf = new UploadFile();
             uf.setUpload(saved);
             uf.setFileName(file.getOriginalFilename());
-            uf.setUploadEncoding(cipher); // 파일별 암호문
-            uf.setUploadVector(iv);       // 파일별 IV
+            uf.setUploadEncoding(cipher);
+            uf.setUploadVector(iv);
 
             uploadFileRepository.save(uf);
         }
         return saved;
     }
 
-    // 매칭에 연결된 업로드 목록
-    public List<Upload> list(Long matchingId) {
+    // 매칭 기준 업로드 목록
+    public List<Upload> listByMatching(Long matchingId) {
         return uploadRepository.findWithFiles(matchingId);
     }
 
@@ -92,7 +88,7 @@ public class FileService {
         }).orElse(null);
     }
 
-    // === AES 유틸 ===
+    // AES
     private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
 
     private static byte[] randomIv() {
