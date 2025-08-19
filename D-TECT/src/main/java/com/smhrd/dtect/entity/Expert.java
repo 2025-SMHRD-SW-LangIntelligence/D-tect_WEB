@@ -1,8 +1,5 @@
 package com.smhrd.dtect.entity;
 
-
-import java.io.File;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
