@@ -26,7 +26,7 @@ public class AdminService {
     public void updateMemberStatus(Long memberId, MemberStatus status) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-        member.setStatus(status);
+        member.setMemberStatus(status);
         memberRepository.save(member);
     }
 
@@ -34,7 +34,7 @@ public class AdminService {
         Expert expert = expertRepository.findById(expertId)
                 .orElseThrow(() -> new IllegalArgumentException("Expert not found"));
 
-        expert.setStatus(ExpertStatus.APPROVED);
+        expert.setExpertStatus(ExpertStatus.APPROVED);
         expertRepository.save(expert);
 
         // 전문가 승인 시 Member 역할도 EXPERT로 변경

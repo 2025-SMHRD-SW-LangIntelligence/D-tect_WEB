@@ -69,9 +69,9 @@ public class Member {
     private Timestamp joinedAt;
 	
 	// 회원 활동 가능 여부
-	@Column(nullable = false)
+	@Column(name = "mem_status", nullable = false)
 	@Enumerated(EnumType.STRING)
-	private MemberStatus status;
+	private MemberStatus memberStatus;
 	
 	// 날짜 자동 기입 함수
 	@PrePersist

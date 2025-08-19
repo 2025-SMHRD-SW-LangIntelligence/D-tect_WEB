@@ -26,7 +26,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	    Member member = memberRepository.findByUsername(username)
 	        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-	    if (member.getStatus() == MemberStatus.BLOCKED) {
+	    if (member.getMemberStatus() == MemberStatus.BLOCKED) {
 	        throw new DisabledException("This account is blocked");
 	    }
 

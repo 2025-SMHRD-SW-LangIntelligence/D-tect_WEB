@@ -30,7 +30,7 @@ public class UserService {
             member.setMemRole(MemRole.USER);
         }
         
-        member.setStatus(MemberStatus.ACTIVE);
+        member.setMemberStatus(MemberStatus.ACTIVE);
         // 저장
         return memberRepository.save(member);
     }
