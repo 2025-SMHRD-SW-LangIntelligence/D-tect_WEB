@@ -30,15 +30,6 @@ public class Upload {
     @Column(name = "upload_idx")
     private Long uploadIdx;
 
-    // 사용자 인덱스
-	@ManyToOne
-    @JoinColumn(name = "user_idx", nullable = false)
-    private User user;
-
-    // 전문가 인덱스
-    @ManyToOne
-    @JoinColumn(name = "expert_idx", nullable = false)
-    private Expert expert;
 
     // 업로드 날짜
 	@Column(name = "created_at")
@@ -49,6 +40,12 @@ public class Upload {
 	protected void onCreate() {
 	    this.createdAt = new Timestamp(System.currentTimeMillis());
 	}
+
+    // 매칭 테이블과 매핑
+    @ManyToOne
+    @JoinColumn(name = "matching_idx", nullable = false)
+    private Matching matching;
+
 	
     // 양방향 매핑
     @OneToMany(mappedBy = "upload", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

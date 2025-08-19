@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>전문가 선택 · 매칭 요청</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <style>
+        body{margin:0;background:#f6f7fb;font:14px/1.5 system-ui}
+        .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+        .card{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:18px;border:1px solid #e9e9ef}
+        h1{margin:0 0 12px}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:8px;border-bottom:1px solid #e9e9ef;text-align:left}
+        .btn{background:#111;color:#fff;border:0;border-radius:10px;padding:9px 14px;cursor:pointer}
+        .btn.outline{background:#fff;color:#111;border:1px solid #e9e9ef}
+        .help{color:#666;font-size:12px}
+        input,textarea{width:100%;padding:9px 10px;border:1px solid #e9e9ef;border-radius:10px}
+        textarea{min-height:90px;resize:vertical}
+        .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+        .list{max-height:320px;overflow:auto;border:1px solid #e9e9ef;border-radius:10px}
+        .tag{display:inline-block;font-size:12px;background:#f1f1f7;border:1px solid #e9e9ef;padding:2px 6px;border-radius:6px;margin-right:4px}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <h1>전문가 목록 · 매칭 요청</h1>
+        <p class="help">userId는 로그인 대신 <b th:text="${userId} ?: 1">1</b>로 가정합니다.</p>
+
+        <!-- 전문가 목록 (서버가 experts 모델을 채워준 경우) -->
+        <div th:if="${experts}">
+            <div class="list" style="margin:10px 0">
+                <table>
+                    <thead><tr><th>선택</th><th>전문가</th><th>사무실</th><th>주소</th><th>분야</th><th>ID</th></tr></thead>
+                    <tbody>
+                    <tr th:each="e : ${experts}">
+                        <td><input type="radio" name="pickExpert" th:value="${e.expertIdx}" /></td>
+                        <td th:text="${e.member != null ? e.member.name : 'expert#' + e.expertIdx}">전문가명</td>
+                        <td th:text="${e.officeName}">사무실</td>
+                        <td th:text="${e.officeAddress}">주소</td>
+                        <td>
+                            <span class="tag" th:each="f : ${e.fields}" th:text="${f.fieldName}">분야</span>
+                        </td>
+                        <td th:text="${e.expertIdx}">1</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 전문가 목록 (클라이언트에서 API로 로드하는 버튼) -->
+        <div th:if="${experts} == null" class="row">
+            <button class="btn outline" id="btnLoadExperts">전문가 목록 불러오기(API)</button>
+            <span class="help">API: GET /api/experts</span>
+        </div>
+        <div id="expertsBox" class="list" style="display:none;margin-top:10px">
+            <table>
+                <thead><tr><th>선택</th><th>전문가</th><th>사무실</th><th>주소</th><th>분야</th><th>ID</th></tr></thead>
+                <tbody id="expertsTbody"><tr><td colspan="6" class="help">불러오는 중…</td></tr></tbody>
+            </table>
+        </div>
+
+        <div style="height:12px"></div>
+        <form action="/matching/request" method="post" enctype="multipart/form-data" id="requestForm">
+            <div class="row">
+                <div style="flex:1">
+                    <label class="help">선택된 전문가 ID</label>
+                    <input type="number" id="expertId" name="expertId" th:value="${expertId}"/>
+                </div>
+                <div style="width:180px">
+                    <label class="help">사용자 ID</label>
+                    <input type="number" name="userId" th:value="${userId} ?: 1"/>
+                </div>
+            </div>
+            <div style="margin-top:8px">
+                <label class="help">요청 메시지</label>
+                <textarea name="message" placeholder="요청 내용을 적어주세요."></textarea>
+            </div>
+            <div class="row" style="margin-top:8px">
+                <div style="flex:1">
+                    <label class="help">첨부(선택 · 1개)</label>
+                    <input type="file" name="attachment"/>
+                </div>
+                <button class="btn" type="submit">도움 요청 보내기</button>
+            </div>
+            <p class="help">POST /matching/request (userId, expertId, message, attachment)</p>
+        </form>
+
+        <div style="margin-top:12px">
+            <a class="btn outline" href="/demo/index">← 데모 홈</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    (()=> {
+        const expertsFromServer = /*[[${experts}]]*/ null; // thymeleaf inline이 아니면 항상 null로 평가됨
+        const expertIdInput = document.getElementById('expertId');
+
+        // 서버가 experts를 채워준 경우: 라디오 선택 → expertId에 반영
+        if (expertsFromServer) {
+            document.querySelectorAll('input[name="pickExpert"]').forEach(r=>{
+                r.addEventListener('change',()=>{ expertIdInput.value = r.value; });
+            });
+        }
+
+        // API 로드 버튼(서버 렌더링이 없을 때)
+        const btn = document.getElementById('btnLoadExperts');
+        if (btn) {
+            btn.addEventListener('click', async ()=>{
+                const box = document.getElementById('expertsBox');
+                const tbody = document.getElementById('expertsTbody');
+                box.style.display='block';
+                try {
+                    const res = await fetch('/api/experts');
+                    const list = await res.json();
+                    if (!Array.isArray(list) || list.length===0) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="help">전문가가 없습니다.</td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = list.map(e=>{
+                        const name = (e.member && e.member.name) ? e.member.name : `expert#${e.expertIdx}`;
+                        const fields = (e.fields || []).map(f=>`<span class="tag">${f.fieldName || f}</span>`).join(' ');
+                        return `
+            <tr>
+              <td><input type="radio" name="pickExpert" value="${e.expertIdx}"></td>
+              <td>${name}</td>
+              <td>${e.officeName||''}</td>
+              <td>${e.officeAddress||''}</td>
+              <td>${fields}</td>
+              <td>${e.expertIdx}</td>
+            </tr>
+          `;
+                    }).join('');
+                    tbody.querySelectorAll('input[name="pickExpert"]').forEach(r=>{
+                        r.addEventListener('change',()=>{ expertIdInput.value = r.value; });
+                    });
+                } catch(e){
+                    tbody.innerHTML = `<tr><td colspan="6" class="help">불러오기 실패: ${e.message}</td></tr>`;
+                }
+            });
+        }
+
+        // 전송 전 검증
+        const form = document.getElementById('requestForm');
+        form.addEventListener('submit', (ev)=>{
+            if (!expertIdInput.value) {
+                ev.preventDefault();
+                alert('전문가를 선택하거나 expertId를 입력하세요.');
+            }
+        });
+    })();
+</script>
+</body>
+</html>

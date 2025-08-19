@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>D-TECT · 데모 홈</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <style>
+        body{margin:0;background:#f6f7fb;font:14px/1.5 system-ui}
+        .wrap{max-width:840px;margin:32px auto;padding:0 16px}
+        .card{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:20px;border:1px solid #e9e9ef}
+        h1{margin:0 0 12px}
+        a.btn{display:inline-block;background:#111;color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;margin-right:8px}
+        .muted{color:#666}
+        input{padding:8px 10px;border:1px solid #e9e9ef;border-radius:10px}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <h1>D-TECT 데모 홈</h1>
+        <p class="muted">로그인 없이 userId=1 가정. 아래 링크로 각 화면을 테스트하세요.</p>
+
+        <p style="margin:10px 0 6px">1) 사용자: 전문가에게 도움 요청</p>
+        <a class="btn" href="/demo/experts?userId=1">전문가 목록 / 매칭 요청</a>
+
+        <p style="margin:16px 0 6px">2) 전문가: 대기중 요청 처리</p>
+        <form action="/demo/expert-dashboard" method="get" style="display:flex;gap:8px;align-items:center">
+            <input type="number" name="expertId" value="1" placeholder="expertId"/>
+            <button class="btn" type="submit">전문가 대시보드 열기</button>
+        </form>
+
+        <p style="margin:16px 0 6px">3) 승인된 매칭 진행(다중 파일 업/다운로드)</p>
+        <form action="/demo/matching-detail.html" method="get" style="display:flex;gap:8px;align-items:center">
+            <input type="number" name="matchingId" placeholder="matchingId 입력"/>
+            <button class="btn" type="submit">매칭 상세 열기</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
