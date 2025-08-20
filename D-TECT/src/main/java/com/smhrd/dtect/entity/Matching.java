@@ -40,6 +40,9 @@ public class Matching {
     @Column(name = "upload_vector", columnDefinition = "VARBINARY(16)")
     private byte[] matchingVector;
 
+    @Column(name = "request_reason", nullable = false)
+    private String requestReason;
+
     // 사용자 인덱스
     @ManyToOne
     @JoinColumn(name = "user_idx", nullable = false)
