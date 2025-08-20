@@ -16,6 +16,7 @@
         </a>
         <h1 class="page-title">마이페이지</h1>
     </div>
+
     <div class="right">
         <div class="user-chip">
             <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
@@ -63,6 +64,7 @@
             </header>
 
             <div class="list-scroll">
+                <!-- 열 헤더: 6열(신청일, 변호사, 분류, 매칭일, 매칭여부, 채팅방) -->
                 <div class="list-head list-grid" role="rowgroup" aria-hidden="true">
                     <div class="col">신청일</div>
                     <div class="col">변호사</div>
@@ -72,6 +74,7 @@
                     <div class="col">채팅방</div>
                 </div>
 
+                <!-- 데이터 목록 -->
                 <ul id="applyList" class="list-body" role="rowgroup" aria-live="polite"></ul>
             </div>
 

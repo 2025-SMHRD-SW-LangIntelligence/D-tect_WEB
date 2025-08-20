@@ -9,6 +9,7 @@
     let items = [];
     let page  = 1;
 
+    // ===== 유틸 =====
     function fmt(ts) {
         if (!ts) return '—';
         const d = new Date(ts);
@@ -39,12 +40,19 @@
         return 'badge badge--warn';
     }
 
+    // ===== 한 행 템플릿(채팅 버튼 포함) =====
     function rowTemplate(item) {
         const requestedAt = item.requestedAt ? fmt(item.requestedAt) : '—';
         const matchedAt   = item.matchedAt   ? fmt(item.matchedAt)   : '—';
         const lawyerName  = item.lawyerName && item.lawyerName.trim() ? item.lawyerName : '—';
         const reason      = item.requestReason && item.requestReason.trim() ? item.requestReason : '—';
-        const sKor        = statusKorean(item.status);
+
+        const statusEnum  = String(item.status || '').toUpperCase(); // APPROVED/REJECTED/...
+        const sKor        = statusKorean(statusEnum);
+        const chatEnabled = (statusEnum === 'APPROVED' || statusEnum === 'COMPLETED');
+
+        // 서버에서 chatUrl을 내려주지 않는다면 matchingIdx로 기본 경로 생성
+        const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}`;
 
         return `
       <li class="list-row" role="row">
@@ -53,39 +61,22 @@
         <div class="col">${reason}</div>
         <div class="col">${matchedAt}</div>
         <div class="col"><span class="${badgeClassKor(sKor)}">${sKor}</span></div>
+        <div class="col">
+          <button class="chat-btn" data-url="${chatUrl}" ${chatEnabled ? '' : 'disabled'}>입장하기</button>
+        </div>
       </li>
     `;
     }
-	function isChatEnabled(stat){
-	  return ['확정','매칭완료'].includes(String(stat).trim());
-	}
 
-	function renderList(){
-	  // ... (페이지 계산 동일)
-	  listEl.innerHTML = items.map(item => {
-	    const enabled = isChatEnabled(item.matchStat);
-	    return `
-	      <li class="list-row" role="row">
-	        <div class="col">${item.applyDate}</div>
-	        <div class="col">${item.lawyer}</div>
-	        <div class="col">${item.type}</div>
-	        <div class="col">${item.matchDate}</div>
-	        <div class="col"><span class="${badgeClass(item.matchStat)}">${item.matchStat}</span></div>
-	        <div class="col">
-	          <button class="chat-btn" data-url="${item.chatUrl || '#'}" ${enabled ? '' : 'disabled'}>입장하기</button>
-	        </div>
-	      </li>
-	    `;
-	  }).join('');
-	}
-	listEl.addEventListener('click', (e) => {
-	  const btn = e.target.closest('.chat-btn');
-	  if (!btn || btn.disabled) return;
-	  const url = btn.dataset.url || '#';
-	  // 실제 서비스 경로에 맞게 처리
-	  window.location.href = url;
-	});
+    // 채팅 버튼 클릭 위임
+    listEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chat-btn');
+        if (!btn || btn.disabled) return;
+        const url = btn.dataset.url || '#';
+        window.location.href = url;
+    });
 
+    // ===== 렌더 & 페이지네이션 =====
     function render() {
         const total = items.length;
         const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -114,6 +105,7 @@
     prevBtn?.addEventListener('click', () => { if (page > 1) { page--; render(); }});
     nextBtn?.addEventListener('click', () => { page++; render(); });
 
+    // ===== 데이터 로드 =====
     async function load() {
         if (!userId) {
             console.warn('userId is missing in data-user-id.');
@@ -121,9 +113,11 @@
             return render();
         }
         try {
-            const res = await fetch(`/mypage/api/user/${userId}/matchings`, { headers: { 'Accept': 'application/json' }});
+            const res = await fetch(`/mypage/api/user/${userId}/matchings`, {
+                headers: { 'Accept': 'application/json' }
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            items = await res.json();
+            items = await res.json(); // UserMatchingSummaryDto[]
         } catch (e) {
             console.error('신청현황 로드 실패:', e);
             items = [];
@@ -131,8 +125,8 @@
         page = 1;
         render();
     }
-	
-    // 개인정보 폼 데모 동작(원 코드 유지)
+
+    // ===== 개인정보 폼 데모 동작(원래 코드 유지) =====
     const editToggleBtn = document.getElementById('editToggleBtn');
     const infoForm = document.getElementById('infoForm');
     const saveBtn = document.getElementById('saveBtn');
@@ -171,5 +165,6 @@
         if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');
     });
 
+    // 초기 로드
     load();
 })();

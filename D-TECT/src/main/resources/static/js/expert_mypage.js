@@ -25,10 +25,7 @@ function fmt(ts) {
     if (!ts) return '—';
     const d = new Date(ts);
     if (Number.isNaN(d.getTime())) return '—';
-    const yyyy = d.getFullYear();
-    const mm   = String(d.getMonth() + 1).padStart(2, '0');
-    const dd   = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    return d.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
 function statusKorean(status) {
@@ -54,44 +51,47 @@ function badgeClassKor(kor) {
     }
 }
 
+// 채팅 활성 조건(전문가도 동일 로직)
+function chatEnabledByStatus(statusEnumUpper) {
+    return statusEnumUpper === 'APPROVED' || statusEnumUpper === 'COMPLETED';
+}
+
+// 한 행 템플릿: 6열(신청일/고객명/분류/매칭일/매칭여부/채팅방)
 function rowTemplate(item) {
-    const sKor = statusKorean(item.status);
+    const requestedAt = fmt(item.requestedAt);
+    const matchedAt   = fmt(item.matchedAt);
+    const customer    = item.customerName ?? '—';
+    const reason      = item.requestReason ?? '—';
+
+    const statusEnum  = String(item.status || '').toUpperCase();
+    const sKor        = statusKorean(statusEnum);
+
+    const enabled     = chatEnabledByStatus(statusEnum);
+    const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}`;
+
     return `
     <li class="list-row" role="row">
-      <div class="col">${fmt(item.requestedAt)}</div>
-      <div class="col">${item.customerName ?? '—'}</div>
-      <div class="col">${item.requestReason ?? '—'}</div>
-      <div class="col">${fmt(item.matchedAt)}</div>
+      <div class="col">${requestedAt}</div>
+      <div class="col">${customer}</div>
+      <div class="col">${reason}</div>
+      <div class="col">${matchedAt}</div>
       <div class="col"><span class="${badgeClassKor(sKor)}">${sKor}</span></div>
+      <div class="col">
+        <button class="chat-btn" data-url="${chatUrl}" ${enabled ? '' : 'disabled'}>입장하기</button>
+      </div>
     </li>
   `;
 }
-function isChatEnabled(stat){
-  return ['확정','매칭완료'].includes(String(stat).trim());
-}
-function renderList(){
-  // ... (페이지 계산 동일)
-  listEl.innerHTML = items.map(item => `
-    <li class="list-row" role="row">
-      <div class="col">${item.applyDate}</div>
-      <div class="col">${item.client}</div>
-      <div class="col">${item.type}</div>
-      <div class="col">${item.matchDate}</div>
-      <div class="col"><span class="${badgeClass(item.matchStat)}">${item.matchStat}</span></div>
-      <div class="col">
-        <button class="chat-btn" data-url="${item.chatUrl || '#'}" ${isChatEnabled(item.matchStat) ? '' : 'disabled'}>입장하기</button>
-      </div>
-    </li>
-  `).join('');
-}
-// 버튼 클릭 델리게이션
-document.getElementById('applyList').addEventListener('click', (e) => {
-  const btn = e.target.closest('.chat-btn');
-  if (!btn || btn.disabled) return;
-  window.location.href = btn.dataset.url || '#';
+
+// 채팅 버튼 델리게이션
+listEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chat-btn');
+    if (!btn || btn.disabled) return;
+    const url = btn.dataset.url || '#';
+    window.location.href = url;
 });
 
-// ===== 목록 렌더링 & 페이지네이션 =====
+// 목록 렌더 & 페이지네이션
 function renderList() {
     const total = allItems.length;
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -104,19 +104,20 @@ function renderList() {
 
     if (items.length === 0) {
         listEl.innerHTML = `<li class="list-row">
-      <div class="col" style="grid-column:1/6;text-align:center;color:#888">데이터가 없습니다.</div>
+      <div class="col" style="grid-column:1/7;text-align:center;color:#888">데이터가 없습니다.</div>
     </li>`;
     } else {
         listEl.innerHTML = items.map(rowTemplate).join('');
     }
 
+    // 우하단 상담료 케이스 선택(현재 페이지 기준)
     hydrateCaseSelect(items);
 }
 
 prevBtn?.addEventListener('click', () => { page--; renderList(); });
 nextBtn?.addEventListener('click', () => { page++; renderList(); });
 
-// ===== 개인정보 편집 토글 (데모) =====
+// 개인정보 편집(데모)
 function setEditMode(edit) {
     [...infoForm.querySelectorAll('input'), specialties].forEach(i => i.disabled = !edit);
     saveBtn.disabled = !edit;
@@ -154,14 +155,13 @@ infoForm?.addEventListener('submit', (e) => {
     setEditMode(false);
 });
 
-// ===== 상담료 작성 (데모) =====
+// 상담료 작성(데모)
 function hydrateCaseSelect(visibleItems) {
     const options = visibleItems.map(i =>
         `<option value="${i.matchingIdx}">[${fmt(i.requestedAt)}] ${i.customerName ?? '—'} - ${i.requestReason ?? '—'}</option>`
     );
     caseSelect.innerHTML = options.join('');
 }
-
 feeForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     const id   = caseSelect.value;
@@ -178,7 +178,7 @@ feeForm?.addEventListener('submit', (e) => {
     feeInput.value  = '';
 });
 
-// ===== 상단 버튼 (데모) =====
+// 상단 버튼(데모)
 document.getElementById('logoutBtn')?.addEventListener('click', () => alert('로그아웃 처리'));
 document.getElementById('reqBtn')?.addEventListener('click', () => alert('상담 신청 확인으로 이동'));
 document.getElementById('scheduleBtn')?.addEventListener('click', () => alert('상담 일정 확인하기로 이동'));
@@ -186,7 +186,7 @@ document.getElementById('withdrawBtn')?.addEventListener('click', () => {
     if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');
 });
 
-// ===== 데이터 로드 =====
+// 데이터 로드
 async function loadData() {
     try {
         const expertId = Number(document.body.dataset.expertId || 0);
@@ -197,7 +197,7 @@ async function loadData() {
         });
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
-        const data = await res.json(); // ExpertMatchingSummaryDto[] 예상
+        const data = await res.json(); // ExpertMatchingSummaryDto[]
         allItems = Array.isArray(data)
             ? data.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
             : [];
