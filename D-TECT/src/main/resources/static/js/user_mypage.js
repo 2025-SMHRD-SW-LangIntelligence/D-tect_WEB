@@ -56,6 +56,35 @@
       </li>
     `;
     }
+	function isChatEnabled(stat){
+	  return ['확정','매칭완료'].includes(String(stat).trim());
+	}
+
+	function renderList(){
+	  // ... (페이지 계산 동일)
+	  listEl.innerHTML = items.map(item => {
+	    const enabled = isChatEnabled(item.matchStat);
+	    return `
+	      <li class="list-row" role="row">
+	        <div class="col">${item.applyDate}</div>
+	        <div class="col">${item.lawyer}</div>
+	        <div class="col">${item.type}</div>
+	        <div class="col">${item.matchDate}</div>
+	        <div class="col"><span class="${badgeClass(item.matchStat)}">${item.matchStat}</span></div>
+	        <div class="col">
+	          <button class="chat-btn" data-url="${item.chatUrl || '#'}" ${enabled ? '' : 'disabled'}>입장하기</button>
+	        </div>
+	      </li>
+	    `;
+	  }).join('');
+	}
+	listEl.addEventListener('click', (e) => {
+	  const btn = e.target.closest('.chat-btn');
+	  if (!btn || btn.disabled) return;
+	  const url = btn.dataset.url || '#';
+	  // 실제 서비스 경로에 맞게 처리
+	  window.location.href = url;
+	});
 
     function render() {
         const total = items.length;
@@ -102,7 +131,7 @@
         page = 1;
         render();
     }
-
+	
     // 개인정보 폼 데모 동작(원 코드 유지)
     const editToggleBtn = document.getElementById('editToggleBtn');
     const infoForm = document.getElementById('infoForm');

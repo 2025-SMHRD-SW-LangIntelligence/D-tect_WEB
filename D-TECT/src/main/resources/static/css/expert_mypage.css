@@ -244,6 +244,8 @@ body {
     /* 매칭일   */
     --col5: 160px;
     /* 매칭여부 */
+    --col6: 120px;
+    /* 게시판이동 */
 }
 
 .list-scroll {
@@ -259,7 +261,7 @@ body {
 .list-row {
     display: grid;
     grid-template-columns:
-        var(--col1, 140px) var(--col2, 150px) var(--col3, 140px) var(--col4, 140px) minmax(var(--col5, 160px), 1fr);
+        var(--col1, 140px) var(--col2, 150px) var(--col3, 140px) var(--col4, 140px) minmax(var(--col5, 160px), 1fr) var(--col6);
     gap: 12px;
     align-items: center;
 }
@@ -294,6 +296,19 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+/* 채팅 버튼 */
+.chat-btn{
+  border:none; cursor:pointer; font-weight:800;
+  border-radius:999px; padding:6px 12px;
+  background:var(--brand); color:var(--brand-ink);
+  box-shadow:inset 0 0 0 2px #00000020;
+}
+.chat-btn[disabled]{ 
+	background:#efefef; 
+	color:#888; 
+	cursor:not-allowed; 
+	box-shadow:none; 
 }
 
 /* 5번째 열(매칭여부)만 줄바꿈 허용해도 됨 – 기본은 nowrap 유지 */

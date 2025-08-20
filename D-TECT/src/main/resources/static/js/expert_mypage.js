@@ -66,6 +66,30 @@ function rowTemplate(item) {
     </li>
   `;
 }
+function isChatEnabled(stat){
+  return ['확정','매칭완료'].includes(String(stat).trim());
+}
+function renderList(){
+  // ... (페이지 계산 동일)
+  listEl.innerHTML = items.map(item => `
+    <li class="list-row" role="row">
+      <div class="col">${item.applyDate}</div>
+      <div class="col">${item.client}</div>
+      <div class="col">${item.type}</div>
+      <div class="col">${item.matchDate}</div>
+      <div class="col"><span class="${badgeClass(item.matchStat)}">${item.matchStat}</span></div>
+      <div class="col">
+        <button class="chat-btn" data-url="${item.chatUrl || '#'}" ${isChatEnabled(item.matchStat) ? '' : 'disabled'}>입장하기</button>
+      </div>
+    </li>
+  `).join('');
+}
+// 버튼 클릭 델리게이션
+document.getElementById('applyList').addEventListener('click', (e) => {
+  const btn = e.target.closest('.chat-btn');
+  if (!btn || btn.disabled) return;
+  window.location.href = btn.dataset.url || '#';
+});
 
 // ===== 목록 렌더링 & 페이지네이션 =====
 function renderList() {

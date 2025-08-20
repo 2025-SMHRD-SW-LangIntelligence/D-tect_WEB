@@ -20,7 +20,7 @@ public class PageController {
 	
     @GetMapping(value = "/")
     public String start() {
-    	return "start";						// 시작 페이지
+    	return "public/start";						// 시작 페이지
     }
     
     @GetMapping(value = "/loginPage")
