@@ -13,6 +13,6 @@
 	
 	<a href = "/user/logout">로그아웃</a>
 	
-	
+	<!-- 깃 테스트 하기 위한  -->
 </body>
 </html>
