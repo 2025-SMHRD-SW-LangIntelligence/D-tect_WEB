@@ -70,6 +70,13 @@
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 		
+		<!-- 이메일 인증을 위한 도구 추가 -->
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		
 		<!-- jakarta.jsp-api 추가 -->
 		<dependency>
 		    <groupId>jakarta.servlet.jsp</groupId>

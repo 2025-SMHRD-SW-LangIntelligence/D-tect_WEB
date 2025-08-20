@@ -15,6 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -106,4 +109,16 @@ public class FileService {
         c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
         return c.doFinal(cipher);
     }
+    
+    // 기존 AES 암호화 업로드와 별개로 일반 파일 업로드용
+    public String saveFileToServer(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return null;
+
+        String savedFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        File dest = new File("/home/git/uploads", savedFileName); // upload-dir로 변경 가능
+        file.transferTo(dest);
+
+        return savedFileName;
+    }
+
 }
