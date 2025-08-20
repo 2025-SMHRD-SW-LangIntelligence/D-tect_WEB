@@ -32,7 +32,7 @@ public class MyPageController {
     }
 
     // 전문가 마이페이지
-    @GetMapping("/expert/{expertId}}")
+    @GetMapping("/expert/{expertId}")
     public String expertMatchings(@PathVariable Long expertId, Model model) {
         model.addAttribute("expertId", expertId);
         return "expert/expert_mypage";
