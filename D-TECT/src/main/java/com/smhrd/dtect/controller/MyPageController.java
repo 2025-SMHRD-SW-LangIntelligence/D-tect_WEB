@@ -6,9 +6,7 @@ import com.smhrd.dtect.service.MatchingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,19 +18,31 @@ public class MyPageController {
     private final MatchingService matchingService;
 
     // 사용자 마이페이지 - 신청현황
-    @GetMapping("/user/{userId}/matchings")
+    @GetMapping("/user/{userId}")
     public String userMatchings(@PathVariable Long userId, Model model) {
-        List<UserMatchingSummaryDto> items = matchingService.getUserMatchings(userId);
-        model.addAttribute("items", items);
-        return "mypage/user-matchings";
+        model.addAttribute("userId", userId);
+        return "user/user_mypage";
     }
 
-    // 전문가 마이페이지 - 신청현황
-    @GetMapping("/expert/{expertId}/matchings")
+    // 사용자 - 신청현황
+    @GetMapping("/api/user/{userId}/matchings")
+    @ResponseBody
+    public List<UserMatchingSummaryDto> userMatchingsApi(@PathVariable Long userId) {
+        return matchingService.getUserMatchings(userId);
+    }
+
+    // 전문가 마이페이지
+    @GetMapping("/expert/{expertId}}")
     public String expertMatchings(@PathVariable Long expertId, Model model) {
-        List<ExpertMatchingSummaryDto> items = matchingService.getExpertMatchings(expertId);
-        model.addAttribute("items", items);
-        return "mypage/expert-matchings";
+        model.addAttribute("expertId", expertId);
+        return "expert/expert_mypage";
+    }
+
+    // 전문가 - 신청현황
+    @GetMapping(value = "/api/expert/{expertId}/matchings", produces = "application/json")
+    @ResponseBody
+    public List<ExpertMatchingSummaryDto> expertMatchingsApi(@PathVariable Long expertId) {
+        return matchingService.getExpertMatchings(expertId);
     }
 
 }

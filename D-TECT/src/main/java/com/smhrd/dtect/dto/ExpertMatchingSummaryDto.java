@@ -1,8 +1,11 @@
 package com.smhrd.dtect.dto;
 
 import com.smhrd.dtect.entity.MatchingStatus;
+import lombok.Getter;
+
 import java.sql.Timestamp;
 
+@Getter
 public class ExpertMatchingSummaryDto {
     private Long matchingIdx;
     private Timestamp requestedAt;   // 신청 시각

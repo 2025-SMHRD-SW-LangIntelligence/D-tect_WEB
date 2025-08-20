@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,95 +7,89 @@
     <link rel="stylesheet" th:href="@{/css/user_mypage.css}" />
 </head>
 
-<body>
-    <!-- 상단바 -->
-    <header class="topbar">
-        <div class="left">
-            <a class="logo-wrap" href="/" aria-label="홈으로">
-                <!-- 로고 파일명 바꿔도 됨 -->
-                <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
-            </a>
-            <h1 class="page-title">마이페이지</h1>
+<body th:attr="data-user-id=${userId}">
+<!-- 상단바 -->
+<header class="topbar">
+    <div class="left">
+        <a class="logo-wrap" href="/" aria-label="홈으로">
+            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
+        </a>
+        <h1 class="page-title">마이페이지</h1>
+    </div>
+    <div class="right">
+        <div class="user-chip">
+            <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
+            <span class="user-name">000 님</span>
         </div>
+        <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
+    </div>
+</header>
 
-        <div class="right">
-            <div class="user-chip">
-                <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
-                <span class="user-name">000 님</span>
-            </div>
-            <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
-        </div>
-    </header>
+<!-- 본문 -->
+<main class="container">
+    <section class="grid">
+        <!-- 개인정보 -->
+        <article class="card card--dark">
+            <header class="card-head">
+                <h2>개인정보</h2>
+                <button type="button" class="chip" id="editToggleBtn">수정</button>
+            </header>
 
-    <!-- 본문 -->
-    <main class="container">
-        <section class="grid">
-            <!-- 개인정보 -->
-            <article class="card card--dark">
-                <header class="card-head">
-                    <h2>개인정보</h2>
-                    <button type="button" class="chip" id="editToggleBtn">수정</button>
-                </header>
+            <form class="info-form" id="infoForm">
+                <label class="field">
+                    <span class="label">이름</span>
+                    <input type="text" name="name" value="홍길동" disabled />
+                </label>
+                <label class="field">
+                    <span class="label">이메일</span>
+                    <input type="email" name="email" value="user@example.com" disabled />
+                </label>
+                <label class="field">
+                    <span class="label">주소</span>
+                    <input type="text" name="addr" value="광주광역시 ○○구 ○○로 123" disabled />
+                </label>
 
-                <form class="info-form" id="infoForm">
-                    <label class="field">
-                        <span class="label">이름</span>
-                        <input type="text" name="name" value="홍길동" disabled />
-                    </label>
-                    <label class="field">
-                        <span class="label">이메일</span>
-                        <input type="email" name="email" value="user@example.com" disabled />
-                    </label>
-                    <label class="field">
-                        <span class="label">주소</span>
-                        <input type="text" name="addr" value="광주광역시 ○○구 ○○로 123" disabled />
-                    </label>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary" id="saveBtn" disabled>저장</button>
+                    <button type="button" class="btn btn--ghost" id="cancelBtn" disabled>취소</button>
+                </div>
+            </form>
+        </article>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn--primary" id="saveBtn" disabled>저장</button>
-                        <button type="button" class="btn btn--ghost" id="cancelBtn" disabled>취소</button>
-                    </div>
-                </form>
-            </article>
+        <!-- 신청현황 -->
+        <article class="card list">
+            <header class="card-head">
+                <h2>신청현황</h2>
+            </header>
 
-            <!-- 신청현황 (가로 리스트) -->
-            <article class="card list">
-                <header class="card-head">
-                    <h2>신청현황</h2>
-                </header>
-
-                <!-- 스크롤 박스 안에 헤더를 넣어 sticky 처리 -->
-                <div class="list-scroll">
-                    <!-- 열 헤더 -->
-                    <div class="list-head list-grid" role="rowgroup" aria-hidden="true">
-                        <div class="col">신청일</div>
-                        <div class="col">변호사</div>
-                        <div class="col">분류</div>
-                        <div class="col">매칭일</div>
-                        <div class="col">매칭여부</div>
-                    </div>
-
-                    <!-- 데이터 목록 -->
-                    <ul id="applyList" class="list-body" role="rowgroup" aria-live="polite"></ul>
+            <div class="list-scroll">
+                <div class="list-head list-grid" role="rowgroup" aria-hidden="true">
+                    <div class="col">신청일</div>
+                    <div class="col">변호사</div>
+                    <div class="col">분류</div>
+                    <div class="col">매칭일</div>
+                    <div class="col">매칭여부</div>
                 </div>
 
-                <footer class="list-foot">
-                    <button type="button" class="btn btn--ghost" id="prevPage">이전</button>
-                    <span id="pageInfo" class="page-info">1 / 1</span>
-                    <button type="button" class="btn btn--ghost" id="nextPage">다음</button>
-                </footer>
-            </article>
-        </section>
+                <ul id="applyList" class="list-body" role="rowgroup" aria-live="polite"></ul>
+            </div>
 
-        <!-- 주요 CTA -->
-        <section class="cta-wrap">
-            <button type="button" class="btn btn--accent" id="historyBtn">내 분석 내역</button>
-            <button type="button" class="btn btn--accent" id="reserveBtn">상담 일정 예약하기</button>
-            <button type="button" class="btn btn--accent btn--danger" id="withdrawBtn">회원탈퇴</button>
-        </section>
-    </main>
+            <footer class="list-foot">
+                <button type="button" class="btn btn--ghost" id="prevPage">이전</button>
+                <span id="pageInfo" class="page-info">1 / 1</span>
+                <button type="button" class="btn btn--ghost" id="nextPage">다음</button>
+            </footer>
+        </article>
+    </section>
 
-    <script th:src="@{/js/user_mypage.js}"></script>
+    <!-- 주요 CTA -->
+    <section class="cta-wrap">
+        <button type="button" class="btn btn--accent" id="historyBtn">내 분석 내역</button>
+        <button type="button" class="btn btn--accent" id="reserveBtn">상담 일정 예약하기</button>
+        <button type="button" class="btn btn--accent btn--danger" id="withdrawBtn">회원탈퇴</button>
+    </section>
+</main>
+
+<script th:src="@{/js/user_mypage.js}"></script>
 </body>
-
 </html>

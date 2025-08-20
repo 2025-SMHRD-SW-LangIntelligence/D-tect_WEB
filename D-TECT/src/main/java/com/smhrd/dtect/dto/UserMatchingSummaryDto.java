@@ -1,9 +1,11 @@
 package com.smhrd.dtect.dto;
 
 import com.smhrd.dtect.entity.MatchingStatus;
+import lombok.Getter;
 
 import java.sql.Timestamp;
 
+@Getter
 public class UserMatchingSummaryDto {
 
     private Long matchingIdx;
