@@ -1,111 +1,91 @@
-// ===== 더미 데이터 (API 연동 시 대체) =====
-let LAWYERS = [
-    {
-        id: 1, name: "고○○", title: "변호사", years: 7,
-        phone: "010-1234-4321", email: "goosuntone@gmail.com", addr: "스마트 리젠 개발길 903호",
-        skills: ["명예훼손", "성범죄", "영업비밀", "성모욕"],
-        banner: "a", available: true
-    },
-    {
-        id: 2, name: "정○○", title: "변호사", years: 10,
-        phone: "010-5678-9876", email: "rightbefore@gmail.com", addr: "스마트 리젠 개발길 908호",
-        skills: ["영업비밀", "전문분쟁", "산업재산권", "산업재해"],
-        banner: "b", available: true
-    },
-    // 미등록/자리 채우기
-    { id: 3, available: false },
-    { id: 4, available: false },
-];
+let LAWYERS = [];
 
-// ===== 상태 =====
-const grid = document.getElementById("grid");
-const q = document.getElementById("q");
+const grid  = document.getElementById("grid");
+const q     = document.getElementById("q");
 const chips = document.getElementById("chips");
-const sort = document.getElementById("sort");
+const sort  = document.getElementById("sort");
 const empty = document.getElementById("empty");
 
-// 모달 상태
-const modal = document.getElementById("modal");
-const mTitle = document.getElementById("mTitle");
-const mBody = document.getElementById("mBody");
-const mClose = document.getElementById("mClose");
+const modal   = document.getElementById("modal");
+const mTitle  = document.getElementById("mTitle");
+const mBody   = document.getElementById("mBody");
+const mClose  = document.getElementById("mClose");
 const bookBtn = document.getElementById("bookBtn");
+const matchForm = document.getElementById("matchForm");
+
 let currentLawyer = null;
 
-// 분야 칩
-const ALL_SKILLS = [...new Set(LAWYERS.flatMap(l => l.skills || []))].slice(0, 10);
+const USER_ID = Number(document.body.dataset.userId || 0);
+if (!USER_ID) {
+    alert("필수 파라미터(userId)가 없습니다. 다시 시도해주세요.");
+    // 개발 단계: 홈으로 이동(혹은 로그인 페이지로)
+    window.location.replace("/");
+}
+
+// ===== 칩/필터 =====
+let ALL_SKILLS = []; // [{code:'DEFAMATION', label:'명예훼손'}, ...]
 let activeSkill = null;
 
-function renderChips() {
-    chips.innerHTML = [
-        `<button class="chip ${!activeSkill ? 'is-active' : ''}" data-skill="">전체</button>`,
-        ...ALL_SKILLS.map(s => `<button class="chip ${activeSkill === s ? 'is-active' : ''}" data-skill="${s}">${s}</button>`)
-    ].join("");
+function uniqSkills(rows) {
+    const pairs = new Map(); // code -> label
+    rows.forEach(l => {
+        (l.skillCodes || []).forEach((code, i) => {
+            const label = (l.skills && l.skills[i]) || code;
+            if (!pairs.has(code)) pairs.set(code, label);
+        });
+    });
+    return [...pairs.entries()].map(([code, label]) => ({ code, label }));
 }
-renderChips();
+
+function renderChips() {
+    const all = [{ code: "", label: "전체" }, ...ALL_SKILLS.slice(0, 10)];
+    chips.innerHTML = all.map(s =>
+        `<button class="chip ${(!activeSkill && !s.code) || activeSkill === s.code ? 'is-active' : ''}" data-skill="${s.code}">${s.label}</button>`
+    ).join("");
+}
 
 chips.addEventListener("click", (e) => {
     const btn = e.target.closest(".chip");
     if (!btn) return;
-    activeSkill = btn.dataset.skill || null;
-    renderChips();
-    render();
+    const code = btn.dataset.skill || "";
+    activeSkill = code || null;
+    load(); // 서버에서 다시 불러오기
 });
 
-// 검색/정렬 이벤트
-q.addEventListener("input", render);
-sort.addEventListener("change", render);
+q.addEventListener("input", debounce(load, 250));
+sort.addEventListener("change", load);
 
-// 선택된 정렬 기준 비교 함수
+// ===== 정렬 =====
 function compareBySort(a, b) {
     if (sort.value === "name") return (a.name || "").localeCompare(b.name || "");
-    if (sort.value === "exp") return (b.years || 0) - (a.years || 0);
+    if (sort.value === "exp")  return (b.years || 0) - (a.years || 0); // null → 0
     return (b.id || 0) - (a.id || 0); // 최신 등록순
 }
 
-// ✅ 등록(available) 우선 → 미등록은 항상 맨 아래
 function sortRegisteredFirst(rows) {
-    const avail = rows.filter(l => l.available);
-    const unavail = rows.filter(l => !l.available);
+
+    const avail = rows.filter(l => l.available !== false);
+    const unavail = rows.filter(l => l.available === false);
     avail.sort(compareBySort);
-    // 미등록 카드도 필요하면 고유 순서 유지 or 보조정렬
     unavail.sort((a, b) => (b.id || 0) - (a.id || 0));
     return [...avail, ...unavail];
 }
 
-// 카드 렌더
-function render() {
-    const term = (q.value || "").trim().toLowerCase();
-
-    let rows = LAWYERS.filter(l => {
-        if (!l.available) return true; // 미등록 카드는 항상 표시 (자리 채움)
-        if (activeSkill && !(l.skills || []).includes(activeSkill)) return false;
-        if (term) {
-            const blob = `${l.name || ''} ${l.title || ''} ${l.email || ''} ${l.addr || ''} ${(l.skills || []).join(' ')}`.toLowerCase();
-            if (!blob.includes(term)) return false;
-        }
-        return true;
-    });
-
-    rows = sortRegisteredFirst(rows);  // ✅ 핵심 정렬
-
-    grid.innerHTML = rows.map(l => l.available ? cardHTML(l) : placeholderHTML()).join("");
-    empty.hidden = rows.length !== 0;
-}
-
+// ===== 카드 템플릿 =====
 function cardHTML(l) {
-    const bannerCls = l.banner === "b" ? "bg-b" : "bg-a";
+    const bannerCls = (Number(l.id) % 2) ? "bg-a" : "bg-b";
+    const tags = (l.skills || []).map(s => `<span class="tag">${s}</span>`).join("");
     return `
   <article class="card" role="listitem">
     <div class="card__banner ${bannerCls}"></div>
     <div class="card__body">
       <div class="avatar">👤</div>
       <div class="meta">
-        <div class="name">${l.name} <small>${l.title}</small>${l.years ? ` · <small>${l.years}년차</small>` : ''}</div>
-        <div class="row"><span class="icon">📞</span><small>${l.phone}</small></div>
-        <div class="row"><span class="icon">✉️</span><small>${l.email}</small></div>
-        <div class="row"><span class="icon">📍</span><small>${l.addr}</small></div>
-        <div class="tags">${(l.skills || []).map(s => `<span class="tag">${s}</span>`).join("")}</div>
+        <div class="name">${l.name} <small>${l.title || ''}</small>${l.years ? ` · <small>${l.years}년차</small>` : ''}</div>
+        <div class="row"><span class="icon">📞</span><small>${l.phone || '-'}</small></div>
+        <div class="row"><span class="icon">✉️</span><small>${l.email || '-'}</small></div>
+        <div class="row"><span class="icon">📍</span><small>${l.addr || '-'}</small></div>
+        <div class="tags">${tags}</div>
       </div>
     </div>
     <div class="card__footer">
@@ -128,6 +108,25 @@ function placeholderHTML() {
   </article>`;
 }
 
+// ===== 렌더 =====
+function render() {
+    const term = (q.value || "").trim().toLowerCase();
+
+    let rows = LAWYERS.filter(l => {
+        if (l.available === false) return true; // 자리채움 카드 유지
+        if (term) {
+            const blob = `${l.name||''} ${l.title||''} ${l.email||''} ${l.addr||''} ${(l.skills||[]).join(' ')}`.toLowerCase();
+            if (!blob.includes(term)) return false;
+        }
+        return true;
+    });
+
+    rows = sortRegisteredFirst(rows);
+    grid.innerHTML = rows.map(l => (l.available === false) ? placeholderHTML() : cardHTML(l)).join("");
+    empty.hidden = rows.length !== 0;
+}
+
+// ===== 카드 클릭 → 모달 =====
 grid.addEventListener("click", (e) => {
     const btn = e.target.closest(".act-inquiry");
     if (!btn) return;
@@ -137,13 +136,12 @@ grid.addEventListener("click", (e) => {
     openModal(l);
 });
 
-// 모달
 function openModal(lawyer) {
     currentLawyer = lawyer;
     mTitle.textContent = `${lawyer.name} 변호사 상담 예약`;
     mBody.innerHTML = `
-    <p><strong>${lawyer.name}</strong> · ${lawyer.title}${lawyer.years ? ` (${lawyer.years}년차)` : ""}</p>
-    <p class="muted">상담 예약 페이지로 이동합니다.</p>
+    <p><strong>${lawyer.name}</strong> · ${lawyer.title || ''}${lawyer.years ? ` (${lawyer.years}년차)` : ""}</p>
+    <p class="muted">상담 예약을 진행합니다.</p>
   `;
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
@@ -156,11 +154,43 @@ function closeModal() {
 mClose.addEventListener("click", closeModal);
 modal.addEventListener("click", (e) => { if (e.target.classList.contains("modal__backdrop")) closeModal(); });
 
-// ✅ 상담 예약만 이동
+// ===== 상담 예약(매칭 요청) 제출 =====
 bookBtn.addEventListener("click", () => {
     if (!currentLawyer) return;
-    window.location.href = `/reservation?lawyerId=${currentLawyer.id}`;
+
+    matchForm.userId.value = USER_ID;
+
+    matchForm.expertId.value = currentLawyer.id;
+
+    matchForm.submit();
 });
 
-// 초기 표시
-render();
+// ===== 서버 연동 =====
+async function load() {
+    const params = new URLSearchParams();
+    const term = (q.value || '').trim();
+    if (term) params.set('q', term);
+    if (activeSkill) params.set('skill', activeSkill); // enum 코드
+    params.set('sort', sort.value || 'rec');
+
+    try {
+        const res = await fetch('/api/experts?' + params.toString(), { headers: { 'Accept': 'application/json' }});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        LAWYERS = await res.json();
+        ALL_SKILLS = uniqSkills(LAWYERS);
+    } catch (e) {
+        console.error(e);
+        LAWYERS = [];
+        ALL_SKILLS = [];
+    }
+    renderChips();
+    render();
+}
+
+function debounce(fn, ms) {
+    let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), ms); };
+}
+
+// 초기 로드
+renderChips();
+load();

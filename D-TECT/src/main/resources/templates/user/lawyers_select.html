@@ -1,62 +1,64 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 변호사 선택</title>
-
-    <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/lawyers_select.css}" />
 </head>
 
-<body class="lawyers-page">
-    <!-- 상단 -->
-    <div class="brand-strip"></div>
-    <header class="topbar">
-        <div class="left">
-            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
-            <h1 class="title">변호사 선택</h1>
-        </div>
-    </header>
-
-    <main class="container">
-        <!-- 필터 바 -->
-        <section class="filters">
-            <input id="q" class="search" type="search" placeholder="이름, 키워드, 지역 검색" />
-            <div id="chips" class="chips" role="group" aria-label="분야 필터"></div>
-            <select id="sort" class="sort">
-                <option value="rec">최신 등록순</option>
-                <option value="name">이름순</option>
-                <option value="exp">경력순</option>
-            </select>
-        </section>
-
-        <!-- 카드 그리드 -->
-        <section id="grid" class="grid" role="list"></section>
-
-        <!-- 빈 상태 -->
-        <div id="empty" class="empty" hidden>조건에 맞는 변호사가 없습니다.</div>
-    </main>
-
-    <!-- 문의(=상담 예약) 모달 -->
-    <div id="modal" class="modal" aria-hidden="true">
-        <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-            <div class="modal__head">
-                <strong id="mTitle">상담 예약</strong>
-                <button id="mClose" class="icon-btn" aria-label="닫기">×</button>
-            </div>
-            <div id="mBody" class="modal__body"></div>
-            <div class="modal__actions">
-                <!-- ✅ 상담 예약만 제공 -->
-                <button id="bookBtn" class="btn btn--accent" type="button">상담 예약</button>
-            </div>
-        </div>
-        <div class="modal__backdrop"></div>
+<body class="lawyers-page" th:attr="data-user-id=${userId}">
+<!-- 상단 -->
+<div class="brand-strip"></div>
+<header class="topbar">
+    <div class="left">
+        <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
+        <h1 class="title">변호사 선택</h1>
     </div>
+</header>
 
-    <!-- JS -->
-    <script defer th:src="@{/js/lawyers_select.js}"></script>
+<main class="container">
+    <!-- 필터 바 -->
+    <section class="filters">
+        <input id="q" class="search" type="search" placeholder="이름, 키워드, 지역 검색" />
+        <div id="chips" class="chips" role="group" aria-label="분야 필터"></div>
+        <select id="sort" class="sort">
+            <option value="rec">최신 등록순</option>
+            <option value="name">이름순</option>
+            <option value="exp">경력순</option>
+        </select>
+    </section>
+
+    <!-- 카드 그리드 -->
+    <section id="grid" class="grid" role="list"></section>
+
+    <!-- 빈 상태 -->
+    <div id="empty" class="empty" hidden>조건에 맞는 변호사가 없습니다.</div>
+</main>
+
+<!-- 문의(=상담 예약) 모달 -->
+<div id="modal" class="modal" aria-hidden="true">
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+        <div class="modal__head">
+            <strong id="mTitle">상담 예약</strong>
+            <button id="mClose" class="icon-btn" aria-label="닫기">×</button>
+        </div>
+        <div id="mBody" class="modal__body"></div>
+        <div class="modal__actions">
+            <button id="bookBtn" class="btn btn--accent" type="button">상담 예약</button>
+        </div>
+    </div>
+    <div class="modal__backdrop"></div>
+</div>
+
+<!-- 🔒 매칭 요청 폼 (숨김) -->
+<form id="matchForm" th:action="@{/matching/request}" method="post" enctype="multipart/form-data" hidden>
+    <input type="hidden" name="userId" th:value="${userId}" />
+    <input type="hidden" name="expertId" />
+    <input type="hidden" name="message" />
+    <input type="file"   name="attachment" />
+</form>
+
+<script defer th:src="@{/js/lawyers_select.js}"></script>
 </body>
-
 </html>

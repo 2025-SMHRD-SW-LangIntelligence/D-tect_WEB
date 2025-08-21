@@ -2,6 +2,8 @@ package com.smhrd.dtect.repository;
 
 import com.smhrd.dtect.entity.Expert;
 import com.smhrd.dtect.entity.ExpertStatus;
+import com.smhrd.dtect.entity.FieldName;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,16 +16,23 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
 
     List<Expert> findAllByExpertStatus(ExpertStatus status);
 
-    // 간단 키워드 검색(이름/사무실명/주소)
     @Query("""
-        select e
+        select distinct e
         from Expert e
+        join e.member m
+        left join Field f on f.expert = e
         where e.expertStatus = com.smhrd.dtect.entity.ExpertStatus.APPROVED
-          and (:q is null or :q = '' 
-               or lower(e.officeName) like lower(concat('%', :q, '%'))
-               or lower(e.officeAddress) like lower(concat('%', :q, '%'))
-               or lower(e.member.name) like lower(concat('%', :q, '%')))
-        order by e.expertIdx asc
-    """)
-    List<Expert> searchApproved(@Param("q") String q);
+          and (:q is null or :q = '' or
+               lower(m.name) like lower(concat('%', :q, '%'))
+            or lower(m.email) like lower(concat('%', :q, '%'))
+            or lower(e.officeAddress) like lower(concat('%', :q, '%')))
+          and (:skill is null or f.fieldName = :skill)
+        """)
+    List<Expert> searchApproved(
+            @Param("q") String q,
+            @Param("skill") FieldName skill,
+            Sort sort
+    );
+
+    List<Expert> findByExpertStatus(ExpertStatus status, Sort sort);
 }
