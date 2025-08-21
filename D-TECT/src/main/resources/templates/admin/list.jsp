@@ -1,18 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+		 pageEncoding="UTF-8"%>
 <%@ taglib prefix = "sec" uri = "http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
+	<meta charset="UTF-8">
+	<title>Insert title here</title>
 </head>
 <body>
-	
-	<h2><sec:authentication property="principal.member.username"/>님 환영합니다</h2>
-	
-	<a href = "/user/logout">로그아웃</a>
-	
-	<!-- 깃 테스트 하기 위한  -->
+
+<h2><sec:authentication property="principal.member.username"/>님 환영합니다</h2>
+
+<a href = "/user/logout">로그아웃</a>
+
+
 </body>
 </html>

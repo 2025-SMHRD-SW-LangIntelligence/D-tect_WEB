@@ -30,18 +30,28 @@ public class PageController {
     
     @GetMapping(value = "/chooseRolePage")
     public String chooseRole() {
-    	return "public/chooseRole";			// 회원 유형 선택 페이지
+    	return "public/signup";			// 회원 유형 선택 페이지
     }
     
 
     @GetMapping(value = "/joinUserPage")
     public String userSignup() {
-        return "user/signup"; 				// 기본 회원 회원가입 페이지
+        return "user/user_signup"; 				// 기본 회원 회원가입 페이지
+    }
+
+    @GetMapping(value = "/userTermPage")
+    public String userTerm() {
+        return "user/user_terms";			// 기본 회원 약관 페이지
     }
     
     @GetMapping(value = "/joinExpertPage")
     public String expertSignup() {
-        return "expert/signup"; 			// 전문가 회원 회원가입 페이지
+        return "expert/expert_signup"; 			// 전문가 회원 회원가입 페이지
+    }
+
+    @GetMapping(value = "/expertTermPage")
+    public String expertTerm() {
+        return "expert/expert_terms";			// 전문가 회원 약관 페이지
     }
 
     @GetMapping(value = "/userMainPage")

@@ -29,7 +29,8 @@ public class FileController {
     // 매칭 화면
     @GetMapping("/match")
     public String matchPage(@RequestParam Long matchingId, Model model) {
-        List<Upload> uploads = fileService.listByMatching(matchingId);
+//        List<Upload> uploads = fileService.listByMatching(matchingId);
+        List<Upload> uploads = fileService.findUploadsByMatching(matchingId);
         model.addAttribute("matchingId", matchingId);
         model.addAttribute("uploads", uploads);
         return "match";

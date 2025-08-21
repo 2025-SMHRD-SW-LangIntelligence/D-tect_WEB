@@ -76,7 +76,8 @@ public class MatchingController {
         Matching m = matchingRepository.findById(matchingId)
                 .orElseThrow(() -> new IllegalArgumentException("매칭 없음: " + matchingId));
         model.addAttribute("matching", m);
-        model.addAttribute("uploads", fileService.listByMatching(matchingId));
+//        model.addAttribute("uploads", fileService.listByMatching(matchingId));
+        model.addAttribute("uploads", fileService.findUploadsByMatching(matchingId));
         return "matching/detail";
     }
 

@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -39,6 +41,39 @@ public class FileService {
     void initKey() throws Exception {
         this.aesKey = MessageDigest.getInstance("SHA-256")
                 .digest(aesSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // ======= 전문가 인증서: 멀티파트 → (cipher/iv/원본명/콘텐트타입) =======
+    public EncodedFile encryptCertificationFile(MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("인증서 파일이 누락되었습니다.");
+        }
+        byte[] plain = file.getBytes();
+        byte[] iv    = randomIv();
+        byte[] cipher = encryptAesCbcPkcs5(plain, aesKey, iv);
+        return new EncodedFile(cipher, iv, file.getOriginalFilename(), file.getContentType());
+    }
+
+    public byte[] decrypt(byte[] cipher, byte[] iv) throws Exception {
+        return decryptAesCbcPkcs5(cipher, aesKey, iv);
+    }
+
+    // 전문가 인증서 파일 업로드
+    public static class EncodedFile {
+        private final byte[] cipher;
+        private final byte[] iv;
+        private final String originalName;
+        private final String contentType;
+        public EncodedFile(byte[] cipher, byte[] iv, String originalName, String contentType) {
+            this.cipher = cipher;
+            this.iv = iv;
+            this.originalName = originalName;
+            this.contentType = contentType;
+        }
+        public byte[] getCipher() { return cipher; }
+        public byte[] getIv() { return iv; }
+        public String getOriginalName() { return originalName; }
+        public String getContentType() { return contentType; }
     }
 
     // 한 매칭에 여러파일 업로드
@@ -70,7 +105,7 @@ public class FileService {
     }
 
     // 매칭 기준 업로드 목록
-    public List<Upload> listByMatching(Long matchingId) {
+    public List<Upload> findUploadsByMatching(Long matchingId) {
         return uploadRepository.findWithFiles(matchingId);
     }
 
@@ -105,5 +140,22 @@ public class FileService {
         Cipher c = Cipher.getInstance(TRANSFORMATION);
         c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
         return c.doFinal(cipher);
+    }
+
+
+    // 파일 경로 저장을 고려한 설계
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    public String saveFileToServer(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) return null;
+        File dir = new File(uploadDir);
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new IOException("업로드 디렉토리를 생성할 수 없습니다: " + uploadDir);
+        }
+        String savedFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        File dest = new File(dir, savedFileName);
+        file.transferTo(dest);
+        return savedFileName;
     }
 }

@@ -5,57 +5,59 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 전문가 약관 동의</title>
-    <link rel="stylesheet" th:href="@{/css/expert_terms.css}" />
+    <link rel="stylesheet" th:href="@{/css/expert/expert_terms.css}" />
 </head>
 
 <body>
-    <!-- 좌상단 로고 (200px) -->
-    <a href="/" class="logo" aria-label="D-tect 홈으로">
-        <img th:src="@{/images/logo.png}" alt="D-tect 로고">
-    </a>
+<!-- 좌상단 로고 (200px) -->
+<a href="/" class="logo" aria-label="D-tect 홈으로"> <img
+        th:src="@{/images/logo.png}" alt="D-tect 로고">
+</a>
 
-    <main class="wrap">
-        <section class="panel" aria-label="전문가 약관 동의">
-            <!-- 약관 본문 -->
-            <div class="terms-box" tabindex="0" aria-label="전문가 약관 내용">
-                <!-- =========================================================
-             여기에 '전문가 이용약관' 전문을 붙여 넣으세요.
-             예) 제1조(목적) ... 제2조(정의) ... 제3조(계약의 성립) ...
-             개인정보 제3자 제공/수집·이용/보관, 수수료·정산, 분쟁 해결 등
-             ========================================================= -->
-                <h3>전문가 이용약관 (예시 제목)</h3>
-                <p>이 영역은 약관 샘플 텍스트입니다. 실제 약관 전문을 위의 주석 위치에 붙여 넣으세요.</p>
-                <ul>
-                    <li>수수료 및 정산 조건</li>
-                    <li>증거 문서 수신/열람에 관한 책임</li>
-                    <li>상담 범위, 금지 행위, 비밀 유지</li>
-                    <li>개인정보 처리, 제3자 제공, 보관 기간</li>
-                    <li>분쟁 해결 및 관할</li>
-                </ul>
-                <p>스크롤이 가능한 영역입니다. 약관 길이가 길어도 UI가 깔끔하게 유지됩니다.</p>
-            </div>
+<main class="wrap">
+    <section class="panel" aria-label="전문가 약관 동의">
+        <!-- 약관 본문 -->
+        <div class="terms-box" tabindex="0" aria-label="전문가 약관 내용">
+            <!-- =========================================================
+         여기에 '전문가 이용약관' 전문을 붙여 넣으세요.
+         예) 제1조(목적) ... 제2조(정의) ... 제3조(계약의 성립) ...
+         개인정보 제3자 제공/수집·이용/보관, 수수료·정산, 분쟁 해결 등
+         ========================================================= -->
+            <h3>전문가 이용약관 (예시 제목)</h3>
+            <p>이 영역은 약관 샘플 텍스트입니다. 실제 약관 전문을 위의 주석 위치에 붙여 넣으세요.</p>
+            <ul>
+                <li>수수료 및 정산 조건</li>
+                <li>증거 문서 수신/열람에 관한 책임</li>
+                <li>상담 범위, 금지 행위, 비밀 유지</li>
+                <li>개인정보 처리, 제3자 제공, 보관 기간</li>
+                <li>분쟁 해결 및 관할</li>
+            </ul>
+            <p>스크롤이 가능한 영역입니다. 약관 길이가 길어도 UI가 깔끔하게 유지됩니다.</p>
+        </div>
+
+        <form id="termsForm" enctype="multipart/form-data">
 
             <!-- 동의 라디오 -->
             <div class="agree">
-                <label class="option">
-                    <input type="radio" name="agree" value="yes">
-                    <span>약관에 동의합니다.</span>
-                </label>
-                <label class="option">
-                    <input type="radio" name="agree" value="no">
-                    <span>약관에 동의하지 않습니다.</span>
-                </label>
+                <label class="option"> <input type="radio"
+                                              name="termsAgree" value="Y"> <span>약관에 동의합니다.</span>
+                </label> <label class="option"> <input type="radio"
+                                                       name="termsAgree" value="N"> <span>약관에 동의하지 않습니다.</span>
+            </label>
             </div>
 
-            <!-- 액션 -->
+            <!-- 입력 폼으로 이동 -->
             <div class="actions">
-                <button id="btnSubmit" class="btn black" type="button" disabled>회원가입</button>
-                <button id="btnCancel" class="link" type="button">회원가입 취소하기</button>
+                <p class="note">※ <b>기본 정보 입력</b> 후 회원가입이 가능합니다.</p>
+                <button type="button" id="goForm" class="forms-btn" aria-label="폼으로 이동" onclick = "location.href= '/joinExpertPage'">입력 폼으로 이동
+                    <span>→</span></button>
             </div>
-        </section>
-    </main>
 
-    <script th:src="@{/js/expert_terms.js}"></script>
+        </form>
+    </section>
+</main>
+
+<script type = "module" th:src="@{/js/expert/expert_terms.js}"></script>
 </body>
 
 </html>

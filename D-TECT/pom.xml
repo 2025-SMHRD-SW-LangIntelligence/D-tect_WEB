@@ -125,6 +125,12 @@
 		    <artifactId>jakarta.servlet.jsp.jstl</artifactId>
 		    <version>2.0.0</version>
 		</dependency>
+
+		<!-- 이메일 인증을 위한 도구 추가 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		
 	</dependencies>
 

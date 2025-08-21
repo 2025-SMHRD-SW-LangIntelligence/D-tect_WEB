@@ -1,0 +1,257 @@
+:root {
+    --bg: #1f1f1f;
+    --board: #ffffff10;
+    --panel: #2a2a2a;
+    --text: #f5f7fa;
+    --muted: #cfd8e3;
+    --line: #F0DD08;
+    /* 포인트 노랑 */
+}
+
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(1000px 600px at 50% 8%, #2c2c2c, #1b1b1b 60%), var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* 좌상단 로고 200px */
+.logo {
+    position: fixed;
+    top: -15px;
+    left: 1px;
+    z-index: 20;
+}
+
+.logo img {
+    width: 200px;
+    height: auto;
+    display: block;
+}
+
+/* 바깥 프레임 */
+.frame {
+    max-width: 980px;
+    margin: 110px auto 60px;
+    padding: 24px;
+    background: #ffffff0a;
+    border-radius: 12px;
+    border: 2px solid var(--line);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .35);
+}
+
+/* 입력 패널 */
+.panel {
+    background: var(--panel);
+    border-radius: 14px;
+    border: 2px solid var(--line);
+    padding: 28px 24px;
+}
+
+/* 행 공통 */
+.row {
+    display: grid;
+    grid-template-columns: 28px 120px 1fr;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+/* 노란 점 */
+.dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--line);
+    justify-self: center;
+}
+
+/* 라벨 */
+label {
+    color: var(--text);
+    font-weight: 700;
+}
+
+/* 인풋 */
+input {
+    width: 100%;
+    height: 46px;
+    padding: 0 12px;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255, 255, 255, .35);
+    outline: none;
+    transition: border-color .2s ease;
+}
+
+input::placeholder {
+    color: #bdb58c;
+}
+
+input:focus {
+    border-bottom-color: var(--line);
+}
+
+/* 보조 인풋(상세주소) */
+input.sub {
+    margin-left: calc(28px + 120px + 14px);
+    margin-top: 6px;
+}
+
+/* 라인 안에 칩 버튼(중복체크/인증/찾기) */
+.inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.chip {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #3b3b3b;
+    color: #fff;
+    border: 2px solid var(--line);
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform .15s ease, filter .15s;
+}
+
+/* 전문분야 칩 묶음 */
+.chips {
+    grid-column: 3 / -1;
+    /* 3번째 열을 정확히 차지 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 선택됨 */
+.chip.selectable[aria-checked="true"],
+.chip.selectable.selected {
+    background: var(--line);
+    color: #111;
+}
+
+/* 키보드 포커스 */
+.chip.selectable:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(240, 221, 8, .35);
+}
+
+.chip:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.chip.ghost {
+    background: transparent;
+    color: #111;
+    border-color: var(--line);
+}
+
+/* 힌트 */
+.hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+    grid-column: 3 / -1;
+}
+
+/* 비번 확인 메시지 */
+.msg {
+    font-size: 12px;
+    font-weight: 800;
+    margin-left: 6px;
+}
+
+.msg.ok {
+    color: #66e8d3;
+}
+
+.msg.err {
+    color: #ff6b6b;
+}
+
+
+/* 드랍존 */
+.dropzone {
+    grid-column: 3 / -1;
+    min-height: 110px;
+    border: 2px solid var(--line);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff08;
+    text-align: center;
+    padding: 14px;
+}
+
+.dropzone p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.dropzone .chip.ghost {
+    margin-left: 6px;
+}
+
+/* 하단 액션 영역 */
+.actions {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.note {
+    color: #ffb4b4;
+    font-size: 12px;
+    margin: 0 8px 0 2px;
+}
+
+.terms-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    font-weight: 900;
+    border: 2px solid var(--line);
+    cursor: pointer;
+    transition: transform .15s ease, filter .15s ease;
+}
+
+.terms-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+}
+
+.terms-btn span {
+    font-weight: 900;
+}
+
+/* 반응형 */
+@media (max-width:720px) {
+    .row {
+        grid-template-columns: 24px 96px 1fr;
+    }
+
+    input.sub {
+        margin-left: calc(24px + 96px + 14px);
+    }
+}
