@@ -66,7 +66,7 @@ public class PageController {
 
     @GetMapping(value = "/adminMainPage")
     public String admin() {
-        return "admin/list";    			// 관리자 메인 페이지
+        return "admin/admin_page";    			// 관리자 메인 페이지
     }
     
     @GetMapping(value = "/adminUserBlockPage")
