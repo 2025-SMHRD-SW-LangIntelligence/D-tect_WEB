@@ -17,7 +17,7 @@ public class PdfRestController {
 	    public ResponseEntity<?> sendToN8n(@RequestBody Upload result) {
 	        RestTemplate restTemplate = new RestTemplate();
 
-	        String n8nUrl = "http://n8nKHS.n8nKHS.com/webhook/7f2cb27a-316c-4675-aa52-f400bac7a117"; // n8n Webhook URL
+	        String n8nUrl = "http://n8nKHS.n8nKHS.com/webhook/D-tect_analyzePdfReportCustomer"; // n8n Webhook URL
 	        ResponseEntity<String> response = restTemplate.postForEntity(n8nUrl, result, String.class);
 
 	        return ResponseEntity.ok(response.getBody());

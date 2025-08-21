@@ -1,10 +1,13 @@
+import { setupEmailVerification } from '/js/public/common.js';
+
 // 이동 경로 설정
-const AFTER_SUCCESS = './index.html'; // 변경 완료 후 이동할 페이지
+const AFTER_SUCCESS = '/loginPage'; // 변경 완료 후 이동할 페이지
 
 // 요소
 const form = document.getElementById('verifyForm');
-const emailB = document.getElementById('btnEmail');
+const btnEmail = document.getElementById('btnEmail');
 const phone = document.getElementById('phone');
+const btnVerify = document.getElementById('btnVerifyEmail');
 
 const modal = document.getElementById('pwModal');
 const newPwd = document.getElementById('newPwd');
@@ -15,14 +18,12 @@ const confirmB = document.getElementById('confirmChange');
 const cancelB = document.getElementById('cancelChange');
 const toggle1 = document.getElementById('toggle1');
 const toggle2 = document.getElementById('toggle2');
+const emailEl = document.getElementById('email');
+const emailCodeEl = document.getElementById('emailCode');
+const emailMsgEl = document.getElementById('emailMsg');
 
-// 이메일 인증(데모)
-emailB?.addEventListener('click', () => {
-    const email = document.getElementById('email').value.trim();
-    if (!email) return alert('이메일을 입력해 주세요.');
-    // TODO: 실제 인증 메일 발송
-    alert(`인증 메일을 "${email}"로 발송했습니다(데모).`);
-});
+// 이메일 인증
+setupEmailVerification(btnEmail, btnVerify, emailEl, emailCodeEl, emailMsgEl);
 
 // 전화번호 숫자만, 11자리 제한
 phone.addEventListener('input', (e) => {

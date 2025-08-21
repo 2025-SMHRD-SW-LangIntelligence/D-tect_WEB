@@ -5,13 +5,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 아이디 찾기</title>
-    <link rel="stylesheet" th:href="@{/css/find_id.css}" />
+    <link rel="stylesheet" th:href="@{/css/public/find_id.css}" />
 </head>
 
 <body>
     <!-- 좌상단 로고 (200px, 홈 이동 예정) -->
     <a href="/" class="logo" aria-label="D-tect 홈으로">
-        <img th:src="./images/logo.png" alt="D-tect 로고">
+        <img th:src="@{/images/logo.png}" alt="D-tect 로고">
     </a>
 
     <!-- 검색 카드 -->
@@ -30,6 +30,17 @@
                         <button type="button" class="chip" id="btnEmail">이메일 인증</button>
                     </div>
                 </div>
+                
+                <!-- 이메일 인증번호 입력 -->
+                <div class="row" id="emailCodeRow" style="display:none">
+                	<span class="dot" aria-hidden="true"></span>
+				    <label for="emailCode">인증번호</label>
+				    <div class="inline">
+				    	<input id="emailCode" name="emailCode" type="text" placeholder="메일로 받은 인증번호 입력" />
+				    	<button type="button" class="chip" id="btnVerifyEmail">인증 확인</button>
+				    </div>
+				    <span id="emailMsg" class="msg" aria-live="polite"></span>
+				</div>
 
                 <div class="row">
                     <label for="phone">전화번호</label>
@@ -49,7 +60,7 @@
         </section>
     </main>
 
-    <script th:src="@{/js/find_id.js}"></script>
+    <script type = "module" th:src="@{/js/public/find_id.js}"></script>
 </body>
 
 </html>

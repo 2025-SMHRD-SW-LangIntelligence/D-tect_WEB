@@ -1,8 +1,14 @@
+import { setupEmailVerification } from '/js/public/common.js';
+
+const emailEl = document.getElementById('email')
 const form = document.getElementById('findForm');
-const emailB = document.getElementById('btnEmail');
+const btnVerify = document.getElementById('btnVerifyEmail');
+const btnEmail = document.getElementById('btnEmail');
 const phone = document.getElementById('phone');
 const result = document.getElementById('result');
 const resultText = document.getElementById('resultText');
+const emailCodeEl = document.getElementById('emailCode');
+const emailMsgEl = document.getElementById('emailMsg');
 
 // 전화번호: 숫자만, 11자리 제한
 phone.addEventListener('input', (e) => {
@@ -11,12 +17,7 @@ phone.addEventListener('input', (e) => {
     e.target.setCustomValidity('');
 });
 
-emailB.addEventListener('click', () => {
-    const email = document.getElementById('email').value.trim();
-    if (!email) return alert('이메일을 입력해 주세요.');
-    // TODO: 실제 이메일 인증 로직
-    alert(`인증 메일을 "${email}"로 발송했습니다(데모).`);
-});
+setupEmailVerification(btnEmail, btnVerify, emailEl, emailCodeEl, emailMsgEl);
 
 // 찾기(데모)
 form.addEventListener('submit', (e) => {

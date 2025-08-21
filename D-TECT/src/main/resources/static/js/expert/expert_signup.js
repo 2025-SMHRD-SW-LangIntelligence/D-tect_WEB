@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const phoneEl      = document.getElementById('phone');
   const officeAddrEl = document.getElementById('officeAddress');
   const addrDetailEl = document.getElementById('addrDetail');
+  const specialtyChipsWrap = document.getElementById('specialtyChips');
+  const specialtiesHidden = document.getElementById('specialties');
 
   const btnCheckId   = document.getElementById('btnCheckId');
   const btnEmail     = document.getElementById('btnEmail');
@@ -46,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const dropText  = document.getElementById('dropText');
   const btnFile   = document.getElementById('btnFile');
 
+  // 초기 렌더링
+  renderSpecialtyChips();
+  
   // 3) 검증/공통 바인딩
   setupPhoneValidation(phoneEl);
   passwordEl.addEventListener('input', () => validatePasswords(passwordEl, password2El, pwdMsgEl, false));
@@ -54,7 +59,57 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEmailVerification(btnEmail, btnVerify, emailEl, emailCodeEl, emailMsgEl);
   setupAddressSearch(btnAddr, officeAddrEl); // 전문가: officeAddress 사용
 
-  // 4) 파일 드래그&드롭 + 버튼 선택
+  
+  // 4) 칩으로 표시할 전문분야 옵션 (원하는 대로 수정/추가)
+  const SPECIALTY_OPTIONS = [
+      '외모·신체 비하',
+      '성희롱·성적발언',
+      '인신공격·모욕',
+      '콘텐츠·실력비하',
+      '혐오발언',
+      '스팸·채팅도배'
+
+  ];
+  function renderSpecialtyChips() {
+      specialtyChipsWrap.innerHTML = '';
+      SPECIALTY_OPTIONS.forEach((label, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'chip selectable';
+          btn.textContent = label;
+
+          // 접근성: 체크박스 역할/상태
+          btn.setAttribute('role', 'checkbox');
+          btn.setAttribute('tabindex', '0');
+          btn.setAttribute('aria-checked', 'false');
+          btn.dataset.value = label;
+
+          // 클릭/엔터/스페이스로 토글
+          const toggle = () => {
+              const selected = btn.getAttribute('aria-checked') === 'true';
+              btn.setAttribute('aria-checked', String(!selected));
+              btn.classList.toggle('selected', !selected);
+              updateSpecialtiesHidden();
+          };
+          btn.addEventListener('click', toggle);
+          btn.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+          });
+
+          specialtyChipsWrap.appendChild(btn);
+      });
+  }
+
+  function updateSpecialtiesHidden() {
+      const selected = [...specialtyChipsWrap.querySelectorAll('.chip.selectable[aria-checked="true"]')]
+          .map(el => el.dataset.value);
+      specialtiesHidden.value = selected.join(',');
+
+      // 필요 시 커스텀 유효성 처리
+      specialtiesHidden.setCustomValidity(selected.length ? '' : '전문분야를 최소 1개 이상 선택해 주세요.');
+  }
+  
+  // 5) 파일 드래그&드롭 + 버튼 선택
   const acceptRe = /\.(pdf|jpg|jpeg|png)$/i;
   ['dragenter','dragover'].forEach(evt =>
     drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.add('drag'); })
@@ -76,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dropText.innerText = f ? `선택됨: ${f.name}` : '여기에 파일을 드래그하거나, 찾아보기를 눌러 선택하세요';
   });
 
-  // 5) 취소(홈으로)
+  // 6) 취소(홈으로)
   btnCancel?.addEventListener('click', () => {
     if (confirm('회원가입을 취소하시겠습니까?')) {
       sessionStorage.removeItem('expertConsent');
@@ -84,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 6) 제출
+  // 7) 제출
   btnSubmit?.addEventListener('click', async (e) => {
     e.preventDefault();
 

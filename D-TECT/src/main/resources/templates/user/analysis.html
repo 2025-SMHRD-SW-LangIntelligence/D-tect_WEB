@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 분석</title>
-    <link rel="stylesheet" th:href="@{/css/analysis.css}" />
+    <link rel="stylesheet" th:href="@{/css/user/analysis.css}" />
 </head>
 
 <body>
@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <button id="btnAnalyze" class="btn primary">분석</button>
+            <button id="btnAnalyze" class="btn primary" onclick = "location.href = '/capturePage'">분석</button>
         </section>
 
         <!-- 2) 결과 섹션 -->
@@ -73,7 +73,7 @@
 
     </main>
 
-    <script th:src="@{/js/analysis.js}"></script>
+    <script th:src="@{/js/user/analysis.js}"></script>
 </body>
 
 </html>
