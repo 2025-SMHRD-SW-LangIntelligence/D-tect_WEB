@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8" />
@@ -7,7 +7,7 @@
     <title>D-tect | 전문가 일정 확인</title>
 
     <!-- ✅ 경로 규칙 -->
-    <link rel="stylesheet" href="./css/expert_schedule.css" />
+    <link rel="stylesheet" th:href="@{/css/expert_schedule.css}" />
 </head>
 
 <body class="expert-page">
@@ -17,7 +17,7 @@
     <!-- 상단바 -->
     <header class="topbar">
         <div class="left">
-            <img src="./images/logo.png" alt="D-tect" class="logo" />
+            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
             <nav class="month-nav">
                 <button class="nav-btn" id="prevMonth" aria-label="이전 달">&#9664;</button>
                 <h1 id="monthLabel" class="month-label" aria-live="polite">2025-08</h1>
@@ -55,7 +55,7 @@
     </footer>
 
     <!-- ✅ 경로 규칙 -->
-    <script defer src="./js/expert_schedule.js"></script>
+    <script defer th:src="@{/js/expert_schedule.js}"></script>
 </body>
 
 </html>

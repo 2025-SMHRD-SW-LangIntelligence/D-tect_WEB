@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 일정 예약</title>
-    <link rel="stylesheet" href="./css/user_reservation.css" />
+    <link rel="stylesheet" th:href="@{/css/user_reservation.css}" />
 </head>
 
 <body class="reservation-page">
@@ -15,7 +15,7 @@
     <!-- 상단바 -->
     <header class="topbar">
         <div class="left">
-            <img src="./images/logo.png" alt="D-tect" class="logo" />
+            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
             <nav class="month-nav">
                 <button class="nav-btn" id="prevMonth" aria-label="이전 달">&#9664;</button>
                 <h1 id="monthLabel" class="month-label" aria-live="polite">2025-08</h1>
@@ -50,7 +50,7 @@
         </div>
     </footer>
 
-    <script src="./js/user_reservation.js"></script>
+    <script th:src="@{/js/user_reservation.js}"></script>
 </body>
 
 </html>
