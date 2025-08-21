@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -136,4 +137,12 @@ public class UserService {
     private String generateCode() {
         return String.valueOf((int)(Math.random() * 900000) + 100000);
     }
+
+	public Optional<Member> findByUsername(String username) {
+		return memberRepository.findByUsername(username);
+	}
+
+	public boolean checkPassword(Member member, String rawPassword) {
+		return member.getPassword().equals(rawPassword);
+	}
 }
