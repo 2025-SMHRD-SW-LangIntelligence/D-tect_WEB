@@ -1,169 +1,123 @@
-// ---------- 설정 ----------
-const CATEGORIES = [
-    '성희롱·성적발언',
-    '외모·신체 비하',
-    '콘텐츠·실력비하',
-    '혐오발언',
-    '인신공격·모욕',
-    '스팸·채팅도배'
-];
+(function () {
+    const userId   = Number(document.body.dataset.userId || 0);
 
-// 분석 결과 샘플 생성기(백엔드 연결 전 데모)
-// 각 항목 0~100 사이 값
-function mockAnalyze() {
-    return CATEGORIES.map(() => Math.floor(Math.random() * 40) + Math.floor(Math.random() * 40)); // 0~80 근사
-}
+    const listEl   = document.getElementById('reportList');
+    const searchEl = document.getElementById('searchInput');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn  = document.getElementById('prevBtn');
+    const nextBtn  = document.getElementById('nextBtn');
 
-// ---------- 엘리먼트 ----------
-const titleEl = document.getElementById('pageTitle');
-const panelLoading = document.getElementById('panelLoading');
-const panelResult = document.getElementById('panelResult');
-const btnAnalyze = document.getElementById('btnAnalyze');
-const btnPdf = document.getElementById('btnPdf');
-const btnAI = document.getElementById('btnAI');
-const progressEl = document.getElementById('progress');
-const canvas = document.getElementById('radar');
-const ctx = canvas.getContext('2d');
+    // 모달
+    const viewer       = document.getElementById('viewer');
+    const viewerFrame  = document.getElementById('viewerFrame');
+    const viewerTitle  = document.getElementById('viewerTitle');
+    const viewerClose  = document.getElementById('viewerClose');
 
-// ---------- 이벤트 ----------
-btnAI?.addEventListener('click', () => alert('챗봇을 준비중입니다. (여기에 챗봇 패널/모달을 연결하세요)'));
+    const PAGE_SIZE = 7;
+    let all = [];       // 서버 데이터 전체
+    let filtered = [];  // 검색 적용된 리스트
+    let page = 1;
 
-btnAnalyze.addEventListener('click', startAnalysis);
-btnPdf.addEventListener('click', downloadPNG); // PDF 서버 연동 전: 차트 PNG 저장
+    const fmtDate = (s) => {
+        if (!s) return '—';
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return '—';
+        return d.toISOString().slice(0,10);
+    };
 
-// ---------- 분석 시뮬레이션 + 전환 ----------
-function startAnalysis() {
-    btnAnalyze.disabled = true;
-    titleEl.textContent = '분석 진행중';
+    // 등급 컬럼에 표시
+    const fmtRate = (r) => r ?? '—';
 
-    let p = 0;
-    progressEl.textContent = '0%';
+    function rowTemplate(row) {
+        // 상태 점은 지금은 모두 ready로 간주 (원하면 서버에서 status 추가 가능)
+        const dotClass = 'dot';
 
-    const tick = setInterval(() => {
-        p += Math.floor(Math.random() * 7) + 3;  // 3~9% 증가
-        if (p >= 100) { p = 100; clearInterval(tick); onAnalyzeDone(); }
-        progressEl.textContent = `${p}%`;
-    }, 180);
-}
+        // 미리보기/다운로드 URL이 없으면 비활성
+        const canPreview  = !!row.previewUrl;
+        const canDownload = !!row.downloadUrl;
 
-function onAnalyzeDone() {
-    // 실제로는 서버에서 결과 받아오기
-    const values = mockAnalyze(); // [..6개..]
-    drawRadar(values);
+        // a[download] 속성에 파일명을 세팅해두면 동일 출처일 때 브라우저가 그 이름을 사용
+        const dlAttr = canDownload ? `href="${row.downloadUrl}" download="${(row.fileName || 'report.pdf').replace(/"/g, "'")}"` : '';
 
-    // 화면 전환
-    panelLoading.classList.add('hidden');
-    panelResult.classList.remove('hidden');
-    titleEl.textContent = '분석 결과';
-}
-
-// ---------- 레이더 차트 (Canvas) ----------
-function drawRadar(values) {
-    // values: 6개 (0~100)
-    const w = canvas.width, h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const cx = w / 2, cy = h / 2 + 10;
-    const radius = Math.min(w, h) * 0.36;
-    const steps = 5; // 기준 원 5개
-    const axes = CATEGORIES.length;
-
-    // 배경
-    ctx.fillStyle = '#2a2a2a';
-    ctx.fillRect(0, 0, w, h);
-
-    // 기준 원/눈금
-    ctx.strokeStyle = '#777';
-    ctx.lineWidth = 1;
-    for (let s = 1; s <= steps; s++) {
-        const r = radius * (s / steps);
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
+        return `
+      <li class="row list-grid" data-id="${row.analIdx}">
+        <div class="col col--dot"><span class="${dotClass}" aria-hidden="true"></span></div>
+        <div class="col name" title="${row.fileName || ''}">${row.fileName || '-'}</div>
+        <div class="col date">${fmtDate(row.createdAt)}</div>
+        <div class="col size">${fmtRate(row.analRate)}</div>
+        <div class="col actions">
+          <button class="btn btn--ghost act-view" ${canPreview ? '' : 'disabled'}
+                  data-url="${row.previewUrl || ''}" data-name="${row.fileName || ''}">미리보기</button>
+          <a class="btn btn--accent act-download" ${canDownload ? dlAttr : 'aria-disabled="true" tabindex="-1"'}>다운로드</a>
+        </div>
+      </li>
+    `;
     }
 
-    // 축 + 라벨
-    ctx.fillStyle = '#eaeaea';
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    function render() {
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        page = Math.min(Math.max(1, page), totalPages);
+        pageInfo.textContent = `${page} / ${totalPages}`;
 
-    for (let i = 0; i < axes; i++) {
-        const ang = -Math.PI / 2 + i * (Math.PI * 2 / axes);
-        const x = cx + Math.cos(ang) * radius;
-        const y = cy + Math.sin(ang) * radius;
+        const slice = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+        listEl.innerHTML = slice.map(rowTemplate).join('');
 
-        // 축선
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = '#666';
-        ctx.stroke();
-
-        // 라벨
-        const lx = cx + Math.cos(ang) * (radius + 28);
-        const ly = cy + Math.sin(ang) * (radius + 28);
-        wrapText(CATEGORIES[i], lx, ly, 120, 14);
+        document.getElementById('emptyState').hidden = filtered.length !== 0;
+        prevBtn.disabled = page <= 1;
+        nextBtn.disabled = page >= totalPages;
     }
 
-    // 값 폴리곤
-    ctx.beginPath();
-    for (let i = 0; i < axes; i++) {
-        const v = Math.max(0, Math.min(100, values[i]));
-        const r = radius * (v / 100);
-        const ang = -Math.PI / 2 + i * (Math.PI * 2 / axes);
-        const x = cx + Math.cos(ang) * r;
-        const y = cy + Math.sin(ang) * r;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    function applyFilter() {
+        const q = (searchEl.value || '').trim().toLowerCase();
+        filtered = !q ? all.slice() : all.filter(x => (x.fileName || '').toLowerCase().includes(q));
+        page = 1;
+        render();
     }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(239,68,68,0.25)';   // 빨강 반투명
-    ctx.strokeStyle = 'rgba(239,68,68,0.9)';
-    ctx.lineWidth = 2;
-    ctx.fill(); ctx.stroke();
 
-    // 값 점
-    for (let i = 0; i < axes; i++) {
-        const v = Math.max(0, Math.min(100, values[i]));
-        const r = radius * (v / 100);
-        const ang = -Math.PI / 2 + i * (Math.PI * 2 / axes);
-        const x = cx + Math.cos(ang) * r;
-        const y = cy + Math.sin(ang) * r;
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(239,68,68,0.95)';
-        ctx.fill();
+    // 이벤트
+    searchEl.addEventListener('input', applyFilter);
+    prevBtn.addEventListener('click', () => { page--; render(); });
+    nextBtn.addEventListener('click', () => { page++; render(); });
+
+    listEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.act-view');
+        if (!btn || btn.disabled) return;
+
+        const url  = btn.dataset.url;
+        const name = btn.dataset.name || '미리보기';
+        viewerTitle.textContent = name;
+        viewerFrame.src = url; // /analysis/{id}/preview 가 PDF를 inline으로 내려줌
+        viewer.classList.add('is-open');
+        viewer.setAttribute('aria-hidden', 'false');
+    });
+
+    viewerClose.addEventListener('click', closeViewer);
+    viewer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal__backdrop')) closeViewer();
+    });
+    function closeViewer() {
+        viewer.classList.remove('is-open');
+        viewer.setAttribute('aria-hidden', 'true');
+        viewerFrame.src = 'about:blank';
     }
-}
 
-// 텍스트 줄바꿈 유틸
-function wrapText(text, x, y, maxWidth, lineHeight) {
-    const words = text.split('');
-    let line = '', lines = [];
-    for (let i = 0; i < words.length; i++) {
-        const test = line + words[i];
-        const w = ctx.measureText(test).width;
-        if (w > maxWidth && line !== '') {
-            lines.push(line);
-            line = words[i];
-        } else {
-            line = test;
+    async function load() {
+        if (!userId) {
+            console.warn('userId 없음');
+            all = []; filtered = []; render();
+            return;
         }
+        try {
+            const res = await fetch(`/analysis/api/user/${userId}/history`, { headers: { 'Accept': 'application/json' }});
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            all = await res.json();
+            filtered = all.slice();
+        } catch (e) {
+            console.error('리스트 로드 실패:', e);
+            all = []; filtered = [];
+        }
+        render();
     }
-    lines.push(line);
-    const totalH = lines.length * lineHeight;
-    let sy = y - totalH / 2 + lineHeight / 2;
-    for (const ln of lines) {
-        ctx.fillText(ln, x, sy);
-        sy += lineHeight;
-    }
-}
 
-// ---------- 내보내기(PNG) ----------
-function downloadPNG() {
-    // 차트 카드 전체 스냅샷 (캔버스만 저장)
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = 'd-tect-analysis.png';
-    a.click();
-}
+    load();
+})();
