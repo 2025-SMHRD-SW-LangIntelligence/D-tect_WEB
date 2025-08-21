@@ -1,5 +1,7 @@
 package com.smhrd.dtect.service;
 
+import com.smhrd.dtect.dto.ExpertMatchingSummaryDto;
+import com.smhrd.dtect.dto.UserMatchingSummaryDto;
 import com.smhrd.dtect.entity.*;
 import com.smhrd.dtect.repository.ExpertRepository;
 import com.smhrd.dtect.repository.MatchingRepository;
@@ -126,5 +128,13 @@ public class MatchingService {
         Cipher c = Cipher.getInstance(TF);
         c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
         return c.doFinal(cipher);
+    }
+
+    public List<UserMatchingSummaryDto> getUserMatchings(Long userIdx) {
+        return matchingRepository.findUserSummaries(userIdx);
+    }
+
+    public List<ExpertMatchingSummaryDto> getExpertMatchings(Long expertIdx) {
+        return matchingRepository.findExpertSummaries(expertIdx);
     }
 }

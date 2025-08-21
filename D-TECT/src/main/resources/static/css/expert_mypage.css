@@ -1,0 +1,373 @@
+:root {
+    --bg: #f6f6f6;
+    --ink: #1b1b1b;
+    --muted: #6a6a6a;
+    --panel: #2f2f2f;
+    --border: #3c3c3c;
+    --brand: #ffd400;
+    --brand-ink: #111;
+    --radius: 14px;
+    --radius-lg: 18px;
+}
+
+/* Base */
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Pretendard, Apple SD Gothic Neo, Arial, Helvetica, sans-serif;
+}
+
+/* ===== Topbar ===== */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 16px;
+    background: #2b2b2b;
+    border-bottom: 2px solid var(--border);
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.logo {
+    height: 40px;
+    width: auto
+}
+
+.page-title {
+    color: #fff;
+    margin: 0;
+    font-size: 1.1rem
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 16px
+}
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--brand)
+}
+
+.text-link {
+    background: none;
+    border: none;
+    color: #ddd;
+    cursor: pointer;
+    padding: 6px 8px
+}
+
+.text-link:hover {
+    color: #fff
+}
+
+/* ===== Layout ===== */
+.container {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 16px
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px
+}
+
+.align-right {
+    grid-column: 2
+}
+
+/* 그리드 우측 칸 배치 */
+
+.card {
+    background: #fff;
+    border: 1.5px solid #e7e7e7;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+}
+
+.card--dark {
+    background: var(--panel);
+    color: #fff;
+    border-color: var(--border);
+}
+
+.card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px
+}
+
+.card-head h2 {
+    margin: 0;
+    font-size: 1.05rem
+}
+
+/* Buttons */
+.chip {
+    background: var(--brand);
+    color: var(--brand-ink);
+    border: none;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn--primary {
+    background: var(--brand);
+    color: var(--brand-ink)
+}
+
+.btn--ghost {
+    background: #efefef
+}
+
+.btn--accent {
+    background: var(--brand);
+    color: var(--brand-ink);
+    min-width: 220px
+}
+
+.btn--danger {
+    outline: 2px solid #111
+}
+
+.cta-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18px;
+    margin-top: 24px
+}
+
+/* Forms */
+.info-form .field,
+.fee-form .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 12px
+}
+
+.info-form .label,
+.fee-form .label {
+    opacity: .9;
+    font-size: .92rem
+}
+
+.info-form input,
+.fee-form input,
+.fee-form textarea,
+.info-form select {
+    background: transparent;
+    color: inherit;
+    outline: none;
+    border: 1.2px solid #d2d2d2;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.info-form input {
+    border: none;
+    border-bottom: 1.6px solid #858585;
+    border-radius: 0
+}
+
+.info-form input:disabled,
+.info-form select:disabled {
+    opacity: .85
+}
+
+.help {
+    opacity: .7;
+    font-size: .82rem
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px
+}
+
+/* ===== 신청현황: 5열 고정 그리드 ===== */
+.list {
+    --col1: 140px;
+    /* 신청일   */
+    --col2: 150px;
+    /* 고객명   */
+    --col3: 140px;
+    /* 분류     */
+    --col4: 140px;
+    /* 매칭일   */
+    --col5: 160px;
+    /* 매칭여부 */
+    --col6: 120px;
+    /* 게시판이동 */
+}
+
+.list-scroll {
+    border: 1.5px solid #dcdcdc;
+    border-radius: 12px;
+    overflow: auto;
+    max-height: 320px;
+    background: #fff;
+    position: relative;
+}
+
+.list-grid,
+.list-row {
+    display: grid;
+    grid-template-columns:
+        var(--col1, 140px) var(--col2, 150px) var(--col3, 140px) var(--col4, 140px) minmax(var(--col5, 160px), 1fr) var(--col6);
+    gap: 12px;
+    align-items: center;
+}
+
+.list-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--brand);
+    color: var(--brand-ink);
+    padding: 12px;
+    font-weight: 800;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.list-body {
+    list-style: none;
+    margin: 0;
+    padding: 0
+}
+
+.list-row {
+    padding: 12px;
+    border-top: 1px solid #eee;
+    background: #fff
+}
+
+/* 가로 읽기 유지 */
+.list-head .col,
+.list-row .col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* 채팅 버튼 */
+.chat-btn{
+  border:none; cursor:pointer; font-weight:800;
+  border-radius:999px; padding:6px 12px;
+  background:var(--brand); color:var(--brand-ink);
+  box-shadow:inset 0 0 0 2px #00000020;
+}
+.chat-btn[disabled]{ 
+	background:#efefef; 
+	color:#888; 
+	cursor:not-allowed; 
+	box-shadow:none; 
+}
+
+/* 5번째 열(매칭여부)만 줄바꿈 허용해도 됨 – 기본은 nowrap 유지 */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge--ok {
+    background: #e8ffd1
+}
+
+.badge--warn {
+    background: #fff5c7
+}
+
+.badge--danger {
+    background: #ffe2e0
+}
+
+.list-foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px
+}
+
+.page-info {
+    min-width: 60px;
+    text-align: center
+}
+
+/* 반응형 */
+@media (min-width: 1200px) {
+    .list {
+        --col1: 160px;
+        --col2: 180px;
+        --col3: 160px;
+        --col4: 160px;
+        --col5: 220px;
+    }
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr
+    }
+
+    .align-right {
+        grid-column: auto
+    }
+
+    .cta-wrap {
+        grid-template-columns: 1fr
+    }
+}

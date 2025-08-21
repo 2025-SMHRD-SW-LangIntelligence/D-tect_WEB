@@ -40,19 +40,15 @@ public class Member {
     private String password;
 
     // 회원 이름
-	@Column(nullable = false)
     private String name;
 	
 	// 회원 전화번호
-	@Column(nullable = false)
 	private String phone;
 
     // 회원 주소
-	@Column(nullable = false)
     private String address;
 
     // 회원 이메일
-	@Column(nullable = false)
     private String email;
 
     // 회원 약관동의
@@ -67,12 +63,18 @@ public class Member {
     // 가입 일자
 	@Column(name = "joined_at", nullable = false)
     private Timestamp joinedAt;
-	
+
+	// Oauth를 고려한 컬럼
+	// nullable
+	private String oauthProvider; // KAKAO, GOOGLE
+	private String oauthProviderId; // 소셜의 고유 사용자 ID
+
+
 	// 회원 활동 가능 여부
 	@Column(name = "member_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private MemberStatus memberStatus;
-	
+
 	// 날짜 자동 기입 함수
 	@PrePersist
 	protected void onCreate() {

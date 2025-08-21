@@ -12,7 +12,6 @@ import java.util.List;
 @Repository
 public interface ExpertRepository extends JpaRepository<Expert, Long> {
 
-    // 승인된 전문가 전체
     List<Expert> findAllByExpertStatus(ExpertStatus status);
 
     // 간단 키워드 검색(이름/사무실명/주소)

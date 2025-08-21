@@ -1,0 +1,161 @@
+:root {
+    --bg: #1f1f1f;
+    --panel: #ffffff;
+    --text: #222;
+    --muted: #666;
+    --line: #F0DD08;
+    /* 포인트 노랑 */
+}
+
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(1100px 600px at 50% 10%, #2b2b2b, var(--bg) 60%), var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* 로고 200px */
+.logo {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+}
+
+.logo img {
+    width: 200px;
+    height: auto;
+    display: block;
+}
+
+/* 카드 */
+.wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 90px 18px 60px;
+}
+
+.card {
+    width: min(560px, 94vw);
+    background: var(--panel);
+    border-radius: 18px;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, .35);
+    padding: 28px 26px 24px;
+}
+
+/* 행 */
+.row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.row label {
+    width: 90px;
+    font-weight: 800;
+    color: #202020;
+}
+
+.row input {
+    flex: 1 1 auto;
+    height: 44px;
+    background: #e9e9e9;
+    border: 1px solid #d8d8d8;
+    border-radius: 6px;
+    padding: 0 12px;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.row input:focus {
+    border-color: #bfbfbf;
+    box-shadow: 0 0 0 3px rgba(240, 221, 8, .2);
+}
+
+/* 이메일 인증 chip */
+.inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.inline input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.chip {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #3a3a3a;
+    color: #fff;
+    border: 2px solid var(--line);
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform .15s ease, filter .15s ease;
+}
+
+.chip:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+/* 버튼(노란색) */
+.btn {
+    display: block;
+    width: 180px;
+    height: 50px;
+    margin: 18px auto 8px;
+    background: var(--line);
+    color: #111;
+    font-weight: 900;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(240, 221, 8, .25);
+    transition: transform .15s ease, filter .15s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.03);
+}
+
+/* 결과 */
+.result {
+    margin-top: 16px;
+    padding: 14px 16px 18px;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.result .title {
+    margin: 0 0 4px;
+    font-weight: 900;
+}
+
+.id-text {
+    margin: 2px 0 6px;
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+.hint {
+    color: var(--muted);
+    font-size: .9rem;
+}

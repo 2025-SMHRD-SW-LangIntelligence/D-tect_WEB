@@ -52,6 +52,19 @@
                         <span id="pwdMsg" class="msg" aria-live="polite"></span>
                     </div>
                 </div>
+                <!-- 전문분야 (다중 선택) -->
+                <div class="row" id="rowSpecialty">
+                    <span class="dot" aria-hidden="true"></span>
+                    <label for="specialties">전문분야</label>
+
+                    <!-- 열3: 칩 스택 -->
+                    <div class="chips" id="specialtyChips" aria-label="전문분야 다중 선택">
+                        <!-- JS가 아래 옵션들을 칩으로 렌더링합니다 -->
+                    </div>
+
+                    <!-- 서버 제출/검증용 숨김 인풋(쉼표 구분) -->
+                    <input type="hidden" id="specialties" name="specialties" />
+                </div>
 
                 <!-- 이메일 -->
                 <div class="row">

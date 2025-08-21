@@ -128,6 +128,28 @@ input.sub {
     transition: transform .15s ease, filter .15s;
 }
 
+/* 전문분야 칩 묶음 */
+.chips {
+    grid-column: 3 / -1;
+    /* 3번째 열을 정확히 차지 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 선택됨 */
+.chip.selectable[aria-checked="true"],
+.chip.selectable.selected {
+    background: var(--line);
+    color: #111;
+}
+
+/* 키보드 포커스 */
+.chip.selectable:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(240, 221, 8, .35);
+}
+
 .chip:hover {
     transform: translateY(-1px);
     filter: brightness(1.05);
