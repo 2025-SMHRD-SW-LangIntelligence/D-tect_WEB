@@ -1,63 +1,62 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>D-tect | 전문가 약관 동의</title>
-    <link rel="stylesheet" th:href="@{/css/expert/expert_terms.css}" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 일반회원 약관</title>
+    <link rel="stylesheet" href="./css/expert_terms.css" />
 </head>
 
-<body>
-<!-- 좌상단 로고 (200px) -->
-<a href="/" class="logo" aria-label="D-tect 홈으로"> <img
-        th:src="@{/images/logo.png}" alt="D-tect 로고">
-</a>
+<body class="terms-page">
+    <!-- 상단 -->
+    <div class="brand-strip"></div>
+    <header class="topbar">
+        <a id="logoLink" class="logo-link" href="#">
+            <img src="./images/logo.png" alt="D-tect 로고" class="logo" />
+        </a>
+    </header>
 
-<main class="wrap">
-    <section class="panel" aria-label="전문가 약관 동의">
-        <!-- 약관 본문 -->
-        <div class="terms-box" tabindex="0" aria-label="전문가 약관 내용">
-            <!-- =========================================================
-         여기에 '전문가 이용약관' 전문을 붙여 넣으세요.
-         예) 제1조(목적) ... 제2조(정의) ... 제3조(계약의 성립) ...
-         개인정보 제3자 제공/수집·이용/보관, 수수료·정산, 분쟁 해결 등
-         ========================================================= -->
-            <h3>전문가 이용약관 (예시 제목)</h3>
-            <p>이 영역은 약관 샘플 텍스트입니다. 실제 약관 전문을 위의 주석 위치에 붙여 넣으세요.</p>
-            <ul>
-                <li>수수료 및 정산 조건</li>
-                <li>증거 문서 수신/열람에 관한 책임</li>
-                <li>상담 범위, 금지 행위, 비밀 유지</li>
-                <li>개인정보 처리, 제3자 제공, 보관 기간</li>
-                <li>분쟁 해결 및 관할</li>
-            </ul>
-            <p>스크롤이 가능한 영역입니다. 약관 길이가 길어도 UI가 깔끔하게 유지됩니다.</p>
-        </div>
+    <main class="container">
+        <section class="card">
+            <div class="paper">
+                <div id="termsScroll" class="terms" tabindex="0" aria-label="서비스 이용약관">
+                    <!-- 실제 약관 전문을 여기에 넣으시면 됩니다 -->
+                    <h2>서비스 이용약관(요약)</h2>
+                    <p>제1조(목적) 본 약관은 D-tect 서비스의 이용조건과 절차, 회사와 회원의 권리와 의무 등 기본적인 사항을 규정함을 목적으로 합니다.</p>
+                    <p>제2조(정의) …</p>
+                    <p>제3조(약관의 효력 및 변경) …</p>
+                    <p>제4조(회원가입) …</p>
+                    <p>제5조(개인정보의 보호) …</p>
+                    <p>제6조(서비스 제공 및 변경) …</p>
+                    <p>제7조(서비스의 중단) …</p>
+                    <p>제8조(회원의 의무) …</p>
+                    <p>제9조(계약해지) …</p>
+                    <p>제10조(분쟁의 해결) …</p>
+                    <pre>
+1. 회원은 관계 법령 및 본 약관을 준수해야 합니다.
+2. 회사는 안정적인 서비스 제공을 위해 최선을 다합니다.
+3. 기타 자세한 사항은 전문 약관을 따릅니다.
+          </pre>
+                </div>
 
-        <form id="termsForm" enctype="multipart/form-data">
+                <p class="note">※ 약관 확인 후 동의해야 회원가입이 가능합니다.</p>
 
-            <!-- 동의 라디오 -->
-            <div class="agree">
-                <label class="option"> <input type="radio"
-                                              name="termsAgree" value="Y"> <span>약관에 동의합니다.</span>
-                </label> <label class="option"> <input type="radio"
-                                                       name="termsAgree" value="N"> <span>약관에 동의하지 않습니다.</span>
-            </label>
+                <label class="agree-line">
+                    <input type="checkbox" id="agree" />
+                    <span>약관에 동의합니다.</span>
+                </label>
             </div>
 
-            <!-- 입력 폼으로 이동 -->
             <div class="actions">
-                <p class="note">※ <b>기본 정보 입력</b> 후 회원가입이 가능합니다.</p>
-                <button type="button" id="goForm" class="forms-btn" aria-label="폼으로 이동" onclick = "location.href= '/joinExpertPage'">입력 폼으로 이동
-                    <span>→</span></button>
+                <button id="goSignup" class="btn btn--primary" type="button" disabled>
+                    약관에 동의하고 회원가입 진행하기
+                </button>
             </div>
+        </section>
+    </main>
 
-        </form>
-    </section>
-</main>
-
-<script type = "module" th:src="@{/js/expert/expert_terms.js}"></script>
+    <script defer src="./js/expert_terms.js"></script>
 </body>
 
 </html>

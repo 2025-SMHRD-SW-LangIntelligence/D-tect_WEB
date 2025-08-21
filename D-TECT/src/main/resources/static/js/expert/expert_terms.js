@@ -1,35 +1,23 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const btnNext   = document.getElementById('btnSubmit'); // 기존 약관 페이지의 "회원가입(다음)" 버튼 재사용
-    const btnCancel = document.getElementById('btnCancel');
-    const radios    = document.querySelectorAll('input[name="termsAgree"]');
+// 경로(필요 시 프로젝트 라우팅에 맞게 수정)
+const LOGIN_PATH = "/login";              // 로고 클릭 시 이동
+const SIGNUP_PATH = "./expert_signup.html";  // 동의 후 이동
 
-    // 약관 동의 전에는 버튼 비활성화
-    const updateNextDisabled = () => {
-        const agree = document.querySelector('input[name="termsAgree"]:checked')?.value === 'Y';
-        btnNext.disabled = !agree;
-    };
-    radios.forEach(r => r.addEventListener('change', updateNextDisabled));
-    updateNextDisabled();
+// 로고 → 로그인
+document.getElementById("logoLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    window.location.href = LOGIN_PATH;
+});
 
-    // 취소 → 홈
-    btnCancel.addEventListener('click', () => {
-        if (confirm('회원가입을 취소하시겠습니까?')) {
-            sessionStorage.removeItem('expertConsent');
-            window.location.href = '/';
-        }
-    });
+// 약관 동의 체크 시 버튼 활성화
+const agree = document.getElementById("agree");
+const goSignup = document.getElementById("goSignup");
 
-    // 다음(= Step2 이동)
-    btnNext.addEventListener('click', (e) => {
-        e.preventDefault();
-        const agree = document.querySelector('input[name="termsAgree"]:checked')?.value;
-        if (agree !== 'Y') {
-            alert('약관에 동의해야 계속 진행할 수 있습니다.');
-            return;
-        }
-        // 동의 결과 저장
-        sessionStorage.setItem('expertConsent', JSON.stringify({ termsAgree: 'Y' }));
-        // Step2로 이동 (전문가 정보 입력 페이지 라우트로 맞춰 주세요)
-        window.location.href = '/expertSignupPage';
-    });
+agree.addEventListener("change", () => {
+    goSignup.disabled = !agree.checked;
+});
+
+// 진행 버튼
+goSignup.addEventListener("click", () => {
+    if (!agree.checked) return;
+    window.location.href = SIGNUP_PATH;
 });
