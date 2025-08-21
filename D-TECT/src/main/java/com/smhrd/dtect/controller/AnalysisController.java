@@ -43,13 +43,17 @@ public class AnalysisController {
     // 추후 수정
     @GetMapping("/{analId}/preview")
     public ResponseEntity<?> preview(@PathVariable Long analId) {
-
         byte[] pdf = analysisService.loadPdfBytes(analId);
         if (pdf == null || pdf.length == 0) return ResponseEntity.notFound().build();
 
+        String filename = analysisService.buildReportFileName(analId);
+        String encoded  = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
+
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_PDF);
-        h.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"preview.pdf\"");
+        h.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename*=UTF-8''" + encoded);
+        h.setContentLength(pdf.length);
+
         return ResponseEntity.ok().headers(h).body(new ByteArrayResource(pdf));
     }
 
@@ -57,17 +61,14 @@ public class AnalysisController {
     // 추후 수정
     @GetMapping("/{analId}/download")
     public ResponseEntity<?> download(@PathVariable Long analId) {
-        // 1) PDF 로드 (클라우드 → 프록시)
         byte[] pdf = analysisService.loadPdfBytes(analId);
         if (pdf == null || pdf.length == 0) return ResponseEntity.notFound().build();
 
-        // 2) 파일명 규칙을 서버에서 동일하게 재구성
-        String filename = analysisService.buildReportFileName(analId); // 아래 헬퍼 참고
+        String filename = analysisService.buildReportFileName(analId);
         String encoded  = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
 
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_PDF);
-
         h.add(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; filename=\"" + filename.replace("\"","'") + "\"; filename*=UTF-8''" + encoded);
         h.setContentLength(pdf.length);
