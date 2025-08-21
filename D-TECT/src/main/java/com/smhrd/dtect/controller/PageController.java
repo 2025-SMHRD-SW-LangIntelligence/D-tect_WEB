@@ -50,11 +50,13 @@ public class PageController {
     @GetMapping(value = "/joinUserPage")
     public String userSignup() {
         return "user/user_signup"; 				// 기본 회원 회원가입 페이지
+
     }
-    
-    @GetMapping(value = "/userTermPage")	
-    public String userTerm() {	
-    	return "user/user_terms";				// 기본 회원 약관 페이지
+
+    @GetMapping(value = "/userTermPage")
+    public String userTerm() {
+        return "user/user_terms";				// 기본 회원 약관 페이지
+
     }
     
     @GetMapping(value = "/userMainPage")
@@ -78,7 +80,7 @@ public class PageController {
     public String expertSignup() {
         return "expert/expert_signup"; 			// 전문가 회원 회원가입 페이지
     }
-    
+        
     @GetMapping(value = "/expertTermPage")	
     public String expertTerm() {	
     	return "expert/expert_terms";			// 전문가 회원 약관 페이지
@@ -86,7 +88,12 @@ public class PageController {
 
     @GetMapping(value = "/expertMainPage")
     public String expert() {
-        return "expert/list";   				// 전문가 회원 메인 페이지
+        return "expert/expert_mainpage";   				// 전문가 회원 메인 페이지
+    }
+    
+    @GetMapping(value = "/expertSchedulePage")
+    public String expertSchedule() {
+    	return "expert/expert_schedule";				/// 전문가 회원 일정확인 페이지
     }
     
     @GetMapping(value = "/expertMyinfoPage")

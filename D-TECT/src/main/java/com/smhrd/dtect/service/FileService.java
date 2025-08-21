@@ -82,6 +82,9 @@ public class FileService {
         return decryptAesCbcPkcs5(cipher, aesKey, iv);
     }
 
+    // ======= (기존) 매칭 기준 업로드들 - 유지 =======
+
+    // 전문가 인증서 파일 업로드
     public static class EncodedFile {
         private final byte[] cipher;
         private final byte[] iv;
@@ -99,7 +102,7 @@ public class FileService {
         public String getContentType() { return contentType; }
     }
 
-    // ======= (기존) 매칭 기준 업로드들 - 유지 =======
+    // 한 매칭에 여러파일 업로드
     public Upload uploadFiles(Long matchingId, List<MultipartFile> files) throws Exception {
         Matching matching = matchingRepository.findById(matchingId)
                 .orElseThrow(() -> new IllegalArgumentException("매칭을 찾을 수 없습니다: " + matchingId));
@@ -127,6 +130,7 @@ public class FileService {
         return saved;
     }
 
+    // 매칭 기준 업로드 목록
     public List<Upload> findUploadsByMatching(Long matchingId) {
         return uploadRepository.findWithFiles(matchingId);
     }
@@ -161,4 +165,5 @@ public class FileService {
         c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
         return c.doFinal(cipher);
     }
+
 }

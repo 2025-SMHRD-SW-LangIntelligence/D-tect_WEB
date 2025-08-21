@@ -30,7 +30,7 @@ public class Analysis {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="anal_idx")
-    private Long anal_idx;
+    private Long analIdx;
 
     // 자료 식별자
 	@ManyToOne

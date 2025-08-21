@@ -65,46 +65,36 @@ public class SecurityConfiguration {
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider) throws Exception {
-        http
-            .authenticationProvider(provider)
-            .authorizeHttpRequests(auth -> auth
-                // ✅ 비로그인 접근 허용(공용/회원가입/찾기/약관 등)
-                .requestMatchers(
-                    "/", "/loginPage", "/chooseRolePage",
-                    "/findIdPage", "/changePasswordPage",
-                    "/joinUserPage", "/userTermPage",
-                    "/joinExpertPage", "/expertTermPage",
-                    "/css/**", "/js/**", "/images/**"
-                ).permitAll()
-
-                // ✅ 역할별 보호 페이지
-                .requestMatchers("/userMainPage", "/userMyinfoPage", "/capturePage").hasRole("USER")
-                .requestMatchers("/expertMainPage", "/expertMyinfoPage").hasRole("EXPERT")
-                .requestMatchers("/adminMainPage", "/adminUserBlockPage", "/adminInfoUpdatePage").hasRole("ADMIN")
-
-                // 나머지는 인증 필요
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/loginPage")           // 너의 로그인 페이지 GET
-                .loginProcessingUrl("/login")      // 로그인 처리 POST 엔드포인트(스프링이 처리)
-                .usernameParameter("username")     // 폼 name과 일치해야 함
-                .passwordParameter("password")     // 폼 name과 일치해야 함
-                .successHandler(successHandler)    // ★ 역할별 리다이렉트
-                .failureUrl("/loginPage?error")    // 실패 시
-                .permitAll()
-            )
-            .logout(l -> l
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .permitAll()
-            )
-            // 필요 시 .csrf(csrf -> csrf.disable()) 로 조정
-        ;
-
-        return http.build();
+      http
+        .authenticationProvider(provider)
+        .authorizeHttpRequests(auth -> auth
+          .requestMatchers(
+            "/", "/loginPage", "/chooseRolePage",
+            "/findIdPage", "/changePasswordPage",
+            "/joinUserPage", "/userTermPage",
+            "/joinExpertPage", "/expertTermPage",
+            "/css/**", "/js/**", "/images/**",
+            "/api/members/**", "/oauth2/**"
+          ).permitAll()
+          .requestMatchers("/userMainPage","/userMyinfoPage","/capturePage").hasRole("USER")
+          .requestMatchers("/expertMainPage","/expertMyinfoPage").hasRole("EXPERT")
+          .requestMatchers("/adminMainPage","/adminUserBlockPage","/adminInfoUpdatePage").hasRole("ADMIN")
+          .anyRequest().authenticated()
+        )
+        .formLogin(form -> form
+          .loginPage("/loginPage")
+          .loginProcessingUrl("/login")
+          .usernameParameter("username")
+          .passwordParameter("password")
+          .successHandler(successHandler)
+          .failureUrl("/loginPage?error")
+          .permitAll()
+        )
+        .oauth2Login(o -> o.loginPage("/loginPage").successHandler(successHandler))
+        .logout(l -> l.logoutUrl("/logout").logoutSuccessUrl("/").permitAll());
+      // CSRF: 메타/헤더 사용(A안) 또는 api 예외(B안) 중 프로젝트 정책에 맞춰 선택
+      return http.build();
     }
-    
 
 }
 

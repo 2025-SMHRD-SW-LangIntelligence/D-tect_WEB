@@ -47,7 +47,7 @@ public class Member {
 
     // 회원 주소
     private String address;
-
+    
     // 회원 이메일
     private String email;
 

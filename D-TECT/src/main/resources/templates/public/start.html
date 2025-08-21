@@ -9,26 +9,26 @@
 </head>
 
 <body>
-    <!-- 좌측 상단 로고 -->
-    <img class="logo" th:src="@{/images/logo.png}" alt="D-tect 로고" />
+<!-- 좌측 상단 로고 -->
+<img class="logo" th:src="@{/images/logo.png}" alt="D-tect 로고" />
 
-    <!-- 중앙 무대 -->
-    <main class="stage" aria-label="D-tect 시작화면">
-        <!-- 말풍선 컨테이너(뷰포트 전역) -->
-        <div id="cloud" aria-hidden="true"></div>
+<!-- 중앙 무대 -->
+<main class="stage" aria-label="D-tect 시작화면">
+    <!-- 말풍선 컨테이너(뷰포트 전역) -->
+    <div id="cloud" aria-hidden="true"></div>
 
-        <!-- 사진 + 오버레이 문구 -->
-        <div class="photo-wrap">
-            <img class="picture" src="./images/picture.png" alt="희망을 상징하는 이미지" />
-            <strong class="overlay-quote">당신의 마음은 여전히 빛나고 있어요</strong>
-        </div>
-    </main>
+    <!-- 사진 + 오버레이 문구 -->
+    <div class="photo-wrap">
+        <img class="picture" src="./images/picture.png" alt="희망을 상징하는 이미지" />
+        <strong class="overlay-quote">당신의 마음은 여전히 빛나고 있어요</strong>
+    </div>
+</main>
 
-    <!-- CTA 버튼 -->
-    <button class="cta" type="button" aria-label="D-tect 도움받기" onclick="location.href='/loginPage'">D-tect에게
-        도움받기</button>
+<!-- CTA 버튼 -->
+<button class="cta" type="button" aria-label="D-tect 도움받기" onclick="location.href='/loginPage'">D-tect에게
+    도움받기</button>
 
-    <script th:src="@{/js/public/start.js}"></script>
+<script th:src="@{/js/public/start.js}"></script>
 </body>
 
 </html>

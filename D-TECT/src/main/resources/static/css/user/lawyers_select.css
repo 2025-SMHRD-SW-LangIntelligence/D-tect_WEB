@@ -1,0 +1,312 @@
+:root {
+    --bg: #f6f6f6;
+    --ink: #1b1b1b;
+    --muted: #888;
+    --brand: #ffd400;
+    --brand-ink: #111;
+    --panel: #222;
+    --border: #e5e5e5;
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .07);
+}
+
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%
+}
+
+body.lawyers-page {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Pretendard, Apple SD Gothic Neo, Arial, Helvetica, sans-serif;
+}
+
+/* 상단 */
+.brand-strip {
+    height: 18px;
+    background: var(--brand)
+}
+
+.topbar {
+    background: #3a3a3a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px
+}
+
+.logo {
+    height: 30px;
+    width: auto
+}
+
+.title {
+    margin: 0;
+    font-size: 1.1rem
+}
+
+/* 컨테이너 */
+.container {
+    max-width: 1100px;
+    margin: 18px auto 32px;
+    padding: 0 16px
+}
+
+/* 필터 */
+.filters {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center
+}
+
+.search {
+    height: 40px;
+    border: 1px solid #d0d0d0;
+    border-radius: 12px;
+    padding: 0 12px;
+    font-size: 15px;
+    background: #fff
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px
+}
+
+.chip {
+    background: #efefef;
+    border: 1px solid #dcdcdc;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer
+}
+
+.chip.is-active {
+    background: var(--brand);
+    color: var(--brand-ink);
+    border-color: #eac700;
+    font-weight: 800
+}
+
+.sort {
+    height: 40px;
+    border: 1px solid #d0d0d0;
+    border-radius: 12px;
+    padding: 0 10px;
+    background: #fff
+}
+
+/* 카드 그리드 */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 14px
+}
+
+@media (max-width: 760px) {
+    .grid {
+        grid-template-columns: 1fr
+    }
+}
+
+.card {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.card__banner {
+    height: 84px;
+    background: #e9eef5
+}
+
+.card__banner.bg-a {
+    background: linear-gradient(135deg, #e8f0ff, #bcd3ff)
+}
+
+.card__banner.bg-b {
+    background: linear-gradient(135deg, #d7f1ff, #a9e0ff)
+}
+
+.card__body {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 12px;
+    padding: 12px
+}
+
+.avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #ddd;
+    display: grid;
+    place-items: center;
+    font-size: 28px
+}
+
+.meta small {
+    color: #777
+}
+
+.meta .name {
+    font-weight: 900
+}
+
+.meta .row {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.meta .icon {
+    font-size: 14px
+}
+
+.tags {
+    margin: 8px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px
+}
+
+.tag {
+    background: #f2f2f2;
+    border: 1px solid #e4e4e4;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 12px
+}
+
+.card__footer {
+    padding: 12px;
+    background: #fff
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 800
+}
+
+.btn--accent {
+    background: var(--brand);
+    color: var(--brand-ink)
+}
+
+.btn:disabled {
+    background: #efefef;
+    color: #9a9a9a;
+    cursor: not-allowed
+}
+
+/* 미등록/비활성 카드 */
+.card.is-disabled .card__banner {
+    filter: grayscale(1);
+    opacity: .6
+}
+
+.card.is-disabled .meta,
+.card.is-disabled .tags {
+    opacity: .6
+}
+
+.card.is-disabled .placeholder {
+    color: #9a9a9a
+}
+
+/* 빈 상태 */
+.empty {
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px dashed #cfcfcf;
+    border-radius: 12px;
+    background: #fff;
+    text-align: center;
+    color: #666
+}
+
+/* 모달 */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none
+}
+
+.modal.is-open {
+    display: block
+}
+
+.modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .45)
+}
+
+.modal__box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    top: 12vh;
+    width: min(520px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+    z-index: 2
+}
+
+.modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #f6f6f6;
+    border-bottom: 1px solid #eaeaea
+}
+
+.icon-btn {
+    background: #efefef;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer
+}
+
+.modal__body {
+    padding: 14px;
+    color: #333
+}
+
+.modal__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 0 14px 14px
+}
+
+.btn--ghost {
+    background: #efefef;
+    color: #111
+}

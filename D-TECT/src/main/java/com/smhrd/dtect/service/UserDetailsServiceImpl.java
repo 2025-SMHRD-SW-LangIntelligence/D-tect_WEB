@@ -7,10 +7,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.smhrd.dtect.entity.CustomUser;
 import com.smhrd.dtect.entity.Member;
 import com.smhrd.dtect.entity.MemberStatus;
 import com.smhrd.dtect.repository.MemberRepository;
+import com.smhrd.dtect.security.CustomUser;
 
 
 @Service
@@ -32,11 +32,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	    return new CustomUser(member);
 	}
-
-
-	
-	
-	
-	
-	
 }
