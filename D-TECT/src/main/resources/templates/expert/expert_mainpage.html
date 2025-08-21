@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 전문가 메인</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./css/expert_mainpage.css" />
+</head>
+
+<body class="expert-main">
+    <!-- 브랜드 스트립 -->
+    <div class="brand-strip"></div>
+
+    <!-- 상단바 -->
+    <header class="topbar">
+        <div class="left">
+            <img src="./images/logo.png" class="logo" alt="D-tect" />
+            <h1 class="title">전문가 대시보드</h1>
+        </div>
+        <div class="right">
+            <div class="role-badge">변호사</div>
+            <!-- ✅ 마이페이지 아이콘 버튼 -->
+            <a id="mypageBtn" class="icon-link" href="/expert_mypage.html" aria-label="전문가 마이페이지로 이동">
+                <img src="./images/mypage.png" alt="" class="avatar-img" />
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="grid">
+            <!-- 달력 카드 -->
+            <article class="card card--calendar" id="calendarCard" role="button" tabindex="0" aria-label="상세 일정 보기">
+                <header class="card-head">
+                    <div class="chips">
+                        <span class="chip chip--dark">상담일정</span>
+                        <span id="monthChip" class="chip">Month</span>
+                    </div>
+                    <div class="hint">클릭하여 상세보기</div>
+                </header>
+                <div class="calendar">
+                    <div class="calendar-head">
+                        <div class="dow dow--sun">일</div>
+                        <div class="dow">월</div>
+                        <div class="dow">화</div>
+                        <div class="dow">수</div>
+                        <div class="dow">목</div>
+                        <div class="dow">금</div>
+                        <div class="dow dow--sat">토</div>
+                    </div>
+                    <div id="calendarGrid" class="calendar-grid" aria-hidden="true"></div>
+                </div>
+            </article>
+
+            <!-- 상담요청 내역 -->
+            <article class="card card--panel">
+                <header class="card-bar"><strong>상담 요청 내역</strong></header>
+                <ul id="requestList" class="req-list" role="list"></ul>
+            </article>
+
+            <!-- ✅ 알림 센터(공지/할일/시스템 알림 등) -->
+            <article class="card card--panel">
+                <header class="card-bar"><strong>알림 센터</strong></header>
+                <ul id="alertList" class="alert-list" role="list"></ul>
+            </article>
+
+            <!-- ✅ 요약 통계 타일 -->
+            <article class="card stats">
+                <div class="stat"><span>오늘 일정</span><strong id="statToday">0</strong></div>
+                <div class="stat"><span>승인 대기</span><strong id="statPending">0</strong></div>
+                <div class="stat"><span>읽지 않은 채팅</span><strong id="statUnread">0</strong></div>
+                <div class="stat"><span>미완료 작업</span><strong id="statTasks">0</strong></div>
+            </article>
+        </section>
+    </main>
+
+    <!-- JS -->
+    <script defer src="./js/expert_mainpage.js"></script>
+</body>
+
+</html>

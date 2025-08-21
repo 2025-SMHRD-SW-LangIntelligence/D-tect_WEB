@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 내 분석 내역</title>
+
+    <!-- 스타일 -->
+    <link rel="stylesheet" href="./css/analysis_history.css" />
+</head>
+
+<body class="history-page">
+    <!-- 상단 브랜드 스트립 -->
+    <div class="brand-strip"></div>
+
+    <!-- 상단바 -->
+    <header class="topbar">
+        <div class="left">
+            <img src="logo.png" alt="D-tect" class="logo" />
+            <h1 class="page-title">내 분석 내역</h1>
+        </div>
+        <div class="right">
+            <input id="searchInput" class="search" type="search" placeholder="파일명으로 검색" />
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- 헤더 라벨 줄 -->
+        <div class="list-head list-grid" aria-hidden="true">
+            <div class="col col--dot"></div>
+            <div class="col">파일명</div>
+            <div class="col col--date">생성일</div>
+            <div class="col col--size">분석 등급</div>
+            <div class="col col--actions">작업</div>
+        </div>
+
+        <!-- 리스트 -->
+        <ul id="reportList" class="report-list" role="list"></ul>
+
+        <!-- 페이지네이션 -->
+        <div class="pager">
+            <button id="prevBtn" class="btn btn--ghost" type="button">이전</button>
+            <span id="pageInfo" class="page-info">1 / 1</span>
+            <button id="nextBtn" class="btn btn--ghost" type="button">다음</button>
+        </div>
+
+        <!-- 빈 상태 -->
+        <div id="emptyState" class="empty" hidden>
+            아직 생성된 보고서가 없습니다.
+        </div>
+    </main>
+
+    <!-- PDF 뷰어 모달 -->
+    <div id="viewer" class="modal" aria-hidden="true">
+        <div class="modal__box" role="dialog" aria-modal="true" aria-label="PDF 미리보기">
+            <div class="modal__head">
+                <strong id="viewerTitle">미리보기</strong>
+                <button id="viewerClose" class="icon-btn" aria-label="닫기">×</button>
+            </div>
+            <iframe id="viewerFrame" title="PDF 뷰어" class="modal__frame"></iframe>
+        </div>
+        <div class="modal__backdrop"></div>
+    </div>
+
+    <!-- 스크립트 -->
+    <script defer src="./js/analysis_history.js"></script>
+</body>
+
+</html>
