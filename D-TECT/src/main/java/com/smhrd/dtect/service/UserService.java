@@ -3,6 +3,7 @@ package com.smhrd.dtect.service;
 
 
 import com.smhrd.dtect.SignupRequestDTO;
+import com.smhrd.dtect.dto.UserProfileDto;
 import com.smhrd.dtect.entity.*;
 import com.smhrd.dtect.repository.ExpertRepository;
 import com.smhrd.dtect.repository.MemberRepository;
@@ -88,34 +89,85 @@ public class UserService {
       u.setUserTerms(req.getTermsAgree());
       userRepository.save(u);
     }
-  }
 
-  // 이메일 인증
-  public void sendVerificationEmail(String toEmail) {
-    final String key = toEmail.toLowerCase();
-    String code = generateCode();
-    verificationCodes.put(key, new VerificationInfo(code, System.currentTimeMillis()));
 
-    SimpleMailMessage msg = new SimpleMailMessage();
-    msg.setTo(toEmail);
-    msg.setSubject("회원가입 이메일 인증번호");
-    msg.setText("인증번호는 [" + code + "] 입니다.\n\n5분 이내에 입력해 주세요.");
-    mailSender.send(msg);
-  }
+        // 2) 역할별 서브 엔티티
+        if (req.isExpert()) {
+            // 전문가: 파일 필수
+            if (certificationFile == null || certificationFile.isEmpty()) {
+                throw new IllegalArgumentException("전문가 가입은 자격증명서 파일 첨부가 필수입니다.");
+            }
 
-  public boolean verifyEmailCode(String email, String code) {
-    final String key = email.toLowerCase();
-    VerificationInfo info = verificationCodes.get(key);
-    if (info == null) return false;
-    long elapsed = System.currentTimeMillis() - info.createdAtMs();
-    if (elapsed > 5*60*1000L) { verificationCodes.remove(key); return false; }
-    boolean ok = info.code().equals(code);
-    if (ok) verificationCodes.remove(key);
-    return ok;
-  }
+            Expert e = new Expert();
+            e.setMember(m);
+            e.setExpertTerms(req.getTermsAgree());
+            e.setOfficeName(req.getOfficeName());
+            // 사무실 주소가 따로 온다면 우선 사용, 아니면 공통 주소
+            String office = (req.getOfficeAddress() != null && !req.getOfficeAddress().isBlank())
+                    ? req.getOfficeAddress()
+                    : fullAddr;
+            e.setOfficeAddress(office);
 
-  private String generateCode() {
-    var r = new java.security.SecureRandom();
-    return Integer.toString(r.nextInt(900000)+100000);
-  }
+            try {
+                // 파일을 AES로 암호화하여 DB 필드에 저장
+                FileService.EncodedFile ef = fileService.encryptCertificationFile(certificationFile);
+                e.setCertificationFile(ef.getOriginalName()); // 원본 파일명 기록(선택)
+                e.setExpertEncoding(ef.getCipher());          // MEDIUMBLOB
+                e.setExpertVector(ef.getIv());                // VARBINARY(16)
+            } catch (Exception ex) {
+                throw new IOException("인증서 파일 암호화에 실패했습니다.", ex);
+            }
+
+            e.setExpertStatus(ExpertStatus.PENDING);
+            expertRepository.save(e);
+
+        } else {
+            User u = new User();
+            u.setMember(m);
+            u.setUserTerms(req.getTermsAgree());
+            userRepository.save(u);
+        }
+    }
+
+
+    private String generateCode() {
+        return String.valueOf((int)(Math.random() * 900000) + 100000);
+    }
+
+    public UserProfileDto getProfile(Long userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + userId));
+
+        String name = (u.getMember() != null) ? u.getMember().getName() : null;
+        String email = (u.getMember() != null) ? u.getMember().getEmail() : null;
+        String address = (u.getMember() != null) ? u.getMember().getAddress() : null;
+
+        return new UserProfileDto(u.getUserIdx(), name, email, address);
+    }
+    
+    // 이메일 인증
+    public void sendVerificationEmail(String toEmail) {
+      final String key = toEmail.toLowerCase();
+      String code = generateCode();
+      verificationCodes.put(key, new VerificationInfo(code, System.currentTimeMillis()));
+
+      SimpleMailMessage msg = new SimpleMailMessage();
+      msg.setTo(toEmail);
+      msg.setSubject("회원가입 이메일 인증번호");
+      msg.setText("인증번호는 [" + code + "] 입니다.\n\n5분 이내에 입력해 주세요.");
+      mailSender.send(msg);
+    }
+
+    public boolean verifyEmailCode(String email, String code) {
+      final String key = email.toLowerCase();
+      VerificationInfo info = verificationCodes.get(key);
+      if (info == null) return false;
+      long elapsed = System.currentTimeMillis() - info.createdAtMs();
+      if (elapsed > 5*60*1000L) { verificationCodes.remove(key); return false; }
+      boolean ok = info.code().equals(code);
+      if (ok) verificationCodes.remove(key);
+      return ok;
+    }
+
+    
 }

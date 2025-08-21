@@ -1,0 +1,248 @@
+:root {
+    --bg: #161616;
+    --panel: #2a2a2a;
+    --ink: #111;
+    --brand: #ffd400;
+    --brand-ink: #111;
+    --muted: #a9a9a9;
+    --line: #e9e9e9;
+    --radius: 16px;
+    --radius-lg: 20px;
+}
+
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%
+}
+
+body.page {
+    margin: 0;
+    background: #1f1f1f;
+    color: #fff;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Pretendard, Apple SD Gothic Neo, Arial, Helvetica, sans-serif
+}
+
+.brand-strip {
+    height: 64px;
+    background: var(--brand);
+    border-bottom: 4px solid #3aa7ff
+}
+
+.container {
+    max-width: 1080px;
+    margin: 16px auto;
+    padding: 0 16px;
+    display: grid;
+    gap: 16px
+}
+
+.card {
+    background: #fff;
+    color: #111;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    padding: 14px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .06)
+}
+
+.card.dark {
+    background: #2e2e2e;
+    color: #f0f0f0;
+    border-color: #3b3b3b
+}
+
+.lawyer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px
+}
+
+.lawyer-name {
+    font-weight: 900;
+    background: #efefef;
+    border-radius: 999px;
+    padding: 8px 12px;
+    white-space: nowrap
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 2px
+}
+
+.tag {
+    background: #111;
+    color: #ffd400;
+    border: 2px solid #ffd400;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-weight: 800
+}
+
+.fee-box {
+    margin-top: 8px
+}
+
+.fee-title {
+    font-weight: 800;
+    margin-bottom: 6px
+}
+
+.fee-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px
+}
+
+.fee-pill {
+    background: #fafafa;
+    border: 1px solid #ececec;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-weight: 800;
+    display: inline-flex;
+    gap: 8px;
+}
+
+.fee-pill b {
+    font-weight: 900
+}
+
+.muted {
+    color: var(--muted);
+    margin-top: 4px
+}
+
+.mode-line {
+    margin-top: 8px
+}
+
+.badge-fixed {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #111;
+    color: #fff;
+    border-radius: 999px;
+    padding: 6px 12px;
+}
+
+.badge-fixed::before {
+    content: "💬"
+}
+
+.notice-red {
+    margin: 10px 4px 0;
+    color: #d64545;
+    font-weight: 700
+}
+
+.field-label {
+    display: block;
+    font-weight: 800;
+    margin-top: 6px
+}
+
+.mt8 {
+    margin-top: 8px
+}
+
+.textbox {
+    width: 100%;
+    min-height: 130px;
+    border-radius: 12px;
+    border: 2px solid #ffd400;
+    padding: 12px;
+    outline: none;
+    resize: vertical;
+    background: #fff;
+    color: #111
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px
+}
+
+.chip {
+    background: #fff;
+    border: 2px solid var(--brand);
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.chip.is-selected {
+    background: var(--brand);
+    color: var(--brand-ink)
+}
+
+.row {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center
+}
+
+.file-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap
+}
+
+.file-name {
+    color: #ddd;
+    font-size: .92rem
+}
+
+.actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border: none;
+    border-radius: 999px;
+    padding: 0 18px;
+    cursor: pointer;
+    font-weight: 900
+}
+
+.btn-ghost {
+    background: #efefef;
+    color: #111
+}
+
+.btn-primary {
+    background: #111;
+    color: #fff
+}
+
+/* 반응형 */
+@media (max-width:680px) {
+    .tag {
+        font-size: .9rem
+    }
+
+    .fee-pill {
+        font-size: .95rem
+    }
+}

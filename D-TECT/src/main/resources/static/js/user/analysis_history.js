@@ -1,46 +1,33 @@
-// 더미 데이터 (실제 서비스에선 API 응답으로 대체)
-const DATA = [
-    { id: 1, name: '2025-06-28 분석결과서.pdf', url: './reports/2025-06-28.pdf', size: 1048576, createdAt: '2025-06-28T09:10:00+09:00', status: 'ready' },
-    { id: 2, name: '2025-06-12 보고서.pdf', url: './reports/2025-06-12.pdf', size: 589312, createdAt: '2025-06-12T18:30:00+09:00', status: 'ready' },
-    { id: 3, name: '2025-06-05 분석.pdf', url: './reports/2025-06-05.pdf', size: 392000, createdAt: '2025-06-05T14:50:00+09:00', status: 'pending' },
-    { id: 4, name: '2025-05-28 결과.pdf', url: './reports/2025-05-28.pdf', size: 742000, createdAt: '2025-05-28T10:05:00+09:00', status: 'ready' },
-    { id: 5, name: '2025-05-14 결과.pdf', url: './reports/2025-05-14.pdf', size: 540000, createdAt: '2025-05-14T12:12:00+09:00', status: 'error' },
-    { id: 6, name: '2025-05-01 보고서.pdf', url: './reports/2025-05-01.pdf', size: 820000, createdAt: '2025-05-01T09:41:00+09:00', status: 'ready' },
-    { id: 7, name: '2025-04-18 결과.pdf', url: './reports/2025-04-18.pdf', size: 470000, createdAt: '2025-04-18T11:22:00+09:00', status: 'ready' },
-    { id: 8, name: '2025-04-02 보고서.pdf', url: './reports/2025-04-02.pdf', size: 390000, createdAt: '2025-04-02T16:05:00+09:00', status: 'ready' },
-];
+let DATA = [];
 
-const listEl = document.getElementById('reportList');
+const listEl   = document.getElementById('reportList');
 const searchEl = document.getElementById('searchInput');
 const pageInfo = document.getElementById('pageInfo');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
+const prevBtn  = document.getElementById('prevBtn');
+const nextBtn  = document.getElementById('nextBtn');
 
-// 모달
-const viewer = document.getElementById('viewer');
+// 모달(미리보기)
+const viewer      = document.getElementById('viewer');
 const viewerFrame = document.getElementById('viewerFrame');
 const viewerTitle = document.getElementById('viewerTitle');
 const viewerClose = document.getElementById('viewerClose');
 
-// 페이지네이션
-const PAGE_SIZE = 7;
+const PAGE_SIZE = 10;
 let page = 1;
 
-// 포맷터
-const fmtSize = b => {
-    if (b == null) return '-';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let n = b, i = 0;
-    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-    return `${n.toFixed(n < 10 && i ? 1 : 0)} ${units[i]}`;
+// 날짜 포맷
+const fmtDate = (v) => {
+    if (!v) return '-';
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toISOString().slice(0, 10); // yyyy-MM-dd
 };
-const fmtDate = s => new Date(s).toISOString().slice(0, 10);
 
-// 렌더
+// 검색 필터
 function getFiltered() {
     const q = (searchEl.value || '').trim().toLowerCase();
     if (!q) return DATA;
-    return DATA.filter(x => x.name.toLowerCase().includes(q));
+    return DATA.filter(x => (x.fileName || '').toLowerCase().includes(q));
 }
 
 function render() {
@@ -52,25 +39,24 @@ function render() {
     const slice = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     listEl.innerHTML = slice.map(row => {
-        const dotClass =
-            row.status === 'pending' ? 'dot dot--pending' :
-                row.status === 'error' ? 'dot dot--error' :
-                    'dot';
-
-        const viewDisabled = row.status !== 'ready';
-        const downloadDisabled = row.status !== 'ready';
+        // 상태 컬럼이 없다면 기본 점만, 필요시 DTO에 status 추가
+        const dotClass = 'dot';
+        const created  = fmtDate(row.createdAt);
+        const rate     = row.analRate ?? '-';
 
         return `
-      <li class="row list-grid" data-id="${row.id}">
+      <li class="row list-grid" data-id="${row.analIdx}">
         <div class="col col--dot"><span class="${dotClass}" aria-hidden="true"></span></div>
-        <div class="col name" title="${row.name}">${row.name}</div>
-        <div class="col date">${fmtDate(row.createdAt)}</div>
-        <div class="col size">${fmtSize(row.size)}</div>
+        <div class="col name" title="${row.fileName}">${row.fileName}</div>
+        <div class="col date">${created}</div>
+        <div class="col size">${rate}</div>
         <div class="col actions">
-          <button class="btn btn--ghost act-view" ${viewDisabled ? 'disabled' : ''}>보기</button>
-          <a class="btn btn--accent act-download" ${downloadDisabled ? 'aria-disabled="true" tabindex="-1"' : ''} ${downloadDisabled ? '' : `href="${row.url}" download`}>
-            다운로드
-          </a>
+          <button class="btn btn--ghost act-view"
+                  data-url="${row.previewUrl}"
+                  data-name="${row.fileName}">보기</button>
+          <a class="btn btn--accent act-download"
+             href="${row.downloadUrl}"
+             download="${row.fileName}">다운로드</a>
         </div>
       </li>
     `;
@@ -84,38 +70,50 @@ searchEl.addEventListener('input', () => { page = 1; render(); });
 prevBtn.addEventListener('click', () => { page--; render(); });
 nextBtn.addEventListener('click', () => { page++; render(); });
 
+// 보기(미리보기) 버튼
 listEl.addEventListener('click', (e) => {
-    const li = e.target.closest('li.row');
-    if (!li) return;
-    const item = DATA.find(x => String(x.id) === li.dataset.id);
-    if (!item) return;
-
-    // 보기
-    if (e.target.classList.contains('act-view') && item.status === 'ready') {
-        viewerTitle.textContent = item.name;
-        viewerFrame.src = item.url; // 같은 출처/경로의 PDF면 곧바로 렌더됩니다.
-        viewer.classList.add('is-open');
-        viewer.setAttribute('aria-hidden', 'false');
-    }
+    const btn = e.target.closest('.act-view');
+    if (!btn) return;
+    const url  = btn.dataset.url;
+    const name = btn.dataset.name || '미리보기';
+    viewerTitle.textContent = name;
+    viewerFrame.src = url; // 서버가 inline으로 내려주므로 바로 렌더
+    viewer.classList.add('is-open');
+    viewer.setAttribute('aria-hidden', 'false');
 });
 
-viewerClose.addEventListener('click', closeViewer);
-viewer.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal__backdrop')) closeViewer();
-});
+// 모달 닫기
 function closeViewer() {
     viewer.classList.remove('is-open');
     viewer.setAttribute('aria-hidden', 'true');
     viewerFrame.src = 'about:blank';
 }
+viewerClose.addEventListener('click', closeViewer);
+viewer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal__backdrop')) closeViewer();
+});
 
-// 초기 렌더
-render();
+// 서버에서 목록 불러오기
+async function load() {
+    const userId = Number(document.body.dataset.userId || 0);
+    if (!userId) {
+        console.warn('userId missing in data-user-id');
+        DATA = [];
+        return render();
+    }
+    try {
+        const res = await fetch(`/analysis/api/user/${userId}/history`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        DATA = await res.json(); // [{analIdx,fileName,createdAt,analRate,previewUrl,downloadUrl}, ...]
+    } catch (e) {
+        console.error('목록 로드 실패:', e);
+        DATA = [];
+    }
+    page = 1;
+    render();
+}
 
-/* ===== API 연동 가이드 =====
-1) 서버에서 보고서 목록을 받아오면 DATA 배열을 교체한 뒤 render() 호출
-   fetch('/api/reports').then(r=>r.json()).then(list => { DATA = list; render(); });
-
-2) 각 항목은 { id, name, url, size(bytes), createdAt(ISO), status:'ready'|'pending'|'error' }
-   형태를 권장.
-*/
+// 초기 로드
+load();

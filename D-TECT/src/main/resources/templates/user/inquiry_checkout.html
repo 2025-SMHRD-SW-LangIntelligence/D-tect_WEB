@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 변호사 문의 · 결제</title>
+
+    <link rel="stylesheet" th:href="@{/css/inquiry_checkout.css}" />
+    <!-- Toss Payments JS SDK -->
+    <script src="https://js.tosspayments.com/v1"></script>
+</head>
+
+<body class="page">
+    <div class="brand-strip"></div>
+
+    <main class="container">
+        <!-- 변호사 정보 / 요금 안내 -->
+        <section class="card">
+            <div class="lawyer-head">
+                <div class="lawyer-name" id="lawyerName">000 변호사</div>
+                <div class="tags" id="lawyerTags"></div>
+            </div>
+
+            <div class="fee-box">
+                <div class="fee-title">상담료 안내 (보기 전용)</div>
+                <div class="fee-list" id="feeList"><!-- JS가 채움 --></div>
+                <p class="muted">
+                    결제는 <b>기본상담(30분)</b> 기준으로 진행됩니다. 심화상담/문서검토는 상담 후 별도 합의·결제로 진행될 수 있습니다.
+                </p>
+            </div>
+
+            <div class="mode-line">
+                <span class="badge-fixed">상담 방식: 채팅</span>
+            </div>
+
+            <p class="notice-red">
+                상담 진행 시 비용이 발생합니다. 실제 금액은 관리자/변호사가 조정할 수 있습니다.
+            </p>
+        </section>
+
+        <!-- 상담 설명 / 피해 유형 / 파일 / 전송 -->
+        <section class="card dark">
+            <label class="field-label">변호사에게 전달할 상담 설명</label>
+            <textarea id="message" class="textbox" placeholder="상황 설명, 요청사항 등을 자세히 적어주세요." rows="6"></textarea>
+
+            <div class="field-label mt8">상담받으실 유형(피해 유형) <small class="muted">(최대 1개 선택)</small></div>
+            <div id="issueChips" class="chips"><!-- JS가 칩 생성 --></div>
+
+            <div class="row">
+                <div class="file-wrap">
+                    <input id="upload" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden />
+                    <button id="fileBtn" type="button" class="btn btn-ghost">PDF 첨부하기</button>
+                    <span id="fileName" class="file-name"></span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="submitBtn" class="btn btn-primary" type="button">전송</button>
+            </div>
+        </section>
+    </main>
+
+    <script defer th:src="@{/js/inquiry_checkout.js}"></script>
+</body>
+
+</html>

@@ -10,6 +10,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -41,47 +42,48 @@ public class ExpertAdminService {
                 .digest(aesSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-//    // 대기중 전문가 목록
-//    public List<PendingExpertDto> listPending() {
-//        return expertRepository.findAllByExpertStatus(ExpertStatus.PENDING)
-//                .stream().map(PendingExpertDto::from).collect(Collectors.toList());
-//    }
-//
-//    // 전문가 상세정보
-//    public Optional<PendingExpertDetailDto> getDetail(Long expertIdx) {
-//        return expertRepository.findById(expertIdx).map(e -> {
-//            List<FieldName> fields = fieldRepository.findAllByExpert_ExpertIdx(expertIdx)
-//                    .stream().map(Field::getFieldName).collect(Collectors.toList());
-//            boolean hasCert = (e.getExpertEncoding() != null && e.getExpertVector() != null);
-//            return new PendingExpertDetailDto(
-//                    e.getExpertIdx(),
-//                    e.getMember() != null ? e.getMember().getName() : null,
-//                    e.getOfficeName(),
-//                    e.getOfficeAddress(),
-//                    e.getMember() != null ? e.getMember().getJoinedAt() : null,
-//                    e.getExpertStatus(),
-//                    fields,
-//                    e.getCertificationFile(),
-//                    hasCert
-//            );
-//        });
-//    }
+    // 대기중 전문가 목록
+    @Transactional(readOnly = true)
+    public List<PendingExpertDto> listPending() {
+        return expertRepository.findAllByExpertStatus(ExpertStatus.PENDING)
+                .stream().map(PendingExpertDto::from).collect(Collectors.toList());
+    }
 
+    // 전문가 상세정보
+    @Transactional(readOnly = true)
+    public Optional<PendingExpertDetailDto> getDetail(Long expertIdx) {
+        return expertRepository.findById(expertIdx).map(e -> {
+            List<FieldName> fields = fieldRepository.findAllByExpert_ExpertIdx(expertIdx)
+                    .stream().map(Field::getFieldName).toList();
+            boolean hasCert = (e.getExpertEncoding() != null && e.getExpertVector() != null);
+            return new PendingExpertDetailDto(
+                    e.getExpertIdx(),
+                    e.getMember() != null ? e.getMember().getName() : null,
+                    e.getOfficeName(),
+                    e.getOfficeAddress(),
+                    e.getMember() != null ? e.getMember().getJoinedAt() : null,
+                    e.getExpertStatus(),
+                    fields,
+                    e.getCertificationFile(),
+                    hasCert
+            );
+        });
+    }
+
+    // 대기중 전체 + 분야 묶어오기
+    @Transactional(readOnly = true)
     public List<PendingExpertDetailDto> listPendingWithDetails() {
-        // 대기중인 전문가 모두 가져오기
         List<Expert> experts = expertRepository.findAllByExpertStatus(ExpertStatus.PENDING);
-        if (experts.isEmpty()) {
-            return List.of();
-        }
+        if (experts.isEmpty()) return List.of();
 
-        // 분야를 한번에 가져와서 expertIdx 별로 묶기
         List<Long> ids = experts.stream().map(Expert::getExpertIdx).toList();
         List<Field> fields = fieldRepository.findAllByExpert_ExpertIdxIn(ids);
         Map<Long, List<FieldName>> fieldMap = fields.stream()
-                .collect(Collectors.groupingBy(f -> f.getExpert().getExpertIdx(),
-                        Collectors.mapping(Field::getFieldName, Collectors.toList())));
+                .collect(Collectors.groupingBy(
+                        f -> f.getExpert().getExpertIdx(),
+                        Collectors.mapping(Field::getFieldName, Collectors.toList())
+                ));
 
-        // DTO
         return experts.stream().map(e -> {
             boolean hasCert = (e.getExpertEncoding() != null && e.getExpertVector() != null);
             return new PendingExpertDetailDto(
@@ -99,15 +101,20 @@ public class ExpertAdminService {
     }
 
     // 승인
+    @Transactional
     public void approve(Long expertIdx) {
         Expert expert = expertRepository.findById(expertIdx)
                 .orElseThrow(() -> new IllegalArgumentException("전문가 없음: " + expertIdx));
 
-        // 1) 전문가 승인
+        // 자격 증명 필수
+        if (expert.getExpertEncoding() == null || expert.getExpertVector() == null) {
+            throw new IllegalStateException("자격증명 파일이 없습니다.");
+        }
+
         expert.setExpertStatus(ExpertStatus.APPROVED);
         expertRepository.save(expert);
 
-        // 2) 연결된 멤버 테이블의 역할도 Expert로 설정!
+        // 멤버 역할 전환
         Member member = expert.getMember();
         if (member != null && member.getMemRole() != MemRole.EXPERT) {
             member.setMemRole(MemRole.EXPERT);
@@ -115,19 +122,16 @@ public class ExpertAdminService {
         }
     }
 
-    // 거절
+    // 거절 (분야/전문가/멤버까지 정리)
+    @Transactional
     public void reject(Long expertIdx) {
         Expert e = expertRepository.findById(expertIdx)
                 .orElseThrow(() -> new IllegalArgumentException("전문가 없음: " + expertIdx));
 
-        // 관련 전문 분야 삭제
         fieldRepository.deleteByExpert_ExpertIdx(expertIdx);
-        // 전문가 레코드 삭제
         expertRepository.deleteById(expertIdx);
 
         Long memIdx = (e.getMember() != null) ? e.getMember().getMemIdx() : null;
-
-        // 멤버 삭제
         if (memIdx != null) {
             memberRepository.deleteById(memIdx);
         }
@@ -143,6 +147,7 @@ public class ExpertAdminService {
     }
 
     // 증빙파일 다운로드(복호화)
+    @Transactional(readOnly = true)
     public byte[] downloadCertificate(Long expertIdx) {
         return expertRepository.findById(expertIdx).map(e -> {
             byte[] cipher = e.getExpertEncoding();
@@ -153,6 +158,7 @@ public class ExpertAdminService {
     }
 
     // 증빙 원본 파일 명
+    @Transactional(readOnly = true)
     public String getCertificateFilename(Long expertIdx) {
         return expertRepository.findById(expertIdx)
                 .map(Expert::getCertificationFile).orElse("certificate.bin");

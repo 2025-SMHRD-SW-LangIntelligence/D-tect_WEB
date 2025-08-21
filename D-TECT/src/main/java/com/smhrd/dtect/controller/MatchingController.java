@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,15 +30,10 @@ public class MatchingController {
     private final FileService fileService;
 
     // 1) 전문가 선택 페이지
-    @GetMapping("/experts")
-    public String chooseExpert(@RequestParam Long userId,
-                               @RequestParam(required = false) String q,
-                               Model model) {
-        List<Expert> experts = expertRepository.searchApproved(q);
+    @GetMapping("/matching/select")
+    public String selectPage(@RequestParam Long userId, Model model) {
         model.addAttribute("userId", userId);
-        model.addAttribute("q", q == null ? "" : q);
-        model.addAttribute("experts", experts);
-        return "matching/experts";
+        return "user/lawyers_select";
     }
 
     // 2) 매칭 요청 (첨부 1개 선택 가능)

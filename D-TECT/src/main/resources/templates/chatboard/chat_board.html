@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 1:1 채팅 게시판</title>
+    <link rel="stylesheet" th:href="@{/css/chat_board.css}" />
+</head>
+
+<body class="chat-page">
+    <main class="wrap">
+        <!-- 메시지 영역 + 첨부목록 2열 -->
+        <section class="pane pane--messages">
+            <header class="pane__head">
+                <div class="status">
+                    <span id="lastUpdated">업데이트 준비…</span>
+                    <button id="refreshBtn" class="mini">새로고침</button>
+                </div>
+            </header>
+
+            <div id="messageList" class="messages" aria-live="polite" aria-busy="false"></div>
+
+            <button id="jumpNew" class="jump" hidden>새 글 보기</button>
+
+            <footer class="composer">
+                <textarea id="composer" rows="3" placeholder="글 작성란"></textarea>
+                <button id="sendBtn" class="send">전송</button>
+            </footer>
+        </section>
+
+        <aside class="pane pane--files">
+            <header class="files__head">첨부파일 목록
+                <input id="fileInput" type="file" hidden />
+                <button id="uploadBtn" class="mini">추가</button>
+            </header>
+            <ul id="fileList" class="files" role="list"></ul>
+        </aside>
+    </main>
+
+    <script defer th:src="@{/js/chat_board.js}"></script>
+</body>
+
+</html>
