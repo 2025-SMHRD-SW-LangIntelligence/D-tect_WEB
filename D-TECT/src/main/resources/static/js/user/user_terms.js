@@ -1,42 +1,28 @@
-import { validatePasswords, setupPhoneValidation, checkUsername, setupEmailVerification, setupAddressSearch } from '/js/public/common.js';
-
-const btnSubmit = document.getElementById('btnSubmit');
-
+// static/js/user/user_terms_step1.js
 document.addEventListener('DOMContentLoaded', () => {
-    const termsAgreeEls = document.getElementsByName('termsAgree');
-    const formData = {};
+  const btnNext   = document.getElementById('btnSubmit'); // 기존 약관 페이지의 버튼 재사용
+  const btnCancel = document.getElementById('btnCancel');
+  const radios    = document.querySelectorAll('input[name="termsAgree"]');
 
-    // 약관 동의 체크
-    termsAgreeEls.forEach(el => el.addEventListener('change', () => {
-        btnSubmit.disabled = ![...termsAgreeEls].some(e => e.checked && e.value === 'Y');
-    }));
+  const updateNextDisabled = () => {
+    const agree = document.querySelector('input[name="termsAgree"]:checked')?.value === 'Y';
+    btnNext.disabled = !agree;
+  };
+  radios.forEach(r => r.addEventListener('change', updateNextDisabled));
+  updateNextDisabled();
 
-    // hidden input에 sessionStorage 데이터 채우기
-    ['name','username','password','email','phone','address','addrDetail'].forEach(id => {
-        const input = document.getElementById(id);
-        if(input) input.value = sessionStorage.getItem(id) || '';
-    });
-});
-
-btnSubmit.addEventListener('click', async () => {
-    const form = document.getElementById('termsForm');
-    const fd = new FormData(form);
-
-    try {
-        const res = await fetch('/api/members/signup', {
-            method: 'POST',
-            body: fd
-        });
-
-        const data = await res.json();
-        if(data.success){
-            alert('회원가입 성공!');
-            window.location.href = '/';
-        } else {
-            alert(`회원가입 실패: ${data.message}`);
-        }
-    } catch(err){
-        console.error(err);
-        alert('서버 통신 오류');
+  btnCancel.addEventListener('click', () => {
+    if (confirm('회원가입을 취소하시겠습니까?')) {
+      sessionStorage.removeItem('userConsent');
+      window.location.href = '/';
     }
+  });
+
+  btnNext.addEventListener('click', (e) => {
+    e.preventDefault();
+    const agree = document.querySelector('input[name="termsAgree"]:checked')?.value;
+    if (agree !== 'Y') { alert('약관에 동의해야 계속 진행할 수 있습니다.'); return; }
+    sessionStorage.setItem('userConsent', JSON.stringify({ termsAgree: 'Y' }));
+    window.location.href = '/userSignupPage'; // 일반 사용자 정보 입력 페이지로 맞춰 주세요
+  });
 });

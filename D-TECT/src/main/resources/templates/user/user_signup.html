@@ -89,11 +89,13 @@
                         <input id="addrDetail" name="addrDetail" type="text" placeholder="상세주소를 입력해주세요." />
                     </div>
                 </div>
-
-                <div class="actions">
-                    <p class="note">※ <b>약관 확인 및 동의</b> 후 회원가입이 가능합니다.</p>
-                    <button type="button" id="goTerms" class="terms-btn" onclick = "location.href= '/userTermPage'">약관 보기 <span>→</span></button>
-                </div>
+				
+				<div class="actions">
+					<button id="btnSubmit" class="btn black" type="button" disabled>회원가입</button>
+					<button id="btnCancel" class="link" type="button">회원가입
+						취소하기</button>
+				</div>
+				
             </form>
         </section>
     </main>

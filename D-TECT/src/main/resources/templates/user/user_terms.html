@@ -33,22 +33,13 @@
 						name="termsAgree" value="N"> <span>약관에 동의하지 않습니다.</span>
 					</label>
 				</div>
-
-				<!-- hidden input으로 1차 페이지 데이터 전달 -->
-				<input type="hidden" name="name" id="name"> <input
-					type="hidden" name="username" id="username"> <input
-					type="hidden" name="password" id="password"> <input
-					type="hidden" name="email" id="email"> <input type="hidden"
-					name="phone" id="phone"> <input type="hidden"
-					name="address" id="address"> <input type="hidden"
-					name="addrDetail" id="addrDetail"> <input type="hidden"
-					name="memRole" value="USER">
-
+				
+				<!-- 입력 폼으로 이동 -->
 				<div class="actions">
-					<button id="btnSubmit" class="btn black" type="button" disabled>회원가입</button>
-					<button id="btnCancel" class="link" type="button">회원가입
-						취소하기</button>
-				</div>
+                    <p class="note">※ <b>기본 정보 입력 </b> 후 회원가입이 가능합니다.</p>
+                    <button type="button" id="goForm" class="forms-btn" aria-label="폼으로 이동" onclick = "location.href= '/joinUserPage'">입력 폼으로 이동 <span>→</span></button>
+                </div>
+				
 			</form>
 		</section>
 	</main>

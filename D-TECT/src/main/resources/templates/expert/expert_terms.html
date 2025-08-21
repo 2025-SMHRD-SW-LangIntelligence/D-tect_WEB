@@ -36,16 +36,6 @@
 			</div>
 
 			<form id="termsForm" enctype="multipart/form-data">
-				<!-- 1페이지에서 sessionStorage로 저장한 데이터를 hidden input으로 채움 -->
-				<input type="hidden" id="name" name="name"> <input
-					type="hidden" id="username" name="username"> <input
-					type="hidden" id="email" name="email"> <input type="hidden"
-					id="phone" name="phone"> <input type="hidden" id="address"
-					name="address"> <input type="hidden" id="addrDetail"
-					name="addrDetail"> <input type="hidden" id="officeName"
-					name="officeName"> <input type="hidden" id="officeAddress"
-					name="officeAddress"> <input type="hidden"
-					id="certificationFile" name="certificationFile">
 
 				<!-- 동의 라디오 -->
 				<div class="agree">
@@ -55,13 +45,13 @@
 						name="termsAgree" value="N"> <span>약관에 동의하지 않습니다.</span>
 					</label>
 				</div>
-
-				<!-- 액션 -->
-				<div class="actions">
-					<button id="btnSubmit" class="btn black" type="button" disabled>회원가입</button>
-					<button id="btnCancel" class="link" type="button">회원가입
-						취소하기</button>
-				</div>
+				
+				<!-- 입력 폼으로 이동 -->
+                <div class="actions">
+                    <p class="note">※ <b>기본 정보 입력</b> 후 회원가입이 가능합니다.</p>
+                    <button type="button" id="goForm" class="forms-btn" aria-label="폼으로 이동" onclick = "location.href= '/joinExpertPage'">입력 폼으로 이동
+                        <span>→</span></button>
+                </div>
 
 			</form>
 		</section>

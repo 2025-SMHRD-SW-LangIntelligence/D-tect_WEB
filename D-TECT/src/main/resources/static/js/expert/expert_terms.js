@@ -1,56 +1,36 @@
-// expert_terms.js
+// static/js/expert/expert_terms_step1.js
 document.addEventListener('DOMContentLoaded', () => {
-    const termsForm = document.getElementById('termsForm');
-    const btnSubmit = document.getElementById('btnSubmit');
-    const btnCancel = document.getElementById('btnCancel');
-    const agreeRadios = document.getElementsByName('termsAgree');
+  const btnNext   = document.getElementById('btnSubmit'); // 기존 약관 페이지의 "회원가입(다음)" 버튼 재사용
+  const btnCancel = document.getElementById('btnCancel');
+  const radios    = document.querySelectorAll('input[name="termsAgree"]');
 
-    // 1페이지 데이터 가져와서 hidden input에 채움
-    const storedData = JSON.parse(sessionStorage.getItem('expertSignupData') || '{}');
-    for (const key in storedData) {
-        const input = document.getElementById(key);
-        if (input) input.value = storedData[key];
+  // 약관 동의 전에는 버튼 비활성화
+  const updateNextDisabled = () => {
+    const agree = document.querySelector('input[name="termsAgree"]:checked')?.value === 'Y';
+    btnNext.disabled = !agree;
+  };
+  radios.forEach(r => r.addEventListener('change', updateNextDisabled));
+  updateNextDisabled();
+
+  // 취소 → 홈
+  btnCancel.addEventListener('click', () => {
+    if (confirm('회원가입을 취소하시겠습니까?')) {
+      sessionStorage.removeItem('expertConsent');
+      window.location.href = '/';
     }
+  });
 
-    // 약관 동의 선택 시 회원가입 버튼 활성화
-    agreeRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-            btnSubmit.disabled = !agreeRadios[0].checked; // 동의(Y) 체크 시 활성화
-        });
-    });
-
-    // 회원가입 제출
-    btnSubmit.addEventListener('click', async () => {
-        if (!agreeRadios[0].checked) { alert('약관에 동의해야 합니다.'); return; }
-
-        const formData = new FormData(termsForm);
-
-        try {
-            const response = await fetch('/api/members/signup', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert('회원가입 완료! 로그인 페이지로 이동합니다.');
-                sessionStorage.removeItem('expertSignupData');
-                window.location.href = '/login';
-            } else {
-                alert('회원가입 실패: ' + result.message);
-            }
-        } catch (err) {
-            console.error(err);
-            alert('서버 오류가 발생했습니다.');
-        }
-    });
-
-    // 회원가입 취소
-    btnCancel.addEventListener('click', () => {
-        if (confirm('회원가입을 취소하시겠습니까?')) {
-            sessionStorage.removeItem('expertSignupData');
-            window.location.href = '/';
-        }
-    });
+  // 다음(= Step2 이동)
+  btnNext.addEventListener('click', (e) => {
+    e.preventDefault();
+    const agree = document.querySelector('input[name="termsAgree"]:checked')?.value;
+    if (agree !== 'Y') {
+      alert('약관에 동의해야 계속 진행할 수 있습니다.');
+      return;
+    }
+    // 동의 결과 저장
+    sessionStorage.setItem('expertConsent', JSON.stringify({ termsAgree: 'Y' }));
+    // Step2로 이동 (전문가 정보 입력 페이지 라우트로 맞춰 주세요)
+    window.location.href = '/expertSignupPage';
+  });
 });
