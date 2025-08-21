@@ -16,4 +16,7 @@ public interface FieldRepository extends JpaRepository<Field, Long> {
 
     // 가입 거절시 전문 분야 행 삭제
     void deleteByExpert_ExpertIdx(Long expertIdx);
+
+    // 한 번에 전문가 여러 명의 전문분야 끌어오기
+    List<Field> findByExpert_ExpertIdxIn(List<Long> expertIds);
 }
