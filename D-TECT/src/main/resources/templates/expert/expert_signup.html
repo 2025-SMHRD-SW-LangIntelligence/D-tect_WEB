@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8" />
@@ -7,14 +7,14 @@
     <title>D-tect | 전문가 회원가입</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="./css/expert_signup.css" />
+    <link rel="stylesheet" th:href="@{/css/expert_signup.css}" />
 </head>
 
 <body class="signup-page">
     <main class="stage">
         <!-- 좌상단 로고 (로그인으로 이동) -->
         <a id="logoLink" class="logo-wrap" href="#">
-            <img src="./images/logo.png" alt="D-tect" class="logo-lg" />
+            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo-lg" />
         </a>
 
         <!-- 폼 카드 -->
@@ -108,7 +108,7 @@
     </main>
 
     <!-- JS -->
-    <script defer src="./js/expert_signup.js"></script>
+    <script defer th:src="@{/js/expert_signup.js}"></script>
 </body>
 
 </html>

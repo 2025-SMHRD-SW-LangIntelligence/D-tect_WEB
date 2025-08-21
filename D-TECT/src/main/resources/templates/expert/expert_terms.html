@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 일반회원 약관</title>
-    <link rel="stylesheet" href="./css/expert_terms.css" />
+    <link rel="stylesheet" th:href="@{/css/expert_terms.css}" />
 </head>
 
 <body class="terms-page">
@@ -13,7 +13,7 @@
     <div class="brand-strip"></div>
     <header class="topbar">
         <a id="logoLink" class="logo-link" href="#">
-            <img src="./images/logo.png" alt="D-tect 로고" class="logo" />
+            <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo" />
         </a>
     </header>
 
@@ -56,7 +56,7 @@
         </section>
     </main>
 
-    <script defer src="./js/expert_terms.js"></script>
+    <script defer th:src="@{/js/expert_terms.js}"></script>
 </body>
 
 </html>

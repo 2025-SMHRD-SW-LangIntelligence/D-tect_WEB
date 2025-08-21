@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8" />
@@ -7,7 +7,7 @@
     <title>D-tect | 변호사 선택</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="./css/lawyers_select.css" />
+    <link rel="stylesheet" th:href="@{/css/lawyers_select.css}" />
 </head>
 
 <body class="lawyers-page">
@@ -15,7 +15,7 @@
     <div class="brand-strip"></div>
     <header class="topbar">
         <div class="left">
-            <img src="./images/logo.png" alt="D-tect" class="logo" />
+            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
             <h1 class="title">변호사 선택</h1>
         </div>
     </header>
@@ -56,7 +56,7 @@
     </div>
 
     <!-- JS -->
-    <script defer src="./js/lawyers_select.js"></script>
+    <script defer th:src="@{/js/lawyers_select.js}"></script>
 </body>
 
 </html>
