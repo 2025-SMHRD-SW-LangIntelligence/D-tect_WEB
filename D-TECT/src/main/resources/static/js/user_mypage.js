@@ -159,7 +159,14 @@
 
     // 상/하단 버튼(데모)
     document.getElementById('logoutBtn')?.addEventListener('click', () => alert('로그아웃 처리'));
-    document.getElementById('historyBtn')?.addEventListener('click', () => alert('내 분석 내역으로 이동'));
+    document.getElementById('historyBtn')?.addEventListener('click', () => {
+        const userId = Number(document.body.dataset.userId || 0);
+        if (!userId) {
+            alert('로그인이 만료되었거나 사용자 정보가 없습니다.');
+            return;
+        }
+        window.location.href = `/analysis/user/${userId}/history`;
+    });
     document.getElementById('reserveBtn')?.addEventListener('click', () => alert('상담 일정 예약하기로 이동'));
     document.getElementById('withdrawBtn')?.addEventListener('click', () => {
         if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');

@@ -1,8 +1,9 @@
 package com.smhrd.dtect.controller;
 
-import com.smhrd.dtect.dto.ExpertMatchingSummaryDto;
-import com.smhrd.dtect.dto.UserMatchingSummaryDto;
+import com.smhrd.dtect.dto.*;
+import com.smhrd.dtect.service.ExpertService;
 import com.smhrd.dtect.service.MatchingService;
+import com.smhrd.dtect.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +17,15 @@ import java.util.List;
 public class MyPageController {
 
     private final MatchingService matchingService;
+    private final UserService userService;
+    private final ExpertService expertService;
 
     // 사용자 마이페이지 - 신청현황
     @GetMapping("/user/{userId}")
     public String userMatchings(@PathVariable Long userId, Model model) {
         model.addAttribute("userId", userId);
+        UserProfileDto profile = userService.getProfile(userId);
+        model.addAttribute("profile", profile);
         return "user/user_mypage";
     }
 
@@ -31,10 +36,16 @@ public class MyPageController {
         return matchingService.getUserMatchings(userId);
     }
 
-    // 전문가 마이페이지
     @GetMapping("/expert/{expertId}")
     public String expertMatchings(@PathVariable Long expertId, Model model) {
         model.addAttribute("expertId", expertId);
+
+        ExpertProfileDto profile = expertService.getProfile(expertId);
+        List<OptionDto> specialtyOptions = expertService.getAllSpecialtyOptions();
+
+        model.addAttribute("profile", profile);
+        model.addAttribute("specialtyOptions", specialtyOptions);
+
         return "expert/expert_mypage";
     }
 

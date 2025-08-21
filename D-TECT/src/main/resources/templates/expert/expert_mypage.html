@@ -8,7 +8,6 @@
 </head>
 
 <body th:attr="data-expert-id=${expertId}">
-<!-- 상단바 -->
 <header class="topbar">
     <div class="left">
         <a class="logo-wrap" href="/" aria-label="홈으로">
@@ -19,7 +18,7 @@
     <div class="right">
         <div class="user-chip">
             <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
-            <span class="user-name">전문가님</span>
+            <span class="user-name" th:text="${profile.name} != null ? ${profile.name} + ' 변호사님' : '전문가님'">전문가님</span>
         </div>
         <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
     </div>
@@ -37,22 +36,32 @@
             <form class="info-form" id="infoForm">
                 <label class="field">
                     <span class="label">이름</span>
-                    <input type="text" name="name" value="홍길동" disabled />
+                    <input type="text" name="name" th:value="${profile.name}" disabled />
                 </label>
+
                 <label class="field">
                     <span class="label">이메일</span>
-                    <input type="email" name="email" value="lawyer@example.com" disabled />
+                    <input type="email" name="email" th:value="${profile.email}" disabled />
                 </label>
+
+                <label class="field">
+                    <span class="label">사무소명</span>
+                    <input type="text" name="officeName" th:value="${profile.officeName}" disabled />
+                </label>
+
+                <label class="field">
+                    <span class="label">사무소 주소</span>
+                    <input type="text" name="officeAddress" th:value="${profile.officeAddress}" disabled />
+                </label>
+
                 <label class="field">
                     <span class="label">전문분야 (다중선택)</span>
                     <select id="specialties" name="specialties" multiple disabled>
-                        <option selected>형사</option>
-                        <option>외모·신체비하</option>
-                        <option>성희롱·성폭력</option>
-                        <option>인신공격·모욕</option>
-                        <option>컨텐츠·실력비하</option>
-                        <option>혐오발언</option>
-                        <option>사이버폭력</option>
+                        <option th:each="opt : ${specialtyOptions}"
+                                th:value="${opt.code}"
+                                th:text="${opt.label}"
+                                th:selected="${profile.specialtyCodes != null and profile.specialtyCodes.contains(opt.code)}">
+                        </option>
                     </select>
                     <small class="help">Ctrl/⌘ 또는 Shift로 다중 선택</small>
                 </label>
@@ -71,7 +80,6 @@
             </header>
 
             <div class="list-scroll">
-                <!-- 6열(신청일/고객명/분류/매칭일/매칭여부/채팅방) -->
                 <div class="list-head list-grid" role="rowgroup" aria-hidden="true">
                     <div class="col">신청일</div>
                     <div class="col">고객명</div>

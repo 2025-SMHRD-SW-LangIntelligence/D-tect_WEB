@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.smhrd.dtect.SignupRequestDTO;
+import com.smhrd.dtect.dto.UserProfileDto;
 import com.smhrd.dtect.entity.*;
 import com.smhrd.dtect.repository.ExpertRepository;
 import com.smhrd.dtect.repository.UserRepository;
@@ -136,6 +137,18 @@ public class UserService {
 
     private String generateCode() {
         return String.valueOf((int)(Math.random() * 900000) + 100000);
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileDto getProfile(Long userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + userId));
+
+        String name = (u.getMember() != null) ? u.getMember().getName() : null;
+        String email = (u.getMember() != null) ? u.getMember().getEmail() : null;
+        String address = (u.getMember() != null) ? u.getMember().getAddress() : null;
+
+        return new UserProfileDto(u.getUserIdx(), name, email, address);
     }
 
 }
