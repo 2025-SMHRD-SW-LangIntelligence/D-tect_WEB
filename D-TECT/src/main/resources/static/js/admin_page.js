@@ -1,5 +1,3 @@
-// src/main/resources/static/js/admin_page.js
-
 function showResult(ok, msg) {
     alert(ok ? (msg || '작업이 완료되었습니다.') : (msg || '작업이 실패했습니다.'));
 }
@@ -68,7 +66,9 @@ function renderRows() {
 
         return `
       <li class="row table-grid" data-id="${e.expertIdx}">
-        <label class="chk"><input type="checkbox" class="rowchk" /></label>
+       <label class="chk">
+  <input type="checkbox" class="rowchk" ${e.hasCertificate ? '' : 'disabled title="자격증명 없음"'} />
+</label>
         <div>${applied}</div>
         <div>${e.name || '-'}</div>
         <div>${fields}</div>
