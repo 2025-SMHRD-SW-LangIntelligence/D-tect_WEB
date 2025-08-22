@@ -4,7 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 관리자 페이지</title>
-    <link rel="stylesheet" th:href="@{/css/admin_page.css}" />
+
+    <link rel="stylesheet" th:href="@{/css/admin/admin_page.css}" />
 </head>
 <body>
 <header class="topbar">
@@ -15,7 +16,12 @@
         <h1 class="page-title">관리자 페이지</h1>
     </div>
     <div class="right">
-        <span class="admin-name">관리자님</span>
+        <span class="admin-name" th:text="${displayName}">관리자님</span>
+
+        <!-- 로그아웃(POST) -->
+        <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
         <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
     </div>
 </header>

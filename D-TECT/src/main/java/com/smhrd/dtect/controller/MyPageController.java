@@ -1,10 +1,16 @@
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.dto.*;
+import com.smhrd.dtect.entity.MemRole;
+import com.smhrd.dtect.entity.Member;
+import com.smhrd.dtect.repository.UserRepository;
+import com.smhrd.dtect.security.CustomUser;
 import com.smhrd.dtect.service.ExpertService;
 import com.smhrd.dtect.service.MatchingService;
+import com.smhrd.dtect.service.PrincipalIdService;
 import com.smhrd.dtect.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +25,42 @@ public class MyPageController {
     private final MatchingService matchingService;
     private final UserService userService;
     private final ExpertService expertService;
+    private final PrincipalIdService principalIdService;
 
-    // 사용자 마이페이지 - 신청현황
+    @GetMapping
+    public String mypageRoot(@AuthenticationPrincipal CustomUser principal) {
+        if (principal == null || principal.getMember() == null) {
+            return "redirect:/loginPage";
+        }
+        Member member = principal.getMember();
+        MemRole role = member.getMemRole();
+
+        if (role == MemRole.ADMIN) {
+            return "redirect:/adminMainPage";
+        } else if (role == MemRole.EXPERT) {
+            Long expertId = expertService.findExpertIdByMemIdx(member.getMemIdx());
+            // expertId가 없으면 메인으로 안전 탈출
+            if (expertId == null) return "redirect:/expertMainPage";
+            return "redirect:/mypage/expert/" + expertId;
+        } else { // USER
+            Long userId = userService.findUserIdByMemIdx(member.getMemIdx());
+            if (userId == null) return "redirect:/userMainPage";
+            return "redirect:/mypage/user/" + userId;
+        }
+    }
+
+    @GetMapping("/user")
+    public String myUserPage(@AuthenticationPrincipal CustomUser principal) {
+        if (principal == null) return "redirect:/loginPage";
+        Long memIdx = principal.getMember().getMemIdx();
+        return principalIdService.findUserIdByMemIdx(memIdx)
+                .map(id -> "redirect:/mypage/user/" + id)
+                .orElse("redirect:/loginPage");
+    }
+
+    // 사용자 마이페이지
     @GetMapping("/user/{userId}")
-    public String userMatchings(@PathVariable Long userId, Model model) {
+    public String userMyPage(@PathVariable Long userId, Model model) {
         model.addAttribute("userId", userId);
         UserProfileDto profile = userService.getProfile(userId);
         model.addAttribute("profile", profile);
@@ -38,7 +76,7 @@ public class MyPageController {
     }
 
     @GetMapping("/expert/{expertId}")
-    public String expertMatchings(@PathVariable Long expertId, Model model) {
+    public String expertMyPage(@PathVariable Long expertId, Model model) {
         model.addAttribute("expertId", expertId);
 
         ExpertProfileDto profile = expertService.getProfile(expertId);

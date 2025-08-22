@@ -4,7 +4,7 @@ import {
 } from '/js/public/common.js';
 
 const API_BASE = '/api/members';
-const LOGIN_PATH = '/loginpage';
+const LOGIN_PATH = '/loginPage';
 
 function csrf() {
   const h = document.querySelector('meta[name="_csrf_header"]')?.content;

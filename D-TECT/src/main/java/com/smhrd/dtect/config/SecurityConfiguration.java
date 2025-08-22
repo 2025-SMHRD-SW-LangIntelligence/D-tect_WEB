@@ -7,7 +7,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,19 +27,20 @@ public class SecurityConfiguration {
 	private final OAuth2FailureHandler oAuth2FailureHandler;
     private final RoleBasedAuthenticationSuccessHandler successHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
-	private final UserDetailsServiceImpl userDetailsServiceimpl;
 	private final FormFailureHandler formFailureHandler;
-    
+    private final UserDetailsServiceImpl userDetailsServiceimpl;
+
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
-    
-	@Bean
+
+    @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(PasswordEncoder encoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsServiceimpl); // DB에서 사용자/비번 로드
-        provider.setPasswordEncoder(encoder);               // 내부에서 matches(raw, encoded) 사용
+        provider.setPasswordEncoder(encoder);                   // 내부에서 matches(raw, encoded) 사용
         return provider;
     }
 
@@ -49,28 +49,6 @@ public class SecurityConfiguration {
         return config.getAuthenticationManager(); // DaoAuthenticationProvider 사용
     }
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                // 파일 업로드(POST) 테스트를 위해 CSRF 잠시 해제 (실서비스에선 유지 권장)
-//                .csrf(csrf -> csrf.disable())
-//
-//                // 전체 허용 (가장 간단)
-//                .authorizeHttpRequests(auth -> auth
-//                        .anyRequest().permitAll()
-//                )
-//
-//                // 로그인/로그아웃/기본 인증도 잠시 비활성화(선택)
-//                .formLogin(form -> form.disable())
-//                .httpBasic(basic -> basic.disable())
-//                .logout(logout -> logout.disable());
-//
-//        return http.build();
-//    }
-
-    
-/* 최종 통합시 복구할 시큐리티 코드부분 */    
-    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider) throws Exception {
       http
@@ -104,7 +82,4 @@ public class SecurityConfiguration {
       // CSRF: 메타/헤더 사용(A안) 또는 api 예외(B안) 중 프로젝트 정책에 맞춰 선택
       return http.build();
     }
-
 }
-
-

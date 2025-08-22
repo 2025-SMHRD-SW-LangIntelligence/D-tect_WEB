@@ -40,8 +40,9 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
     // 승인 1건(가장 최근)
     Optional<Expert> findFirstByMemberAndExpertStatusOrderByExpertIdxDesc(Member member, ExpertStatus status);
 
-    // 상태 무관 최근 1건
     Optional<Expert> findFirstByMemberOrderByExpertIdxDesc(Member member);
 
     long countByMemberAndExpertStatus(Member member, ExpertStatus status);
+    List<Expert> findByExpertStatus(ExpertStatus status, Sort sort);
+    Optional<Expert> findByMember_MemIdx(Long memIdx);
 }

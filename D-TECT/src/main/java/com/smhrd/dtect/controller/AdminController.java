@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +90,16 @@ public class AdminController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(bytes);
+    }
+
+    @GetMapping("/api/csrf-token")
+    @ResponseBody
+    public Map<String, String> csrfToken(CsrfToken token) {
+        // Spring Security가 주입해주는 토큰을 그대로 반환
+        return Map.of(
+                "headerName", token.getHeaderName(),
+                "token", token.getToken()
+        );
     }
 
     @Data
