@@ -5,12 +5,13 @@ import com.smhrd.dtect.SignupRequestDTO;
 import com.smhrd.dtect.dto.UserProfileDto;
 import com.smhrd.dtect.entity.*;
 import com.smhrd.dtect.repository.ExpertRepository;
+import com.smhrd.dtect.repository.FieldRepository;
 import com.smhrd.dtect.repository.MemberRepository;
 import com.smhrd.dtect.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
@@ -31,6 +32,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ExpertRepository expertRepository;
     private final FileService fileService;
+    private final FieldRepository fieldRepository;
 
     private record VerificationInfo(String code, long createdAtMs) {}
 
@@ -84,6 +86,20 @@ public class UserService {
             }
             e.setExpertStatus(ExpertStatus.PENDING);
             expertRepository.save(e);
+
+            List<FieldName> picked = req.getFields();
+            if (picked != null && !picked.isEmpty()) {
+
+                Set<FieldName> uniq = new HashSet<>(picked);
+                List<Field> rows = new ArrayList<>(uniq.size());
+                for (FieldName fn : uniq) {
+                    Field f = new Field();
+                    f.setExpert(e);
+                    f.setFieldName(fn);
+                    rows.add(f);
+                }
+                fieldRepository.saveAll(rows);
+            }
 
         } else {
             com.smhrd.dtect.entity.User u = new com.smhrd.dtect.entity.User();
