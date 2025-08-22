@@ -46,3 +46,4 @@ build/
 /dataSources/
 /dataSources.local.xml
 
+secrets.properties
