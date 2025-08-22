@@ -140,6 +140,20 @@
 	<script
 		src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 	<script defer type="module" th:src="@{/js/expert/expert_signup.js}"></script>
+	<script>
+  // expert_signup 화면에서만 실행
+  document.addEventListener('DOMContentLoaded', function normalizeValidationMessages(){
+    document.querySelectorAll('.signup-page .form-card .vform .field').forEach(field => {
+      // field 안에서 '라벨/점/인풋'이 아닌 알 수 없는 요소 = 메시지로 간주
+      field.querySelectorAll(':scope > *').forEach(el => {
+        if (el.matches('.dot,.label,input,textarea,select,.input-row,.chips,.chip')) return;
+        el.classList.add('error-msg');            // CSS 패치의 셀렉터에 걸리도록
+        el.style.gridColumn = '2 / -1';           // 방어적으로 한번 더 고정
+      });
+    });
+  });
+</script>
+	
 
 </body>
 
