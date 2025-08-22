@@ -200,3 +200,32 @@ body.signup-page {
         grid-template-columns: 18px 96px 1fr
     }
 }
+
+/* ===== 유효성 메시지 위치 보정 (common.js 호환) ===== */
+.signup-page .form-card .vform .field{
+  /* 메시지가 한 줄을 새로 차지할 수 있게 */
+  grid-auto-rows: auto;
+  align-items: start;
+}
+
+/* common.js가 생성하는 다양한 클래스명을 너그럽게 지원 */
+.signup-page .form-card .vform .field .error,
+.signup-page .form-card .vform .field .error-msg,
+.signup-page .form-card .vform .field .invalid,
+.signup-page .form-card .vform .field .invalid-feedback,
+.signup-page .form-card .vform .field .help,
+.signup-page .form-card .vform .field .message {
+  grid-column: 2 / -1;        /* ▶ 입력 칼럼 전체로 */
+  margin-top: 6px;
+  color: #d64545;
+  font-size: .88rem;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+/* 에러 테두리(선택) */
+.signup-page .form-card .vform input.is-invalid,
+.signup-page .form-card .vform textarea.is-invalid {
+  border-color: #ff6b6b;
+}
