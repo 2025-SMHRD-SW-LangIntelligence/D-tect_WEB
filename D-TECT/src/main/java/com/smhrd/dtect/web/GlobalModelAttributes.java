@@ -27,4 +27,11 @@ public class GlobalModelAttributes {
         principalIdService.findExpertIdByMemIdx(memIdx)
                 .ifPresent(expertId -> model.addAttribute("expertId", expertId));
     }
+
+    @ModelAttribute("displayName")
+    public String displayName(@AuthenticationPrincipal CustomUser p) {
+        if (p == null || p.getMember() == null) return "관리자님";
+        String name = p.getMember().getName();
+        return (name != null && !name.isBlank()) ? name + " 님" : p.getUsername() + " 님";
+    }
 }
