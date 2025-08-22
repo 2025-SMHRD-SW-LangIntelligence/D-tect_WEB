@@ -49,6 +49,7 @@ public class Member {
     private String address;
     
     // 회원 이메일
+    @Column(unique = true)
     private String email;
 
     // 회원 약관동의
@@ -66,15 +67,20 @@ public class Member {
 
 	// Oauth를 고려한 컬럼
 	// nullable
+	@Column(name = "oauth_provider")
 	private String oauthProvider; // KAKAO, GOOGLE
-	private String oauthProviderId; // 소셜의 고유 사용자 ID
-
+	
+	@Column(name = "oauth_id")
+	private String oauthId; // 소셜의 고유 사용자 ID
+	
+	@Column(name = "profile_image")
+	private String profileImageUrl;
 
 	// 회원 활동 가능 여부
 	@Column(name = "member_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private MemberStatus memberStatus;
-
+	
 	// 날짜 자동 기입 함수
 	@PrePersist
 	protected void onCreate() {
@@ -84,6 +90,11 @@ public class Member {
 	// 비밀번호 암호화 함수
     public void encodePassword(PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(this.password);
+    }
+    
+    // Oauth관련 Security 표준화
+    public String getUsername() { // Security 표준화
+        return email != null ? email : (oauthProvider + ":" + oauthId);
     }
 	
 }

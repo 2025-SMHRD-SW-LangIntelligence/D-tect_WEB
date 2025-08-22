@@ -7,8 +7,8 @@
 <title>D-tect | 일반 사용자 회원가입</title>
 <!-- CSS -->
 <link rel="stylesheet" th:href="@{/css/user/user_signup.css}" />
-<meta th:name="_csrf" th:content="${_csrf.token}" />
-<meta th:name="_csrf_header" th:content="${_csrf.headerName}" />
+<!-- <meta th:name="_csrf" th:content="${_csrf.token}" />
+<meta th:name="_csrf_header" th:content="${_csrf.headerName}" /> -->
 
 </head>
 
@@ -50,9 +50,11 @@
 
 				<!-- 비밀번호 확인 -->
 				<div class="field">
-					<span class="dot" aria-hidden="true"></span> <label for="pw2"
-						class="label">패스워드확인</label> <input id="pw2" type="password"
-						minlength="8" required />
+					<span class="dot" aria-hidden="true"></span> <label for="password2"
+						class="label">패스워드확인</label> <input id="password2"
+						name="password2" type="password" placeholder="비밀번호를 다시 입력하세요"
+						required minlength="8" /> <span id="pwdMsg" class="msg"
+						aria-live="polite"></span>
 				</div>
 
 				<!-- 이메일 -->

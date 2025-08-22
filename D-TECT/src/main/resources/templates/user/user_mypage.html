@@ -7,7 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/user/user_mypage.css}" />
 </head>
 
-<body th:attr="data-user-id=${userId}">
+<body th:attr="data-user-id=${userId != null ? userId : 0}">
 <header class="topbar">
     <div class="left">
         <a class="logo-wrap" href="/" aria-label="홈으로">
@@ -19,7 +19,7 @@
     <div class="right">
         <div class="user-chip">
             <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
-            <span class="user-name" th:text="${profile.name} + ' 님'">--- 님</span>
+            <span class="user-name" th:text="${(profile != null && profile.name != null && #strings.isNotEmpty(profile.name)) ? profile.name + ' 님' : '--- 님'}">--- 님</span>
         </div>
         <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
     </div>
@@ -37,15 +37,15 @@
             <form class="info-form" id="infoForm">
                 <label class="field">
                     <span class="label">이름</span>
-                    <input type="text" name="name" th:value="${profile.name}" disabled />
+                    <input type="text" name="name" th:value="${profile != null ? profile.name    : ''}" disabled />
                 </label>
                 <label class="field">
                     <span class="label">이메일</span>
-                    <input type="email" name="email" th:value="${profile.email}" disabled />
+                    <input type="email" name="email" th:value="${profile != null ? profile.email   : ''}" disabled />
                 </label>
                 <label class="field">
                     <span class="label">주소</span>
-                    <input type="text" name="addr" th:value="${profile.address}" disabled />
+                    <input type="text" name="addr" th:value="${profile != null ? profile.address : ''}" disabled />
                 </label>
 
                 <div class="form-actions">

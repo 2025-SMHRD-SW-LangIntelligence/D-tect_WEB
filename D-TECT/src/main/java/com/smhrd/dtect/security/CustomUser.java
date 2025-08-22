@@ -2,6 +2,7 @@ package com.smhrd.dtect.security;
 
 
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
 
 import com.smhrd.dtect.entity.Member;
 import com.smhrd.dtect.entity.MemberStatus;
@@ -11,7 +12,7 @@ import lombok.ToString;
 
 @Getter
 @ToString(exclude = "member")
-public class CustomUser extends org.springframework.security.core.userdetails.User {
+public class CustomUser extends User {
   private final Member member;
   public CustomUser(Member member) {
     super(

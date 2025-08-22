@@ -27,6 +27,7 @@ public class MyPageController {
         UserProfileDto profile = userService.getProfile(userId);
         model.addAttribute("profile", profile);
         return "user/user_mypage";
+        
     }
 
     // 사용자 - 신청현황
@@ -45,7 +46,7 @@ public class MyPageController {
 
         model.addAttribute("profile", profile);
         model.addAttribute("specialtyOptions", specialtyOptions);
-
+        
         return "expert/expert_mypage";
     }
 
