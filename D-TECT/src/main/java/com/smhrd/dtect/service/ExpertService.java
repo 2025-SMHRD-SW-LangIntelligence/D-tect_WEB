@@ -63,4 +63,10 @@ public class ExpertService {
             case EXTORTION  -> "갈취";
         };
     }
+
+    public Long findExpertIdByMemIdx(Long memIdx) {
+        return expertRepository.findByMember_MemIdx(memIdx)
+                .map(e -> e.getExpertIdx())
+                .orElseThrow(() -> new IllegalStateException("전문가 레코드를 찾을 수 없습니다."));
+    }
 }

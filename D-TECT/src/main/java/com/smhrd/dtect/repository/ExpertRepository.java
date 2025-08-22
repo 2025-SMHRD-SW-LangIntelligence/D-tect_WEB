@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ExpertRepository extends JpaRepository<Expert, Long> {
@@ -35,4 +36,5 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
     );
 
     List<Expert> findByExpertStatus(ExpertStatus status, Sort sort);
+    Optional<Expert> findByMember_MemIdx(Long memIdx);
 }
