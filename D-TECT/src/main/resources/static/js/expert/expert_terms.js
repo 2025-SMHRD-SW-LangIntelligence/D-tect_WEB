@@ -1,6 +1,4 @@
-// static/js/expert/expert_terms_step1.js
-// 경로(필요 시 프로젝트 라우팅에 맞게 수정)
-const LOGIN_PATH = "/loginpage";              // 로고 클릭 시 이동
+const LOGIN_PATH = "/loginPage";              // 로고 클릭 시 이동
 const SIGNUP_PATH = "/joinExpertPage";  // 동의 후 이동
 
 // 로고 → 로그인
