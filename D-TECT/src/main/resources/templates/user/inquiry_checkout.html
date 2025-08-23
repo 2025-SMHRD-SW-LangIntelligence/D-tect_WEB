@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>D-tect | 변호사 문의 · 결제</title>
+    <title>D-tect | 법률 전문가 문의 · 결제</title>
 
     <link rel="stylesheet" th:href="@{/css/user/inquiry_checkout.css}" />
     <script src="https://js.tosspayments.com/v1"></script>
@@ -19,7 +19,7 @@
     <section class="card">
         <div class="lawyer-head">
             <div class="lawyer-name" id="lawyerName"
-                 th:text="${expert.member.name} + ' 변호사'">000 변호사</div>
+                 th:text="${expert.member.name} + ' 법률 전문가'">- 법률 전문가</div>
             <div class="tags" id="lawyerTags"></div>
         </div>
 
@@ -40,7 +40,7 @@
         </div>
 
         <p class="notice-red">
-            상담 진행 시 비용이 발생합니다. 실제 금액은 관리자/변호사가 조정할 수 있습니다.
+            상담 진행 시 비용이 발생합니다. 실제 금액은 관리자/법률 전문가가 조정할 수 있습니다.
         </p>
     </section>
 
@@ -52,7 +52,7 @@
             <input type="hidden" name="expertId" th:value="${expert.expertIdx}" />
             <input type="hidden" name="requestReason" id="requestReason" /> <!-- 선택된 코드가 들어감 -->
 
-            <label class="field-label">변호사에게 전달할 상담 설명</label>
+            <label class="field-label">법률 전문가에게 전달할 상담 설명</label>
             <textarea id="message" name="message" class="textbox"
                       placeholder="상황 설명, 요청사항 등을 자세히 적어주세요." rows="6"></textarea>
 
@@ -69,82 +69,44 @@
 
             <div class="row">
                 <div class="file-wrap">
-                    <input id="upload" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png" hidden />
+                    <input id="upload" type="file" name="attachment" accept=".pdf" hidden />
                     <button id="fileBtn" type="button" class="btn btn-ghost">PDF 첨부하기</button>
-                    <span id="fileName" class="file-name"></span>
+                    <small id="fileHint" class="muted">※ 결과보고서 PDF 파일 첨부는 <b>필수</b>입니다.</small>
+                    <span id="fileName" class="file-name" hidden></span>
                 </div>
             </div>
 
             <div class="actions">
-                <button id="submitBtn" class="btn btn-primary" type="button">전송</button>
+                <button id="submitBtn" class="btn btn-primary" type="submit">전송</button>
             </div>
         </form>
     </section>
 </main>
 
 <script>
-    function openMiniDialog(message, opts = {}) {
-        const id = 'miniDialog';
-        let wrap = document.getElementById(id);
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.id = id;
-            wrap.setAttribute('role', 'dialog');
-            wrap.setAttribute('aria-modal', 'true');
-            wrap.style.cssText = `
-              position:fixed; inset:0; z-index:9999;
-              display:flex; align-items:center; justify-content:center;
-              background:rgba(0,0,0,.35);
-            `;
-            wrap.innerHTML = `
-              <div style="
-                width:min(420px,90vw); max-width:90vw;
-                background:#fff; color:#111; border-radius:12px;
-                box-shadow:0 10px 30px rgba(0,0,0,.2);
-                padding:18px; font-family:inherit;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                  <strong style="font-size:16px;">안내</strong>
-                  <button id="miniDialogClose" type="button"
-                          style="border:none;background:transparent;font-size:20px;line-height:1;cursor:pointer;">×</button>
-                </div>
-                <div id="miniDialogBody" style="font-size:14px; line-height:1.5; white-space:pre-wrap;"></div>
-                <div style="text-align:right; margin-top:14px;">
-                  <button id="miniDialogOk" type="button"
-                          style="padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;background:#111;color:#fff;">
-                    확인
-                  </button>
-                </div>
-              </div>
-            `;
-            document.body.appendChild(wrap);
-            wrap.addEventListener('click', (e) => {
-                if (e.target === wrap) closeMiniDialog(); // 배경 클릭 닫기
-            });
-        }
-        wrap.querySelector('#miniDialogBody').textContent = message || '';
-        wrap.style.display = 'flex';
-        const closer = wrap.querySelector('#miniDialogClose');
-        const okBtn  = wrap.querySelector('#miniDialogOk');
-        closer.onclick = okBtn.onclick = () => {
-            closeMiniDialog();
-            if (typeof opts.onClose === 'function') opts.onClose();
-        };
-        // 포커스 이동
-        okBtn.focus({ preventScroll: true });
-    }
-    function closeMiniDialog() {
-        const wrap = document.getElementById('miniDialog');
-        if (wrap) wrap.style.display = 'none';
-    }
+    (function () {
+        var serverError = document.body.dataset.error;
+        if (serverError) alert(serverError);
+    })();
 
     // 파일 업로드 표시
     const fileBtn    = document.getElementById("fileBtn");
     const upload     = document.getElementById("upload");
     const fileNameEl = document.getElementById("fileName");
     fileBtn.addEventListener("click", () => upload.click());
-    upload.addEventListener("change", () => fileNameEl.textContent = upload.files?.[0]?.name || "");
+    upload.addEventListener("change", () => {
+        const name = upload.files && upload.files[0] ? upload.files[0].name : "";
+        if (name) {
+            fileNameEl.textContent = name;
+            fileNameEl.hidden = false;
+            fileHint.hidden = true;
+        } else {
+            fileNameEl.textContent = "";
+            fileNameEl.hidden = true;
+            fileHint.hidden = false;
+        }
+    });
 
-    // 상담유형(칩) 선택: 최대 1개
     const chips        = document.getElementById("issueChips");
     const hiddenReason = document.getElementById("requestReason");
     chips.addEventListener("click", (e) => {
@@ -160,45 +122,51 @@
         hiddenReason.value = btn.dataset.code; // 코드(VIOLENCE 등) 저장
     });
 
-    // ===== 전송(폼 제출) =====
-    const submitBtn = document.getElementById("submitBtn");
+    // 제출 처리
     const form      = document.getElementById("requestForm");
+    const submitBtn = document.getElementById("submitBtn");
     const messageEl = document.getElementById("message");
 
-    submitBtn.addEventListener("click", () => {
-        if (submitBtn.disabled) return;
-        submitBtn.disabled = true;
-
+    form.addEventListener("submit", (e) => {
         const msg = (messageEl.value || "").trim();
+
         if (msg.length < 5) {
-            openMiniDialog("상담 설명을 5자 이상 작성해주세요.", { onClose: () => messageEl.focus() });
-            submitBtn.disabled = false;
+            e.preventDefault();
+            alert("상담 설명을 5자 이상 작성해주세요.");
+            messageEl.focus();
             return;
         }
         if (!hiddenReason.value) {
-            openMiniDialog("상담 유형을 1개 선택해주세요.");
-            submitBtn.disabled = false;
+            e.preventDefault();
+            alert("상담 유형을 1개 선택해주세요.");
             return;
         }
-
         const f = upload.files?.[0];
-        if (f && !/\.(pdf|jpg|jpeg|png)$/i.test(f.name)) {
-            openMiniDialog("PDF/JPG/PNG 파일만 업로드할 수 있습니다.");
-            submitBtn.disabled = false;
+        if (!f) {
+            e.preventDefault();
+            alert("PDF 첨부는 필수입니다.");
             return;
         }
 
-        form.submit();
+        if (!/\.pdf$/i.test(f.name) || (f.type && f.type !== 'application/pdf')) {
+            e.preventDefault();
+            alert("PDF 파일만 첨부할 수 있습니다.");
+            return;
+        }
 
-        setTimeout(() => { submitBtn.disabled = false; }, 8000);
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = "전송 중...";
+
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "전송";
+        }, 8000);
     });
-
-    (function showServerErrorIfAny() {
-        const err = document.body.dataset.error; // th:attr로 내려옴
-        if (!err) return;
-        // 약간 늦게 띄워 스크롤/레이아웃 안정화 후 표시
-        setTimeout(() => openMiniDialog(err), 50);
-    })();
 </script>
+
 </body>
 </html>

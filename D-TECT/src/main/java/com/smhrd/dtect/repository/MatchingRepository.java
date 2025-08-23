@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -56,4 +57,15 @@ public interface MatchingRepository extends JpaRepository<Matching, Long> {
 
     boolean existsByUser_UserIdxAndExpert_ExpertIdxAndStatusIn(
             Long userId, Long expertId, java.util.Collection<MatchingStatus> statuses);
+
+
+    // 나와 매칭된 전문가 체크
+    @Query("""
+    select distinct m.expert.expertIdx
+    from Matching m
+    where m.user.userIdx = :userId
+      and m.status in :statuses
+""")
+    List<Long> findOngoingExpertIds(@Param("userId") Long userId,
+                                    @Param("statuses") Collection<MatchingStatus> statuses);
 }

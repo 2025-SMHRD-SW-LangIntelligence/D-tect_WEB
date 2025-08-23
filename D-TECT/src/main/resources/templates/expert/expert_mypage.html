@@ -18,7 +18,8 @@
     <div class="right">
         <div class="user-chip">
             <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
-            <span class="user-name" th:text="${profile.name} != null ? ${profile.name} + ' 변호사님' : '전문가님'">전문가님</span>
+            <span class="user-name"
+                  th:text="${profile.name} != null ? ${profile.name} + ' 전문가님' : '전문가님'">전문가님</span>
         </div>
         <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
     </div>
@@ -26,6 +27,7 @@
 
 <main class="container">
     <section class="grid">
+
         <!-- 좌: 개인정보 -->
         <article class="card card--dark">
             <header class="card-head">
@@ -54,9 +56,26 @@
                     <input type="text" name="officeAddress" th:value="${profile.officeAddress}" disabled />
                 </label>
 
+                <!-- ✅ 전문분야: 칩 + (편집용) 다중 선택 -->
                 <label class="field">
-                    <span class="label">전문분야 (다중선택)</span>
-                    <select id="specialties" name="specialties" multiple disabled>
+                    <span class="label">전문분야</span>
+
+                    <!-- 읽기용 칩 -->
+                    <div class="tag-wrap">
+            <span class="tag"
+                  th:each="opt : ${specialtyOptions}"
+                  th:if="${profile.specialtyCodes != null and profile.specialtyCodes.contains(opt.code)}"
+                  th:text="${opt.label}">전문분야</span>
+
+                        <!-- 등록된 전문분야가 없을 때 -->
+                        <span class="tag tag--empty"
+                              th:if="${profile.specialtyCodes == null or #lists.isEmpty(profile.specialtyCodes)}">
+              전문분야 미등록
+            </span>
+                    </div>
+
+                    <!-- 편집용 셀렉트(수정 모드 때 enable 예정) -->
+                    <select id="specialties" name="specialties" multiple disabled style="margin-top:10px">
                         <option th:each="opt : ${specialtyOptions}"
                                 th:value="${opt.code}"
                                 th:text="${opt.label}"
@@ -129,7 +148,10 @@
     </section>
 
     <section class="cta-wrap">
-        <button type="button" class="btn btn--accent" id="reqBtn">상담 신청 확인</button>
+        <a class="btn btn--accent"
+           th:href="@{/mypage/expert/mainpage(expertId=${expertId})}"
+           id="reqBtn"
+           role="button">상담 신청 확인</a>
         <button type="button" class="btn btn--accent" id="scheduleBtn">상담 일정 확인하기</button>
         <button type="button" class="btn btn--accent btn--danger" id="withdrawBtn">회원탈퇴</button>
     </section>

@@ -1,5 +1,6 @@
 package com.smhrd.dtect.controller;
 
+import com.smhrd.dtect.dto.MatchingDetailDto;
 import com.smhrd.dtect.entity.Expert;
 import com.smhrd.dtect.entity.Matching;
 import com.smhrd.dtect.entity.MatchingStatus;
@@ -7,9 +8,7 @@ import com.smhrd.dtect.repository.ExpertRepository;
 import com.smhrd.dtect.repository.MatchingRepository;
 import com.smhrd.dtect.service.FileService;
 import com.smhrd.dtect.service.MatchingService;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +17,12 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -60,17 +61,27 @@ public class MatchingController {
                           @RequestParam Long expertId,
                           @RequestParam(required = false) String message,
                           @RequestParam String requestReason,
-                          @RequestParam(name = "attachment", required = false) MultipartFile attachment) {
-        try {
-            Matching created = matchingService.request(userId, expertId, message, requestReason, attachment);
-            return "redirect:/mypage/user/" + userId + "?submitted=1&matchingId=" + created.getMatchingIdx();
-        } catch (IllegalStateException | IllegalArgumentException ex) {
-            String msg = java.net.URLEncoder.encode(ex.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
-            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId + "&error=" + msg;
-        } catch (Exception ex) {
-            String msg = java.net.URLEncoder.encode("요청 처리 중 오류가 발생했습니다.", java.nio.charset.StandardCharsets.UTF_8);
-            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId + "&error=" + msg;
+                          @RequestParam(name = "attachment") MultipartFile attachment,
+                          RedirectAttributes ra) throws Exception {
+
+        if (attachment == null || attachment.isEmpty()) {
+            ra.addFlashAttribute("toast", "PDF 첨부는 필수입니다.");
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId;
         }
+
+        String filename = Optional.ofNullable(attachment.getOriginalFilename()).orElse("");
+        String contentType = Optional.ofNullable(attachment.getContentType()).orElse("");
+        boolean pdfByName = filename.toLowerCase().endsWith(".pdf");
+        boolean pdfByMime = MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType);
+        if (!(pdfByName || pdfByMime)) {
+            ra.addFlashAttribute("toast", "PDF 파일만 첨부할 수 있습니다.");
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId;
+        }
+
+        Matching created = matchingService.request(userId, expertId, message, requestReason, attachment);
+
+        return "redirect:/mypage/user/" + userId
+                + "?submitted=1&matchingId=" + created.getMatchingIdx();
     }
 
 
@@ -92,27 +103,28 @@ public class MatchingController {
                 .body(bytes);
     }
 
-    // 5) 전문가 받은 요청함
-    @GetMapping("/expert/inbox")
-    public String expertInbox(@RequestParam Long expertId, Model model) {
-        model.addAttribute("expertId", expertId);
-        model.addAttribute("pending", matchingService.expertInbox(expertId));
-        return "matching/inbox";
-    }
-
-    // 6) 승인/거절
-    @PostMapping("/matching/{matchingId}/approve")
-    public String approve(@PathVariable Long matchingId) {
+    @PostMapping(value = "/api/matching/{matchingId}/approve", produces = "application/json")
+    @ResponseBody
+    public java.util.Map<String, Object> approveApi(@PathVariable Long matchingId) {
         matchingService.approve(matchingId);
-        return "redirect:/matching/detail/" + matchingId;
+        return java.util.Map.of("ok", true, "id", matchingId, "status", MatchingStatus.APPROVED.name());
     }
 
-    @PostMapping("/matching/{matchingId}/reject")
-    public String reject(@PathVariable Long matchingId) {
+    @PostMapping(value = "/api/matching/{matchingId}/reject", produces = "application/json")
+    @ResponseBody
+    public java.util.Map<String, Object> rejectApi(@PathVariable Long matchingId) {
         matchingService.reject(matchingId);
-        return "redirect:/matching/detail/" + matchingId;
+        return java.util.Map.of("ok", true, "id", matchingId, "status", MatchingStatus.REJECTED.name());
     }
 
+    @GetMapping(value = "/api/users/{userId}/ongoing-experts", produces = "application/json")
+    @ResponseBody
+    public List<Long> ongoingExperts(@PathVariable Long userId) {
+        return matchingRepository.findOngoingExpertIds(
+                userId,
+                List.of(MatchingStatus.PENDING, MatchingStatus.APPROVED)
+        );
+    }
 
     private static final List<ConsultType> CONSULT_TYPES = List.of(
             new ConsultType("VIOLENCE",  "폭력"),
@@ -131,4 +143,41 @@ public class MatchingController {
         private String code;
         private String label;
     }
+
+    @GetMapping(value = "/api/matching/{matchingId}", produces = "application/json")
+    @ResponseBody
+    public MatchingDetailDto matchingDetail(@PathVariable Long matchingId) {
+        Matching m = matchingService.get(matchingId)
+                .orElseThrow(() -> new IllegalArgumentException("매칭 없음: " + matchingId));
+
+        String userName = "";
+        try {
+            if (m.getUser() != null) {
+                    userName = m.getUser().getMember().getName();
+            }
+        } catch (Exception ignored) {}
+
+        // 코드 → 라벨 매핑
+        String reasonCode  = m.getRequestReason();
+        String reasonLabel = CONSULT_TYPES.stream()
+                .filter(ct -> ct.getCode().equalsIgnoreCase(reasonCode))
+                .map(ConsultType::getLabel)
+                .findFirst()
+                .orElse(reasonCode);
+
+        String fileUrl = "/matching/file/" + m.getMatchingIdx();
+
+        return MatchingDetailDto.builder()
+                .id(m.getMatchingIdx())
+                .requestedAt(m.getRequestedAt() != null ? m.getRequestedAt().toString() : null)
+                .userName(userName)
+                .message(m.getRequestMessage())
+                .reasonCode(reasonCode)
+                .reasonLabel(reasonLabel)
+                .status(m.getStatus() != null ? m.getStatus().name() : "PENDING")
+                .attachmentUrl(fileUrl)
+                .build();
+    }
+
+
 }
