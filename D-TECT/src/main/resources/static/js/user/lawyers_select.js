@@ -12,15 +12,30 @@ const mBody   = document.getElementById("mBody");
 const mClose  = document.getElementById("mClose");
 const bookBtn = document.getElementById("bookBtn");
 const matchForm = document.getElementById("matchForm");
+const searchBtn = document.getElementById("searchBtn"); // [수정]
 
 let currentLawyer = null;
 
 const USER_ID = Number(document.body.dataset.userId || 0);
 if (!USER_ID) {
     alert("필수 파라미터(userId)가 없습니다. 다시 시도해주세요.");
-    // 개발 단계: 홈으로 이동(혹은 로그인 페이지로)
     window.location.replace("/");
 }
+
+// 전문분야 코드-라벨 매핑
+const SKILL_LABELS = {
+    VIOLENCE:  "폭력",
+    DEFAMATION:"명예훼손",
+    STALKING:  "스토킹",
+    SEXUAL:    "성범죄",
+    LEAK:      "정보유출",
+    BULLYING:  "따돌림·집단괴롭힘",
+    CHANTAGE:  "협박·갈취",
+    EXTORTION: "공갈·갈취"
+};
+const LABEL_TO_CODE = Object.fromEntries(
+    Object.entries(SKILL_LABELS).map(([code, label]) => [label.toLowerCase(), code])
+);
 
 // ===== 칩/필터 =====
 let ALL_SKILLS = []; // [{code:'DEFAMATION', label:'명예훼손'}, ...]
@@ -30,7 +45,7 @@ function uniqSkills(rows) {
     const pairs = new Map(); // code -> label
     rows.forEach(l => {
         (l.skillCodes || []).forEach((code, i) => {
-            const label = (l.skills && l.skills[i]) || code;
+            const label = (l.skills && l.skills[i]) || SKILL_LABELS[code] || code; // [수정]
             if (!pairs.has(code)) pairs.set(code, label);
         });
     });
@@ -49,21 +64,39 @@ chips.addEventListener("click", (e) => {
     if (!btn) return;
     const code = btn.dataset.skill || "";
     activeSkill = code || null;
-    load(); // 서버에서 다시 불러오기
+    q.value = "";
+    load();
 });
 
-q.addEventListener("input", debounce(load, 250));
+// 검색 버튼 클릭/Enter에만 검색 수행
+searchBtn?.addEventListener("click", () => {
+    const term = (q.value || "").trim();
+    // 검색어가 전문분야(한글/영문)과 '부분 일치'하면 그 분야로 필터
+    const skillCode = toSkillCode(term);
+    activeSkill = skillCode || null;
+    load();
+});
+q.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        searchBtn?.click();
+    }
+});
+
 sort.addEventListener("change", load);
 
-// ===== 정렬 =====
+// ===== 이름 정렬
 function compareBySort(a, b) {
-    if (sort.value === "name") return (a.name || "").localeCompare(b.name || "");
-    if (sort.value === "exp")  return (b.years || 0) - (a.years || 0); // null → 0
-    return (b.id || 0) - (a.id || 0); // 최신 등록순
+    if (sort.value === "name") {
+        const an = (a.name || "").trim();
+        const bn = (b.name || "").trim();
+        return an.localeCompare(bn, "ko-KR", { sensitivity: "base", numeric: true });
+    }
+    if (sort.value === "exp")  return (b.years || 0) - (a.years || 0);
+    return (b.id || 0) - (a.id || 0);
 }
 
 function sortRegisteredFirst(rows) {
-
     const avail = rows.filter(l => l.available !== false);
     const unavail = rows.filter(l => l.available === false);
     avail.sort(compareBySort);
@@ -115,8 +148,17 @@ function render() {
     let rows = LAWYERS.filter(l => {
         if (l.available === false) return true; // 자리채움 카드 유지
         if (term) {
-            const blob = `${l.name||''} ${l.title||''} ${l.email||''} ${l.addr||''} ${(l.skills||[]).join(' ')}`.toLowerCase();
-            if (!blob.includes(term)) return false;
+            // 부분 일치 고려: 한글 라벨 + 영문 코드 + 기타 메타
+            const blob = [
+                l.name || '',
+                l.title || '',
+                l.email || '',
+                l.addr || '',
+                ...(l.skills || []),     // 한글 라벨
+                ...(l.skillCodes || [])  // 영문 코드
+            ].join(' ').toLowerCase();
+
+            if (!blob.includes(term)) return false; // 부분 일치 [수정]
         }
         return true;
     });
@@ -124,6 +166,8 @@ function render() {
     rows = sortRegisteredFirst(rows);
     grid.innerHTML = rows.map(l => (l.available === false) ? placeholderHTML() : cardHTML(l)).join("");
     empty.hidden = rows.length !== 0;
+
+    renderChips();
 }
 
 // ===== 카드 클릭 → 모달 =====
@@ -157,20 +201,39 @@ modal.addEventListener("click", (e) => { if (e.target.classList.contains("modal_
 // ===== 상담 예약(매칭 요청) 제출 =====
 bookBtn.addEventListener("click", () => {
     if (!currentLawyer) return;
-
-    matchForm.userId.value = USER_ID;
-
-    matchForm.expertId.value = currentLawyer.id;
-
-    matchForm.submit();
+    window.location.href = `/matching/inquiry?userId=${USER_ID}&expertId=${currentLawyer.id}`;
 });
+
+// ===== [수정] 검색어 → 전문분야 코드 변환(부분 일치 지원)
+function toSkillCode(termRaw) {
+    if (!termRaw) return null;
+    const t = termRaw.trim().toLowerCase();
+
+    // 1) 영문 코드 정확 일치 (ex. leak, defamation)
+    const codeExactEng = Object.keys(SKILL_LABELS).find(c => c.toLowerCase() === t);
+    if (codeExactEng) return codeExactEng;
+
+    // 2) 한글 라벨 정확 일치 (ex. 정보유출)
+    if (LABEL_TO_CODE[t]) return LABEL_TO_CODE[t];
+
+    // 3) 한글 라벨 '부분 일치' (ex. "정보" -> "정보유출")
+    const partial = Object.entries(SKILL_LABELS)
+        .filter(([_, label]) => label.toLowerCase().includes(t))
+        .map(([code]) => code);
+
+    // 유일하게 매칭되면 채택, 다수면 모호하므로 일반 검색으로 처리
+    return partial.length === 1 ? partial[0] : null; // [수정]
+}
 
 // ===== 서버 연동 =====
 async function load() {
     const params = new URLSearchParams();
-    const term = (q.value || '').trim();
-    if (term) params.set('q', term);
-    if (activeSkill) params.set('skill', activeSkill); // enum 코드
+
+    // skill 우선: activeSkill이 있으면 서버에 skill만 전달
+    if (activeSkill) params.set('skill', activeSkill);
+
+    // 일반 텍스트 검색은 클라이언트에서 부분 일치 필터링으로 처리
+
     params.set('sort', sort.value || 'rec');
 
     try {
@@ -183,10 +246,10 @@ async function load() {
         LAWYERS = [];
         ALL_SKILLS = [];
     }
-    renderChips();
     render();
 }
 
+// 디바운스 유틸(현재 미사용, 남겨둠)
 function debounce(fn, ms) {
     let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), ms); };
 }
