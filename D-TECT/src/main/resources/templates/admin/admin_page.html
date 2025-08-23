@@ -27,88 +27,77 @@
 </header>
 
 <main class="container">
-    <section class="grid">
-        <!-- 1. 신조어 사전 업데이트 (데모) -->
-        <article class="card">
-            <div class="card-title">신조어 사전 업데이트</div>
-            <form id="newwordForm" class="vform">
-                <label class="field">
-                    <span class="label">단어 :</span>
-                    <input type="text" id="nwWord" placeholder="예) 갑통알" />
-                </label>
-                <label class="field">
-                    <span class="label">의미 :</span>
-                    <input type="text" id="nwMeaning" placeholder="예) 갑자기 통장을 보니 알바가 필요해" />
-                </label>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn--primary">업데이트</button>
-                </div>
-            </form>
-        </article>
-
-        <!-- 2. 상담사례/도움 사이트 등록 (데모) -->
-        <article class="card">
-            <div class="card-title">상담사례 및 도움 받을 수 있는 사이트</div>
-            <form id="siteForm" class="vform">
-                <label class="field">
-                    <span class="label">로고 :</span>
-                    <input type="text" id="siteLogo" placeholder="로고명 또는 기관명" />
-                </label>
-                <label class="field">
-                    <span class="label">URL :</span>
-                    <input type="url" id="siteUrl" placeholder="https://example.org" />
-                </label>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn--primary">업데이트</button>
-                </div>
-            </form>
-        </article>
-
-        <!-- 3. 부정 이용자 제재 (데모) -->
-        <article class="card">
-            <div class="card-title">부정 이용자 제재</div>
-            <form id="banForm" class="vform">
-                <label class="field">
-                    <span class="label">아이디 :</span>
-                    <input type="text" id="banId" placeholder="user123" />
-                </label>
-                <label class="field">
-                    <span class="label">사유 :</span>
-                    <input type="text" id="banReason" placeholder="예) 악성 신고 스팸" />
-                </label>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn--primary">업데이트</button>
-                </div>
-            </form>
-        </article>
-
-        <!-- 4. 법률 전문가 가입 승인 -->
-        <article class="card expert-approval">
-            <div class="card-title">법률 전문가 가입 승인</div>
-
-            <div class="table">
-                <div class="table-head table-grid" role="rowgroup">
-                    <label class="th chk">
-                        <input type="checkbox" id="checkAll" />
+    <!-- 컬럼 레이아웃 -->
+    <section class="layout-2col">
+        <!-- 신조어 / 부정 이용자 -->
+        <div class="col-left">
+            <!-- 1. 신조어 사전 업데이트 -->
+            <article class="card">
+                <div class="card-title">신조어 사전 업데이트</div>
+                <form id="newwordForm" class="vform">
+                    <label class="field">
+                        <span class="label">단어 :</span>
+                        <input type="text" id="nwWord" placeholder="예) 갑통알" />
                     </label>
-                    <div class="th">신청일</div>
-                    <div class="th">이름</div>
-                    <div class="th">전문분야</div>
-                    <div class="th">자격증명</div>
-                    <div class="th">삭제</div>
+                    <label class="field">
+                        <span class="label">의미 :</span>
+                        <input type="text" id="nwMeaning" placeholder="예) 갑자기 통장을 보니 알바가 필요해" />
+                    </label>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn--primary">업데이트</button>
+                    </div>
+                </form>
+            </article>
+
+            <!-- 2. 부정 이용자 제재 -->
+            <article class="card">
+                <div class="card-title">부정 이용자 제재</div>
+                <form id="banForm" class="vform">
+                    <label class="field">
+                        <span class="label">아이디 :</span>
+                        <input type="text" id="banId" placeholder="user123" />
+                    </label>
+                    <label class="field">
+                        <span class="label">사유 :</span>
+                        <input type="text" id="banReason" placeholder="예) 악성 신고 스팸" />
+                    </label>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn--primary">업데이트</button>
+                    </div>
+                </form>
+            </article>
+        </div>
+
+        <!-- 법률 전문가 가입 승인 -->
+        <div class="col-right">
+            <article class="card expert-approval">
+                <div class="card-title">법률 전문가 가입 승인</div>
+
+                <div class="table">
+                    <div class="table-head table-grid" role="rowgroup">
+                        <label class="th chk">
+                            <input type="checkbox" id="checkAll" />
+                        </label>
+                        <div class="th">신청일</div>
+                        <div class="th">이름</div>
+                        <div class="th">전문분야</div>
+                        <div class="th">자격증명</div>
+                    </div>
+
+                    <ul id="expertRows" class="table-body" role="rowgroup"></ul>
+                    <div id="expertPager" class="pager"></div>
                 </div>
 
-                <ul id="expertRows" class="table-body" role="rowgroup"></ul>
-            </div>
-
-            <div class="form-actions right">
-                <button type="button" class="btn btn--ghost" id="refreshBtn">새로고침</button>
-                <button type="button" class="btn btn--primary" id="approveBtn">승인</button>
-            </div>
-        </article>
+                <div class="form-actions right">
+                    <button type="button" class="btn btn--ghost"  id="refreshBtn">새로고침</button>
+                    <button type="button" class="btn btn--danger" id="rejectBtn">가입거절</button>
+                    <button type="button" class="btn btn--primary" id="approveBtn">승인</button>
+                </div>
+            </article>
+        </div>
     </section>
 </main>
 
-<script th:src="@{/js/admin_page.js}"></script>
+<script defer th:src="@{/js/admin/admin_page.js}"></script>
 </body>
 </html>
