@@ -20,16 +20,22 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
     List<Expert> findAllByExpertStatus(ExpertStatus status);
 
     @Query("""
-        select distinct e
+        select e
         from Expert e
         join e.member m
-        left join Field f on f.expert = e
         where e.expertStatus = com.smhrd.dtect.entity.ExpertStatus.APPROVED
-          and (:q is null or :q = '' or
-               lower(m.name) like lower(concat('%', :q, '%'))
-            or lower(m.email) like lower(concat('%', :q, '%'))
-            or lower(e.officeAddress) like lower(concat('%', :q, '%')))
-          and (:skill is null or f.fieldName = :skill)
+          and (
+                :q is null or :q = '' or
+                lower(m.name)         like lower(concat('%', :q, '%')) or
+                lower(m.email)        like lower(concat('%', :q, '%')) or
+                lower(e.officeAddress) like lower(concat('%', :q, '%'))
+              )
+          and (
+                :skill is null or exists (
+                    select 1 from Field f
+                    where f.expert = e and f.fieldName = :skill
+                )
+              )
         """)
     List<Expert> searchApproved(
             @Param("q") String q,

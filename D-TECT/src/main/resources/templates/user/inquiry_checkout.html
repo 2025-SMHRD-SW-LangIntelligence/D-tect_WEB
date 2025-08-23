@@ -1,55 +1,75 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 변호사 문의 · 결제</title>
 
     <link rel="stylesheet" th:href="@{/css/user/inquiry_checkout.css}" />
-    <!-- Toss Payments JS SDK -->
     <script src="https://js.tosspayments.com/v1"></script>
 </head>
 
-<body class="page">
-    <div class="brand-strip"></div>
+<body class="page"
+      th:data-user-id="${userId}"
+      th:data-error="${error}">
+<div class="brand-strip"></div>
 
-    <main class="container">
-        <!-- 변호사 정보 / 요금 안내 -->
-        <section class="card">
-            <div class="lawyer-head">
-                <div class="lawyer-name" id="lawyerName">000 변호사</div>
-                <div class="tags" id="lawyerTags"></div>
+<main class="container">
+    <!-- 변호사 정보 / 요금 안내 -->
+    <section class="card">
+        <div class="lawyer-head">
+            <div class="lawyer-name" id="lawyerName"
+                 th:text="${expert.member.name} + ' 변호사'">000 변호사</div>
+            <div class="tags" id="lawyerTags"></div>
+        </div>
+
+        <div class="fee-box">
+            <div class="fee-title">상담료 안내 (보기 전용)</div>
+            <div class="fee-list" id="feeList">
+                <span class="fee-pill"><b>기본상담 30분</b> 30,000원</span>
+                <span class="fee-pill"><b>심화상담 60분</b> 50,000원</span>
+                <span class="fee-pill"><b>문서 검토</b> 70,000원</span>
             </div>
-
-            <div class="fee-box">
-                <div class="fee-title">상담료 안내 (보기 전용)</div>
-                <div class="fee-list" id="feeList"><!-- JS가 채움 --></div>
-                <p class="muted">
-                    결제는 <b>기본상담(30분)</b> 기준으로 진행됩니다. 심화상담/문서검토는 상담 후 별도 합의·결제로 진행될 수 있습니다.
-                </p>
-            </div>
-
-            <div class="mode-line">
-                <span class="badge-fixed">상담 방식: 채팅</span>
-            </div>
-
-            <p class="notice-red">
-                상담 진행 시 비용이 발생합니다. 실제 금액은 관리자/변호사가 조정할 수 있습니다.
+            <p class="muted">
+                결제는 <b>기본상담(30분)</b> 기준으로 진행됩니다. 심화상담/문서검토는 상담 후 별도 합의·결제로 진행될 수 있습니다.
             </p>
-        </section>
+        </div>
 
-        <!-- 상담 설명 / 피해 유형 / 파일 / 전송 -->
-        <section class="card dark">
+        <div class="mode-line">
+            <span class="badge-fixed">상담 방식: 채팅</span>
+        </div>
+
+        <p class="notice-red">
+            상담 진행 시 비용이 발생합니다. 실제 금액은 관리자/변호사가 조정할 수 있습니다.
+        </p>
+    </section>
+
+    <!-- 상담 설명 / 유형 / 파일 / 전송 -->
+    <section class="card dark">
+        <form id="requestForm" th:action="@{/matching/request}" method="post" enctype="multipart/form-data">
+
+            <input type="hidden" name="userId"   th:value="${userId}" />
+            <input type="hidden" name="expertId" th:value="${expert.expertIdx}" />
+            <input type="hidden" name="requestReason" id="requestReason" /> <!-- 선택된 코드가 들어감 -->
+
             <label class="field-label">변호사에게 전달할 상담 설명</label>
-            <textarea id="message" class="textbox" placeholder="상황 설명, 요청사항 등을 자세히 적어주세요." rows="6"></textarea>
+            <textarea id="message" name="message" class="textbox"
+                      placeholder="상황 설명, 요청사항 등을 자세히 적어주세요." rows="6"></textarea>
 
-            <div class="field-label mt8">상담받으실 유형(피해 유형) <small class="muted">(최대 1개 선택)</small></div>
-            <div id="issueChips" class="chips"><!-- JS가 칩 생성 --></div>
+            <div class="field-label mt8">
+                상담받으실 유형(피해 유형) <small class="muted">(최대 1개 선택)</small>
+            </div>
+
+            <div id="issueChips" class="chips">
+                <button type="button" class="chip"
+                        th:each="ct : ${consultTypes}"
+                        th:data-code="${ct.code}"
+                        th:text="${ct.label}">라벨</button>
+            </div>
 
             <div class="row">
                 <div class="file-wrap">
-                    <input id="upload" type="file" accept=".pdf,.jpg,.jpeg,.png" hidden />
+                    <input id="upload" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png" hidden />
                     <button id="fileBtn" type="button" class="btn btn-ghost">PDF 첨부하기</button>
                     <span id="fileName" class="file-name"></span>
                 </div>
@@ -58,10 +78,129 @@
             <div class="actions">
                 <button id="submitBtn" class="btn btn-primary" type="button">전송</button>
             </div>
-        </section>
-    </main>
+        </form>
+    </section>
+</main>
 
-    <script defer th:src="@{/js/user/inquiry_checkout.js}"></script>
+<script>
+    // ===== [추가] 아주 가벼운 미니 모달(안내창) 유틸 =====
+    function openMiniDialog(message, opts = {}) {
+        const id = 'miniDialog';
+        let wrap = document.getElementById(id);
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.id = id;
+            wrap.setAttribute('role', 'dialog');
+            wrap.setAttribute('aria-modal', 'true');
+            wrap.style.cssText = `
+              position:fixed; inset:0; z-index:9999;
+              display:flex; align-items:center; justify-content:center;
+              background:rgba(0,0,0,.35);
+            `;
+            wrap.innerHTML = `
+              <div style="
+                width:min(420px,90vw); max-width:90vw;
+                background:#fff; color:#111; border-radius:12px;
+                box-shadow:0 10px 30px rgba(0,0,0,.2);
+                padding:18px; font-family:inherit;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                  <strong style="font-size:16px;">안내</strong>
+                  <button id="miniDialogClose" type="button"
+                          style="border:none;background:transparent;font-size:20px;line-height:1;cursor:pointer;">×</button>
+                </div>
+                <div id="miniDialogBody" style="font-size:14px; line-height:1.5; white-space:pre-wrap;"></div>
+                <div style="text-align:right; margin-top:14px;">
+                  <button id="miniDialogOk" type="button"
+                          style="padding:8px 14px;border-radius:8px;border:1px solid #ddd;cursor:pointer;background:#111;color:#fff;">
+                    확인
+                  </button>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(wrap);
+            wrap.addEventListener('click', (e) => {
+                if (e.target === wrap) closeMiniDialog(); // 배경 클릭 닫기
+            });
+        }
+        wrap.querySelector('#miniDialogBody').textContent = message || '';
+        wrap.style.display = 'flex';
+        const closer = wrap.querySelector('#miniDialogClose');
+        const okBtn  = wrap.querySelector('#miniDialogOk');
+        closer.onclick = okBtn.onclick = () => {
+            closeMiniDialog();
+            if (typeof opts.onClose === 'function') opts.onClose();
+        };
+        // 포커스 이동
+        okBtn.focus({ preventScroll: true });
+    }
+    function closeMiniDialog() {
+        const wrap = document.getElementById('miniDialog');
+        if (wrap) wrap.style.display = 'none';
+    }
+
+    // 파일 업로드 표시
+    const fileBtn    = document.getElementById("fileBtn");
+    const upload     = document.getElementById("upload");
+    const fileNameEl = document.getElementById("fileName");
+    fileBtn.addEventListener("click", () => upload.click());
+    upload.addEventListener("change", () => fileNameEl.textContent = upload.files?.[0]?.name || "");
+
+    // 상담유형(칩) 선택: 최대 1개
+    const chips        = document.getElementById("issueChips");
+    const hiddenReason = document.getElementById("requestReason");
+    chips.addEventListener("click", (e) => {
+        const btn = e.target.closest(".chip"); if (!btn) return;
+        const all = [...chips.querySelectorAll(".chip")];
+        if (btn.classList.contains("is-selected")) {
+            btn.classList.remove("is-selected");
+            hiddenReason.value = "";
+            return;
+        }
+        all.forEach(b => b.classList.remove("is-selected"));
+        btn.classList.add("is-selected");
+        hiddenReason.value = btn.dataset.code; // 코드(VIOLENCE 등) 저장
+    });
+
+    // ===== 전송(폼 제출) =====
+    const submitBtn = document.getElementById("submitBtn");
+    const form      = document.getElementById("requestForm");
+    const messageEl = document.getElementById("message");
+
+    submitBtn.addEventListener("click", () => {
+        if (submitBtn.disabled) return;
+        submitBtn.disabled = true;
+
+        const msg = (messageEl.value || "").trim();
+        if (msg.length < 5) {
+            openMiniDialog("상담 설명을 5자 이상 작성해주세요.", { onClose: () => messageEl.focus() }); // [수정] alert → 미니 모달
+            submitBtn.disabled = false;
+            return;
+        }
+        if (!hiddenReason.value) {
+            openMiniDialog("상담 유형을 1개 선택해주세요."); // [수정]
+            submitBtn.disabled = false;
+            return;
+        }
+
+        const f = upload.files?.[0];
+        if (f && !/\.(pdf|jpg|jpeg|png)$/i.test(f.name)) {
+            openMiniDialog("PDF/JPG/PNG 파일만 업로드할 수 있습니다."); // [수정]
+            submitBtn.disabled = false;
+            return;
+        }
+
+        form.submit();
+
+        setTimeout(() => { submitBtn.disabled = false; }, 8000);
+    });
+
+    // ===== [추가] 서버에서 redirect로 온 에러(param.error)를 모달로 안내 =====
+    (function showServerErrorIfAny() {
+        const err = document.body.dataset.error; // th:attr로 내려옴
+        if (!err) return;
+        // 약간 늦게 띄워 스크롤/레이아웃 안정화 후 표시
+        setTimeout(() => openMiniDialog(err), 50);
+    })();
+</script>
 </body>
-
 </html>

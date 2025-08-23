@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>D-tect | 분석</title>
     <link rel="stylesheet" th:href="@{/css/user/analysis.css}" />
+
 </head>
 
-<body>
+<body th:attr="data-user-id=${userId != null ? userId : 0}">
     <!-- 헤더 -->
     <header class="topbar">
         <div class="left">
@@ -19,13 +20,10 @@
             <button class="icon-btn" id="btnAI" aria-label="챗봇 열기">
                 <img th:src="@{/images/AI.png}" alt="AI" />
             </button>
-<<<<<<< HEAD
-            <a class="icon-btn" href = "/userMyinfoPage" aria-label="마이페이지로 이동">
-=======
+
             <a class="icon-btn"
                th:href="@{/mypage}"
                aria-label="마이페이지로 이동">
->>>>>>> branch 'dev' of https://github.com/2025-SMHRD-SW-LangIntelligence/D-tect_WEB.git
                 <img th:src="@{/images/mypage.png}" alt="마이페이지" />
             </a>
         </div>
@@ -73,7 +71,12 @@
 
             <div class="actions">
                 <button id="btnPdf" class="btn ghost">PDF 다운로드</button>
-                <a href="./consult.html" class="btn primary">법률전문가와 상담하기</a>
+                <a id="btnConsult"
+                   class="btn primary"
+                   th:if="${userId != null}"
+                   th:href="@{/matching/select(userId=${userId})}">
+                    법률전문가와 상담하기
+                </a>
             </div>
         </section>
 
