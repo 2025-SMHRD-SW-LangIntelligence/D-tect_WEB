@@ -1,454 +1,189 @@
-:root {
-    --bg: #f6f6f6;
-    --ink: #1b1b1b;
-    --muted: #6a6a6a;
-    --panel: #2f2f2f;
-    --border: #3c3c3c;
-    --brand: #ffd400;
-    --brand-ink: #111;
-    --radius: 14px;
-    --radius-lg: 18px;
+:root{
+    --bg:#f6f6f6;
+    --ink:#1b1b1b;
+    --muted:#6a6a6a;
+    --panel:#2f2f2f;
+    --border:#3c3c3c;
+    --brand:#ffd400;
+    --brand-ink:#111;
+    --radius:14px;
+    --radius-lg:18px;
+
+    --expert-pane-fixed: 510px;
 }
 
 /* Base */
-* {
-    box-sizing: border-box
-}
-
-html,
-body {
-    height: 100%
-}
-
-body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Pretendard, Apple SD Gothic Neo, Arial, Helvetica, sans-serif;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Arial,Helvetica,sans-serif;
 }
 
 /* Topbar */
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    padding: 0 16px;
-    background: #2b2b2b;
-    border-bottom: 2px solid var(--border);
+.topbar{
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    height:64px; padding:0 16px;
+    background:#2b2b2b; border-bottom:2px solid var(--border);
+}
+.left{display:flex; align-items:center; gap:12px}
+.logo{height:40px; width:auto}
+.page-title{color:#fff; margin:0; font-size:1.1rem}
+.right{display:flex; align-items:center; gap:16px; color:#fff}
+.text-link{background:none; border:none; color:#ddd; cursor:pointer; padding:6px 8px}
+.text-link:hover{color:#fff}
+
+/* Container */
+.container{max-width:1200px; margin:24px auto; padding:0 16px}
+
+/* 2열 레이아웃 */
+.layout-2col{
+    display:grid;
+    grid-template-columns:360px minmax(0,1fr);
+    gap:20px;
+    align-items:stretch;
 }
 
-.left {
-    display: flex;
-    align-items: center;
-    gap: 12px
+.col-left{
+    height:var(--expert-pane-fixed);
+    display:grid;
+    grid-template-rows:1fr 1fr;
+    gap:20px;
+    min-width:0;
 }
 
-.logo {
-    height: 40px;
-    width: auto
+.col-left .card{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+}
+.col-left .vform{
+    flex:1 1 auto;
+    overflow:auto;
 }
 
-.page-title {
-    color: #fff;
-    margin: 0;
-    font-size: 1.1rem
+.col-right{min-width:0}
+
+.col-right > .expert-approval{
+    height:var(--expert-pane-fixed);
+    min-height:var(--expert-pane-fixed);
+    max-height:var(--expert-pane-fixed);
+    display:flex;
+    flex-direction:column;
+    min-height:0;
 }
 
-.right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    color: #fff
+/* Card */
+.card{
+    background:#fff; border:1.5px solid #e7e7e7; border-radius:var(--radius-lg);
+    padding:0 0 16px 0; box-shadow:0 2px 10px rgba(0,0,0,.04);
 }
-
-.text-link {
-    background: none;
-    border: none;
-    color: #ddd;
-    cursor: pointer;
-    padding: 6px 8px
-}
-
-.text-link:hover {
-    color: #fff
-}
-
-/* Layout */
-.container {
-    max-width: 1100px;
-    margin: 24px auto;
-    padding: 0 16px
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px
-}
-
-.card {
-    background: #fff;
-    border: 1.5px solid #e7e7e7;
-    border-radius: var(--radius-lg);
-    padding: 0 0 16px 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
-}
-
-/* Card title bar */
-.card-title {
-    background: var(--brand);
-    color: var(--brand-ink);
-    padding: 12px 16px;
-    font-weight: 800;
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
-    border-bottom: 1px solid #e4e4e4;
+.card-title{
+    background:var(--brand); color:var(--brand-ink);
+    padding:12px 16px; font-weight:800;
+    border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
+    border-bottom:1px solid #e4e4e4;
 }
 
 /* Forms */
-.vform {
-    padding: 12px 16px
+.vform{padding:12px 16px}
+.field{display:flex; align-items:center; gap:10px; margin:12px 0}
+.label{min-width:64px; font-weight:600}
+.vform input, .vform textarea{
+    width:100%; padding:10px 12px; border:1.2px solid #d2d2d2; border-radius:10px; background:#fff; outline:none;
 }
-
-.field {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 12px 0
-}
-
-.label {
-    min-width: 64px;
-    font-weight: 600
-}
-
-.vform input,
-.vform textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.2px solid #d2d2d2;
-    border-radius: 10px;
-    background: #fff;
-    outline: none;
-}
-
-.vform textarea {
-    resize: vertical;
-    min-height: 84px
-}
-
-.form-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.form-actions.right {
-    justify-content: flex-end
-}
+.vform textarea{resize:vertical; min-height:84px}
+.form-actions{display:flex; gap:8px; margin-top:8px}
+.form-actions.right{justify-content:flex-end}
 
 /* Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 12px;
-    padding: 10px 16px;
-    font-weight: 800;
-    cursor: pointer;
+.btn{display:inline-flex; align-items:center; justify-content:center; border:none; border-radius:12px; padding:10px 16px; font-weight:800; cursor:pointer}
+.btn--primary{background:var(--brand); color:var(--brand-ink)}
+.btn--ghost{background:#efefef}
+.btn--danger{background:#ffe2e0; color:#a33}
+
+/* Table */
+.table{padding:12px 16px 0 16px}
+
+.expert-approval .table{
+    flex:1 1 auto;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
 }
 
-.btn--primary {
-    background: var(--brand);
-    color: var(--brand-ink)
+.table-grid{display:grid; gap:10px; align-items:center}
+.table-head{
+    background:#fff7c2; padding:8px 10px; border:1px solid #f0e49c; border-radius:10px; font-weight:800;
 }
 
-.btn--ghost {
-    background: #efefef
+.table-body{
+    list-style:none; margin:8px 0 0 0; padding:0;
+    border:1px solid #ececec; border-radius:10px; background:#fff;
+
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    scrollbar-gutter:stable;
 }
 
-.form-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
+.row{
+    padding:10px; display:grid; gap:10px; align-items:center; grid-template-columns:inherit;
+    border-top:1px solid #efefef
+}
+.row:first-child{border-top:none}
+.muted{color:#9b9b9b}
+
+/* 열 구성: [체크 | 신청일 | 이름 | 전문분야(가변) | 자격증명] */
+.expert-approval .table-head.table-grid,
+.expert-approval .row.table-grid{
+    grid-template-columns:36px 120px 165px minmax(300px,1fr) 110px;
+    column-gap:8px;
+}
+.expert-approval .table-head .th{white-space:nowrap}
+.expert-approval .row.table-grid > *{min-width:0}
+
+/* 전문분야: 콤마 구분, 최대 3줄, 항목은 끊지 않음 */
+.expert-approval .row .fields{
+    white-space:normal;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    word-break:keep-all;
+    overflow-wrap:normal;
+    line-height:1.45;
+}
+.expert-approval .row .fields .token{
+    white-space:nowrap;
 }
 
-.form-actions.right {
-    justify-content: flex-end;
-}
+/* 버튼 영역 정렬 */
+.expert-approval .form-actions.right{padding:10px 16px 12px 16px}
 
-/* Table (기본 – 다른 영역에서 사용 중인 설정) */
-.table {
-    padding: 12px 16px
+/* Pager */
+.pager{
+    display:flex; gap:6px; justify-content:flex-end;
+    padding:8px 16px 12px;
 }
-
-.table-grid {
-    display: grid;
-    gap: 10px;
-    align-items: center;
-    grid-template-columns: 36px 140px 1fr 1.2fr 120px 48px;
+.pager .pg-btn{
+    border:1px solid #e0e0e0; background:#fff; border-radius:10px; padding:6px 10px; font-weight:800; cursor:pointer;
 }
-
-.table-head {
-    background: #fff7c2;
-    padding: 8px 10px;
-    border: 1px solid #f0e49c;
-    border-radius: 10px;
-    font-weight: 800;
-}
-
-.table-body {
-    list-style: none;
-    margin: 8px 0 0 0;
-    padding: 0;
-    border: 1px solid #ececec;
-    border-radius: 10px;
-    background: #fff;
-    max-height: 270px;
-    overflow: auto;
-}
-
-.row {
-    padding: 10px;
-    display: grid;
-    gap: 10px;
-    align-items: center;
-    grid-template-columns: inherit;
-    border-top: 1px solid #efefef
-}
-
-.row:first-child {
-    border-top: none
-}
-
-.badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-weight: 700
-}
-
-.badge--pending {
-    background: #fff5c7
-}
-
-.badge--approved {
-    background: #e8ffd1
-}
-
-.badge--rejected {
-    background: #ffe2e0
-}
-
-.right {
-    text-align: right
-}
-
-.action-del {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-weight: 900;
-    color: #111
-}
-
-.action-del:hover {
-    color: #111
-}
+.pager .pg-btn.is-active{background:var(--brand); color:var(--brand-ink); border-color:#ead26a}
 
 /* Responsive */
-@media (max-width: 900px) {
-    .grid {
-        grid-template-columns: 1fr
-    }
-
-    .table {
-        --col4: 200px;
-    }
+@media (max-width:1100px){
+    .container{max-width:100%}
+    .layout-2col{grid-template-columns:320px minmax(0,1fr)}
 }
-
-/* ==========================================================
-   ⬇⬇⬇ [전문가 가입 승인] 전용 오버라이드 (스코프: .expert-approval)
-   - HTML 컨테이너에 class="expert-approval" 추가 시에만 적용됩니다.
-   ========================================================== */
-
-/* 열 폭(체크/신청일/이름/전문분야/상태/삭제) */
-.expert-approval {
-    --col1: 40px;
-    /* 체크 */
-    --col2: 140px;
-    /* 신청일 */
-    --col3: 140px;
-    /* 이름 */
-    --col4: 260px;
-    /* 전문분야 */
-    --col5: 120px;
-    /* 상태 */
-    --col6: 64px;
-    /* 삭제 */
-}
-
-/* 헤더/행을 동일 6열 그리드로 강제 */
-.expert-approval .table-grid {
-    grid-template-columns: var(--col1) var(--col2) var(--col3) var(--col4) var(--col5) var(--col6);
-}
-
-/* 헤더 텍스트는 검정, 줄바꿈 금지 */
-.expert-approval .table-head {
-    color: #111;
-}
-
-.expert-approval .table-head .th {
-    white-space: nowrap;
-}
-
-/* 행도 같은 6열로, 모든 셀 한 줄 유지(넘치면 … 처리) */
-.expert-approval .row {
-    grid-template-columns: var(--col1) var(--col2) var(--col3) var(--col4) var(--col5) var(--col6);
-}
-
-.expert-approval .row>* {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* 삭제 아이콘/컬럼은 진하게 */
-.expert-approval .action-del {
-    color: #111;
-}
-
-.expert-approval .action-del:hover {
-    opacity: .85;
-}
-
-/* 큰 화면에서 전문분야 폭 확대 */
-@media (min-width: 1200px) {
-    .expert-approval {
-        --col4: 320px;
-    }
-}
-
-/* === 폼 입력창을 가로로 충분히 넓게 & 키 크게 === */
-
-/* 라벨은 고정폭, 입력창은 남는 공간을 모두 차지 */
-.vform .field {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.vform .label {
-    flex: 0 0 88px;
-    /* 라벨 너비(필요시 96~112px로 조정) */
-    min-width: 88px;
-}
-
-/* 텍스트류 인풋들을 flex로 확장 + 최소폭 0으로 오버플로 방지 */
-.vform input[type="text"],
-.vform input[type="email"],
-.vform input[type="url"],
-.vform input[type="number"],
-.vform input[type="search"],
-.vform textarea {
-    flex: 1 1 480px;
-    /* grow=1, shrink=1, 기본 폭 480px */
-    min-width: 0;
-    /* flex 컨테이너에서 가로 확장 가능하게 */
-    height: 44px;
-    /* 입력 높이 업 */
-    font-size: 16px;
-    /* 가독성 업 */
-    padding: 10px 12px;
-}
-
-/* 텍스트에어리어는 높이 자동/최소높이 확대 */
-.vform textarea {
-    height: auto;
-    min-height: 120px;
-    line-height: 1.4;
-}
-
-/* 화면이 충분히 넓을 때 왼쪽 컬럼 자체도 조금 더 넓게 (선택) */
-@media (min-width: 1100px) {
-    .grid {
-        grid-template-columns: 420px minmax(680px, 1fr);
-        gap: 24px;
-    }
-}
-
-/* 아주 좁은 화면에서는 라벨을 위로 올려 세로 스택 */
-@media (max-width: 520px) {
-    .vform .field {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .vform .label {
-        min-width: 0;
-        flex: 0 0 auto;
-    }
-}
-
-/* === 전문가 가입 승인: 우측 넘침/정렬 깨짐 FIX === */
-/* 컨테이너: <article class="card expert-approval"> */
-
-.expert-approval .table {
-    /* 헤더가 밖으로 보이지 않도록 가로 넘침 차단 */
-    overflow-x: hidden;
-}
-
-/* 헤더/행 모두 동일한 '유동폭' 그리드 사용
-   - 체크 40, 신청일 140, 이름 140(혹은 120), 전문분야 가변, 상태 100, 삭제 64
-   - 전문분야만 minmax(0,1fr)로 남는 공간만 차지하게 해서 넘침 방지  */
-.expert-approval .table-head.table-grid,
-.expert-approval .row.table-grid {
-    grid-template-columns: 40px 140px 140px minmax(0, 1fr) 100px 64px;
-    column-gap: 12px;
-    /* 헤더/본문 동일 간격 */
-    box-sizing: border-box;
-}
-
-/* 셀 내용이 길어도 한 줄 유지 + 말줄임 */
-.expert-approval .row>* {
-    min-width: 0;
-    /* grid 항목이 제대로 줄어들 수 있게 */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* 본문은 세로 스크롤만 허용 (가로 스크롤 차단) */
-.expert-approval .table-body {
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-/* 헤더 텍스트는 검정, 삭제 아이콘도 진하게 */
-.expert-approval .table-head {
-    color: #111;
-}
-
-.expert-approval .action-del {
-    color: #111;
-}
-
-.expert-approval .action-del:hover {
-    opacity: .85;
-}
-
-/* 여유 해상도에서 전문분야 칼럼 조금 더 여유 있게 (선택) */
-@media (min-width: 1200px) {
-
-    .expert-approval .table-head.table-grid,
-    .expert-approval .row.table-grid {
-        grid-template-columns: 40px 140px 140px minmax(0, 1fr) 110px 64px;
+@media (max-width:920px){
+    .layout-2col{grid-template-columns:1fr}
+    .col-left{
+        height:auto;
+        grid-template-rows:auto auto;
     }
 }

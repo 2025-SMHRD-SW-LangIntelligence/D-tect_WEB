@@ -1,6 +1,9 @@
 package com.smhrd.dtect;
 
+import com.smhrd.dtect.entity.FieldName;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class SignupRequestDTO {
@@ -18,4 +21,5 @@ public class SignupRequestDTO {
     // 전문가 전용
     private String officeName;
     private String officeAddress;
+    private List<FieldName> fields;
 }

@@ -19,4 +19,7 @@ public interface FieldRepository extends JpaRepository<Field, Long> {
 
     // 한 번에 전문가 여러 명의 전문분야 끌어오기
     List<Field> findByExpert_ExpertIdxIn(List<Long> expertIds);
+
+    List<Field> findAllByExpert_ExpertIdxIn(List<Long> expertIdxs);
+
 }
