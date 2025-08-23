@@ -5,79 +5,125 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 전문가 메인</title>
-
-    <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/expert/expert_mainpage.css}" />
 </head>
 
-<body class="expert-main">
-    <!-- 브랜드 스트립 -->
-    <div class="brand-strip"></div>
+<body class="expert-main" th:attr="data-expert-id=${expertId}">
+<!-- 브랜드 스트립 -->
+<div class="brand-strip"></div>
 
-    <!-- 상단바 -->
-    <header class="topbar">
-        <div class="left">
-            <img th:src="@{/images/logo.png}" class="logo" alt="D-tect" />
-            <h1 class="title">전문가 대시보드</h1>
-        </div>
-        <div class="right">
-            <div class="role-badge">변호사</div>
-            <!-- ✅ 마이페이지 아이콘 버튼 -->
-            <a id="mypageBtn" class="icon-link" href="/expert_mypage.html" aria-label="전문가 마이페이지로 이동">
-                <img th:src="@{/images/mypage.png}" alt="" class="avatar-img" />
-            </a>
-        </div>
-    </header>
+<!-- 상단바 -->
+<header class="topbar">
+    <div class="left">
+        <img th:src="@{/images/logo.png}" class="logo" alt="D-tect" />
+        <h1 class="title">전문가 대시보드</h1>
+    </div>
+    <div class="right">
+        <div class="role-badge">변호사</div>
+        <!-- 마이페이지 아이콘 -->
+        <a id="mypageBtn"
+           class="icon-link"
+           th:href="@{/mypage/expert/{id}(id=${expertId})}"
+           aria-label="전문가 마이페이지로 이동">
+            <img th:src="@{/images/mypage.png}" alt="" class="avatar-img" />
+        </a>
+    </div>
+</header>
 
-    <main class="container">
-        <section class="grid">
-            <!-- 달력 카드 -->
-            <article class="card card--calendar" id="calendarCard" role="button" tabindex="0" aria-label="상세 일정 보기">
-                <header class="card-head">
-                    <div class="chips">
-                        <span class="chip chip--dark">상담일정</span>
-                        <span id="monthChip" class="chip">Month</span>
-                    </div>
-                    <div class="hint">클릭하여 상세보기</div>
-                </header>
-                <div class="calendar">
-                    <div class="calendar-head">
-                        <div class="dow dow--sun">일</div>
-                        <div class="dow">월</div>
-                        <div class="dow">화</div>
-                        <div class="dow">수</div>
-                        <div class="dow">목</div>
-                        <div class="dow">금</div>
-                        <div class="dow dow--sat">토</div>
-                    </div>
-                    <div id="calendarGrid" class="calendar-grid" aria-hidden="true"></div>
+<main class="container">
+    <section class="grid">
+        <!-- 달력 카드 -->
+        <article class="card card--calendar" id="calendarCard" role="button" tabindex="0" aria-label="상세 일정 보기">
+            <header class="card-head">
+                <div class="chips">
+                    <span class="chip chip--dark">상담일정</span>
+                    <span id="monthChip" class="chip">Month</span>
                 </div>
-            </article>
+                <div class="hint">클릭하여 상세보기</div>
+            </header>
+            <div class="calendar">
+                <div class="calendar-head">
+                    <div class="dow dow--sun">일</div>
+                    <div class="dow">월</div>
+                    <div class="dow">화</div>
+                    <div class="dow">수</div>
+                    <div class="dow">목</div>
+                    <div class="dow">금</div>
+                    <div class="dow dow--sat">토</div>
+                </div>
+                <div id="calendarGrid" class="calendar-grid" aria-hidden="true"></div>
+            </div>
+        </article>
 
-            <!-- 상담요청 내역 -->
-            <article class="card card--panel">
-                <header class="card-bar"><strong>상담 요청 내역</strong></header>
-                <ul id="requestList" class="req-list" role="list"></ul>
-            </article>
+        <!-- 상담요청 내역 -->
+        <article class="card card--panel">
+            <header class="card-bar"><strong>상담 요청 내역</strong></header>
+            <ul id="requestList" class="req-list" role="list"></ul>
+            <div id="requestEmpty" class="empty" hidden>승인 대기 중인 상담 요청이 없습니다.</div>
+        </article>
 
-            <!-- ✅ 알림 센터(공지/할일/시스템 알림 등) -->
-            <article class="card card--panel">
-                <header class="card-bar"><strong>알림 센터</strong></header>
-                <ul id="alertList" class="alert-list" role="list"></ul>
-            </article>
+        <!-- 알림 센터 -->
+        <article class="card card--panel">
+            <header class="card-bar"><strong>알림 센터</strong></header>
+            <ul id="alertList" class="alert-list" role="list"></ul>
+        </article>
 
-            <!-- ✅ 요약 통계 타일 -->
-            <article class="card stats">
-                <div class="stat"><span>오늘 일정</span><strong id="statToday">0</strong></div>
-                <div class="stat"><span>승인 대기</span><strong id="statPending">0</strong></div>
-                <div class="stat"><span>읽지 않은 채팅</span><strong id="statUnread">0</strong></div>
-                <div class="stat"><span>미완료 작업</span><strong id="statTasks">0</strong></div>
-            </article>
-        </section>
-    </main>
+        <!-- 요약 통계 -->
+        <article class="card stats">
+            <div class="stat"><span>오늘 일정</span><strong id="statToday">0</strong></div>
+            <div class="stat"><span>승인 대기</span><strong id="statPending">0</strong></div>
+            <div class="stat"><span>읽지 않은 채팅</span><strong id="statUnread">0</strong></div>
+            <div class="stat"><span>미완료 작업</span><strong id="statTasks">0</strong></div>
+        </article>
+    </section>
 
-    <!-- JS -->
-    <script defer th:src="@{/js/expert/expert_mainpage.js}"></script>
+    <!-- 상세 모달 -->
+    <div id="detailModal" class="modal" aria-hidden="true">
+        <div class="modal__backdrop" data-close="1"></div>
+        <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+            <header class="modal__head">
+                <strong id="detailTitle">상담 요청 상세</strong>
+                <button class="icon-btn" id="detailClose" aria-label="닫기">×</button>
+            </header>
+
+            <div class="modal__body">
+                <dl class="kv">
+                    <div class="row"><dt>신청일</dt><dd id="dDate">-</dd></div>
+                    <div class="row"><dt>사용자</dt><dd id="dUser">-</dd></div>
+                    <div class="row"><dt>분류</dt><dd id="dReason">-</dd></div>
+                    <div class="row row--full">
+                        <dt>메시지</dt>
+                        <dd id="dMsg">-</dd>
+                    </div>
+                    <div class="row"><dt>첨부파일</dt>
+                        <dd><a id="dFile" href="#" target="_blank" rel="noopener">다운로드</a></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost"  id="detailReject">거절</button>
+                <button type="button" class="btn btn--primary" id="detailApprove">승인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 결과 알림 모달 -->
+    <div id="noticeModal" class="modal" aria-hidden="true">
+        <div class="modal__backdrop" data-close="1"></div>
+        <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="noticeTitle">
+            <header class="modal__head">
+                <strong id="noticeTitle">안내</strong>
+                <button class="icon-btn" id="noticeClose" aria-label="닫기">×</button>
+            </header>
+            <div class="modal__body" id="noticeMsg" style="padding:18px 16px;">처리되었습니다.</div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--primary" id="noticeOk" autofocus>확인</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script defer th:src="@{/js/expert/expert_mainpage.js}"></script>
 </body>
-
 </html>

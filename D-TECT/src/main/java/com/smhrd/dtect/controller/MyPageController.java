@@ -102,7 +102,7 @@ public class MyPageController {
         }
 
         model.addAttribute("expertId", expertId);
-        // 템플릿 경로가 templates/expert/mainpage.html 인 경우:
+
         return "expert/expert_mainpage";
     }
 
