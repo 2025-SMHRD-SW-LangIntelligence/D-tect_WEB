@@ -19,7 +19,8 @@
     <div class="right">
         <div class="user-chip">
             <img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
-            <span class="user-name" th:text="${(profile != null && profile.name != null && #strings.isNotEmpty(profile.name)) ? profile.name + ' 님' : '--- 님'}">--- 님</span>
+            <span th:text="${(profile != null and profile.name != null and profile.name != '')
+                  ? profile.name + ' 님' : '--- 님'}"></span>
         </div>
         <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
     </div>

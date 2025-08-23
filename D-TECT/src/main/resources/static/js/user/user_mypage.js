@@ -159,7 +159,12 @@
 
     // 상/하단 버튼(데모)
     document.getElementById('logoutBtn')?.addEventListener('click', () => alert('로그아웃 처리'));
-    document.getElementById('historyBtn')?.addEventListener('click', () => alert('내 분석 내역으로 이동'));
+    const historyBtn = document.getElementById('historyBtn');
+    historyBtn?.addEventListener('click', (e) => {
+        e.preventDefault();             // 혹시 <a>로 바뀌더라도 깔끔하게
+        if (!userId) return;            // userId 없을 때는 아무 것도 안 함 (팝업 X)
+        window.location.href = `/analysis/user/${userId}/history`;
+    });
     document.getElementById('reserveBtn')?.addEventListener('click', () => alert('상담 일정 예약하기로 이동'));
     document.getElementById('withdrawBtn')?.addEventListener('click', () => {
         if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');
