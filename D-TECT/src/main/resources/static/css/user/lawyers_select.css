@@ -310,3 +310,19 @@ body.lawyers-page {
     background: #efefef;
     color: #111
 }
+
+
+.tag--ongoing {
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    color:#9a3412;
+    font-weight:700;
+}
+
+
+.btn--ghost[disabled]{
+    background:#f6f6f6;
+    color:#9a9a9a;
+    border:1px dashed #e6e6e6;
+    cursor:not-allowed;
+}

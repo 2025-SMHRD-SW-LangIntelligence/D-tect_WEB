@@ -18,10 +18,12 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -60,17 +62,27 @@ public class MatchingController {
                           @RequestParam Long expertId,
                           @RequestParam(required = false) String message,
                           @RequestParam String requestReason,
-                          @RequestParam(name = "attachment", required = false) MultipartFile attachment) {
-        try {
-            Matching created = matchingService.request(userId, expertId, message, requestReason, attachment);
-            return "redirect:/mypage/user/" + userId + "?submitted=1&matchingId=" + created.getMatchingIdx();
-        } catch (IllegalStateException | IllegalArgumentException ex) {
-            String msg = java.net.URLEncoder.encode(ex.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
-            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId + "&error=" + msg;
-        } catch (Exception ex) {
-            String msg = java.net.URLEncoder.encode("요청 처리 중 오류가 발생했습니다.", java.nio.charset.StandardCharsets.UTF_8);
-            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId + "&error=" + msg;
+                          @RequestParam(name = "attachment") MultipartFile attachment,
+                          RedirectAttributes ra) throws Exception {
+
+        if (attachment == null || attachment.isEmpty()) {
+            ra.addFlashAttribute("toast", "PDF 첨부는 필수입니다.");
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId;
         }
+
+        String filename = Optional.ofNullable(attachment.getOriginalFilename()).orElse("");
+        String contentType = Optional.ofNullable(attachment.getContentType()).orElse("");
+        boolean pdfByName = filename.toLowerCase().endsWith(".pdf");
+        boolean pdfByMime = MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType);
+        if (!(pdfByName || pdfByMime)) {
+            ra.addFlashAttribute("toast", "PDF 파일만 첨부할 수 있습니다.");
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId;
+        }
+
+        Matching created = matchingService.request(userId, expertId, message, requestReason, attachment);
+
+        return "redirect:/mypage/user/" + userId
+                + "?submitted=1&matchingId=" + created.getMatchingIdx();
     }
 
 
@@ -113,6 +125,14 @@ public class MatchingController {
         return "redirect:/matching/detail/" + matchingId;
     }
 
+    @GetMapping(value = "/api/users/{userId}/ongoing-experts", produces = "application/json")
+    @ResponseBody
+    public List<Long> ongoingExperts(@PathVariable Long userId) {
+        return matchingRepository.findOngoingExpertIds(
+                userId,
+                List.of(MatchingStatus.PENDING, MatchingStatus.APPROVED)
+        );
+    }
 
     private static final List<ConsultType> CONSULT_TYPES = List.of(
             new ConsultType("VIOLENCE",  "폭력"),

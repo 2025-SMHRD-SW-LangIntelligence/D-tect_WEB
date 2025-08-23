@@ -22,6 +22,8 @@ if (!USER_ID) {
     window.location.replace("/");
 }
 
+let ONGOING = new Set();
+
 // 전문분야 코드-라벨 매핑
 const SKILL_LABELS = {
     VIOLENCE:  "폭력",
@@ -71,8 +73,7 @@ chips.addEventListener("click", (e) => {
 // 검색 버튼 클릭/Enter에만 검색 수행
 searchBtn?.addEventListener("click", () => {
     const term = (q.value || "").trim();
-    // 검색어가 전문분야(한글/영문)과 '부분 일치'하면 그 분야로 필터
-    const skillCode = toSkillCode(term);
+    const skillCode = toSkillCode(term); // 전문분야 인식(부분일치)
     activeSkill = skillCode || null;
     load();
 });
@@ -107,7 +108,24 @@ function sortRegisteredFirst(rows) {
 // ===== 카드 템플릿 =====
 function cardHTML(l) {
     const bannerCls = (Number(l.id) % 2) ? "bg-a" : "bg-b";
-    const tags = (l.skills || []).map(s => `<span class="tag">${s}</span>`).join("");
+
+    const isOngoing = ONGOING.has(Number(l.id));
+
+    // 상태 태그: 진행중이면 가장 앞에 하나 넣기(인라인 스타일로 안전하게)
+    const statusTag = isOngoing
+        ? `<span class="tag tag--ongoing">상담 진행중</span>`
+        : "";
+
+    const tags = [
+        statusTag,
+        ...(l.skills || []).map(s => `<span class="tag">${s}</span>`)
+    ].join("");
+
+    // 버튼: 진행중이면 비활성 + 문구 교체
+    const btnHtml = isOngoing
+        ? `<button class="btn btn--ghost" disabled>상담 진행중</button>`
+        : `<button class="btn btn--accent act-inquiry" data-id="${l.id}">문의하기</button>`;
+
     return `
   <article class="card" role="listitem">
     <div class="card__banner ${bannerCls}"></div>
@@ -122,7 +140,7 @@ function cardHTML(l) {
       </div>
     </div>
     <div class="card__footer">
-      <button class="btn btn--accent act-inquiry" data-id="${l.id}">문의하기</button>
+      ${btnHtml}
     </div>
   </article>`;
 }
@@ -148,17 +166,16 @@ function render() {
     let rows = LAWYERS.filter(l => {
         if (l.available === false) return true; // 자리채움 카드 유지
         if (term) {
-            // 부분 일치 고려: 한글 라벨 + 영문 코드 + 기타 메타
             const blob = [
                 l.name || '',
                 l.title || '',
                 l.email || '',
                 l.addr || '',
-                ...(l.skills || []),     // 한글 라벨
-                ...(l.skillCodes || [])  // 영문 코드
+                ...(l.skills || []),
+                ...(l.skillCodes || [])
             ].join(' ').toLowerCase();
 
-            if (!blob.includes(term)) return false; // 부분 일치
+            if (!blob.includes(term)) return false;
         }
         return true;
     });
@@ -209,31 +226,34 @@ function toSkillCode(termRaw) {
     if (!termRaw) return null;
     const t = termRaw.trim().toLowerCase();
 
-    // 1) 영문 코드 정확 일치 (ex. leak, defamation)
     const codeExactEng = Object.keys(SKILL_LABELS).find(c => c.toLowerCase() === t);
     if (codeExactEng) return codeExactEng;
 
-    // 2) 한글 라벨 정확 일치 (ex. 정보유출)
     if (LABEL_TO_CODE[t]) return LABEL_TO_CODE[t];
 
-    // 3) 한글 라벨 '부분 일치' (ex. "정보" -> "정보유출")
     const partial = Object.entries(SKILL_LABELS)
         .filter(([_, label]) => label.toLowerCase().includes(t))
         .map(([code]) => code);
 
-    // 유일하게 매칭되면 채택, 다수면 모호하므로 일반 검색으로 처리
     return partial.length === 1 ? partial[0] : null;
+}
+
+async function loadOngoing() {
+    try {
+        const res = await fetch(`/api/users/${USER_ID}/ongoing-experts`, { headers: { 'Accept': 'application/json' }});
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const ids = await res.json();
+        ONGOING = new Set((ids || []).map(Number));
+    } catch (e) {
+        console.warn('ongoing 목록 로드 실패:', e);
+        ONGOING = new Set();
+    }
 }
 
 // ===== 서버 연동 =====
 async function load() {
     const params = new URLSearchParams();
-
-    // skill 우선: activeSkill이 있으면 서버에 skill만 전달
     if (activeSkill) params.set('skill', activeSkill);
-
-    // 일반 텍스트 검색은 클라이언트에서 부분 일치 필터링으로 처리
-
     params.set('sort', sort.value || 'rec');
 
     try {
@@ -249,11 +269,9 @@ async function load() {
     render();
 }
 
-// 디바운스 유틸(현재 미사용, 남겨둠)
-function debounce(fn, ms) {
-    let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), ms); };
-}
-
-// 초기 로드
-renderChips();
-load();
+// 초기 로드: 진행중 목록 먼저 불러오고 → 전문가 목록 로드
+(async function init() {
+    await loadOngoing();
+    renderChips();
+    await load();
+})();
