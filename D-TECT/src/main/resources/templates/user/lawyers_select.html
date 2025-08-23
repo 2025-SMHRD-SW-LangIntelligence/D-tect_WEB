@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>D-tect | 변호사 선택</title>
     <link rel="stylesheet" th:href="@{/css/user/lawyers_select.css}" />
+    <style>
+        .search-wrap { display:flex; gap:8px; align-items:center; }
+        .search-wrap .search { flex:1; height:40px; padding:0 12px; }
+        .btn--sm { height:40px; padding:0 16px; font-size:14px; line-height:40px; }
+    </style>
 </head>
 
 <body class="lawyers-page" th:attr="data-user-id=${userId}">
@@ -20,9 +25,14 @@
 <main class="container">
     <!-- 필터 바 -->
     <section class="filters">
-        <input id="q" class="search" type="search" placeholder="이름, 키워드, 지역 검색" />
+        <div class="search-wrap">
+            <input id="q" class="search" type="search"
+                   placeholder="이름, 지역, 키워드, 전문분야(예: 정보·명예훼손·LEAK)"
+                   aria-label="검색어" />
+            <button id="searchBtn" type="button" class="btn btn--accent btn--sm">검색</button>
+        </div>
         <div id="chips" class="chips" role="group" aria-label="분야 필터"></div>
-        <select id="sort" class="sort">
+        <select id="sort" class="sort" aria-label="정렬">
             <option value="rec">최신 등록순</option>
             <option value="name">이름순</option>
             <option value="exp">경력순</option>

@@ -7,6 +7,8 @@ import com.smhrd.dtect.repository.ExpertRepository;
 import com.smhrd.dtect.repository.MatchingRepository;
 import com.smhrd.dtect.service.FileService;
 import com.smhrd.dtect.service.MatchingService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -36,15 +39,40 @@ public class MatchingController {
         return "user/lawyers_select";
     }
 
+    @GetMapping("/matching/inquiry")
+    public String inquiryPage(@RequestParam Long userId,
+                              @RequestParam Long expertId,
+                              @RequestParam(required = false) String error,
+                              Model model) {
+        Expert expert = expertRepository.findById(expertId)
+                .orElseThrow(() -> new IllegalArgumentException("전문가 없음: " + expertId));
+
+        model.addAttribute("userId", userId);
+        model.addAttribute("expert", expert);
+        model.addAttribute("consultTypes", CONSULT_TYPES);
+        model.addAttribute("error", error); // [추가]
+        return "user/inquiry_checkout";
+    }
+
     // 2) 매칭 요청 (첨부 1개 선택 가능)
     @PostMapping(value = "/matching/request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String request(@RequestParam Long userId,
                           @RequestParam Long expertId,
                           @RequestParam(required = false) String message,
-                          @RequestParam(name = "attachment", required = false) MultipartFile attachment) throws Exception {
-        Matching created = matchingService.request(userId, expertId, message, attachment);
-        return "redirect:/matching/detail/" + created.getMatchingIdx();
+                          @RequestParam String requestReason,
+                          @RequestParam(name = "attachment", required = false) MultipartFile attachment) {
+        try {
+            Matching created = matchingService.request(userId, expertId, message, requestReason, attachment);
+            return "redirect:/mypage/user/" + userId + "?submitted=1&matchingId=" + created.getMatchingIdx();
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            String msg = java.net.URLEncoder.encode(ex.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId + "&error=" + msg;
+        } catch (Exception ex) {
+            String msg = java.net.URLEncoder.encode("요청 처리 중 오류가 발생했습니다.", java.nio.charset.StandardCharsets.UTF_8);
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId + "&error=" + msg;
+        }
     }
+
 
     // 3) 첨부파일 다운로드(매칭 생성 시 첨부)
     @GetMapping("/matching/file/{matchingId}")
@@ -62,16 +90,6 @@ public class MatchingController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(bytes);
-    }
-
-    // 4) 매칭 상세 (승인 전/후 상태 및 업로드 목록 표시)
-    @GetMapping("/matching/detail/{matchingId}")
-    public String detail(@PathVariable Long matchingId, Model model) {
-        Matching m = matchingRepository.findById(matchingId)
-                .orElseThrow(() -> new IllegalArgumentException("매칭 없음: " + matchingId));
-        model.addAttribute("matching", m);
-        model.addAttribute("uploads", fileService.findUploadsByMatching(matchingId));
-        return "matching/detail";
     }
 
     // 5) 전문가 받은 요청함
@@ -93,5 +111,24 @@ public class MatchingController {
     public String reject(@PathVariable Long matchingId) {
         matchingService.reject(matchingId);
         return "redirect:/matching/detail/" + matchingId;
+    }
+
+
+    private static final List<ConsultType> CONSULT_TYPES = List.of(
+            new ConsultType("VIOLENCE",  "폭력"),
+            new ConsultType("DEFAMATION","명예훼손"),
+            new ConsultType("STALKING",  "스토킹"),
+            new ConsultType("SEXUAL",    "성범죄"),
+            new ConsultType("LEAK",      "정보유출"),
+            new ConsultType("BULLYING",  "따돌림/집단괴롭힘"),
+            new ConsultType("CHANTAGE",  "협박/갈취"),
+            new ConsultType("EXTORTION", "공갈/갈취")
+    );
+
+    @Data
+    @AllArgsConstructor
+    public static class ConsultType {
+        private String code;
+        private String label;
     }
 }

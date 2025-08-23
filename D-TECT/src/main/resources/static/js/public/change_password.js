@@ -111,7 +111,7 @@ confirmB.addEventListener('click', async () => {
     // 최종 검증
     const pwdOK = newPwd.value.length >= 8 &&
         /[a-zA-Z]/.test(newPwd.value) &&
-        /\d/.test(newPwd.value); // 특수문자 요구 사항은 필요시 추가
+        /\d/.test(newPwd.value);
     if (!pwdOK) {
         alert('비밀번호는 영문과 숫자를 포함하여 8자 이상이어야 합니다.');
         newPwd.focus(); return;
