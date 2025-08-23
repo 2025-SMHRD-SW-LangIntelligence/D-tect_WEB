@@ -28,13 +28,14 @@ const btnVerifyEmail = document.getElementById('btnVerifyEmail');
 const emailCodeEl = document.getElementById('emailCode');
 const emailMsg = document.getElementById('emailMsg');
 const addrBtn = document.getElementById('addrBtn');
+const pwdMsg = document.getElementById('pwdMsg');
 
 document.getElementById('logoLink')?.addEventListener('click',(e)=>{e.preventDefault();location.href=LOGIN_PATH;});
 
 // 공통
 setupPhoneValidation(phoneEl);
-pwEl.addEventListener('input',  ()=>validatePasswords(pwEl, pw2El, {textContent:'',className:'msg'}, true));
-pw2El.addEventListener('input', ()=>validatePasswords(pwEl, pw2El, {textContent:'',className:'msg'}, true));
+pwEl.addEventListener('input',  ()=>validatePasswords(pwEl, pw2El, pwdMsg, true));
+pw2El.addEventListener('input', ()=>validatePasswords(pwEl, pw2El, pwdMsg, true));
 setupAddressSearch(addrBtn, addrEl, 'addr2');
 
 // step1 약관 복원

@@ -3,6 +3,8 @@ package com.smhrd.dtect.repository;
 import com.smhrd.dtect.entity.Expert;
 import com.smhrd.dtect.entity.ExpertStatus;
 import com.smhrd.dtect.entity.FieldName;
+import com.smhrd.dtect.entity.Member;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,7 +36,13 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
             @Param("skill") FieldName skill,
             Sort sort
     );
+    
+    // 승인 1건(가장 최근)
+    Optional<Expert> findFirstByMemberAndExpertStatusOrderByExpertIdxDesc(Member member, ExpertStatus status);
 
+    Optional<Expert> findFirstByMemberOrderByExpertIdxDesc(Member member);
+
+    long countByMemberAndExpertStatus(Member member, ExpertStatus status);
     List<Expert> findByExpertStatus(ExpertStatus status, Sort sort);
     Optional<Expert> findByMember_MemIdx(Long memIdx);
 }

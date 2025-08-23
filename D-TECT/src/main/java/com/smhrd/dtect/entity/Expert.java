@@ -3,13 +3,17 @@ package com.smhrd.dtect.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "tb_expert")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "expertIdx")
+@ToString(exclude = "expertEncoding")
 public class Expert {
 
     @Id
@@ -32,6 +36,7 @@ public class Expert {
     
     // 자료 인코딩
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "expert_encoding", columnDefinition = "MEDIUMBLOB")
     private byte[] expertEncoding;
 

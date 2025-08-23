@@ -69,6 +69,16 @@ public class PageController {
     	return "capture/capture";				// 데이터 수집(캡쳐) 페이지
     }
     
+    @GetMapping(value = "/userSchedulePage")
+    public String userSchedule() {
+    	return "user/user_reservation";			// 기본 회원 읿정 관리 페이지
+    }
+    
+    @GetMapping(value = "/userMatchingPage")
+    public String userMatching() {
+    	return "user/lawyers_select";			// 기본 회원 전문가 매칭 페이지
+    }
+    
     @GetMapping(value = "/userMyinfoPage")
     public String userInfo() {
     	return "user/user_mypage";				// 일반 회원 내 정보 페이지
@@ -88,12 +98,12 @@ public class PageController {
 
     @GetMapping(value = "/expertMainPage")
     public String expert() {
-        return "expert/expert_mainpage";   				// 전문가 회원 메인 페이지
+        return "expert/expert_mainpage";   		// 전문가 회원 메인 페이지
     }
     
     @GetMapping(value = "/expertSchedulePage")
     public String expertSchedule() {
-    	return "expert/expert_schedule";				/// 전문가 회원 일정확인 페이지
+    	return "expert/expert_schedule";		// 전문가 회원 일정확인 페이지
     }
     
     @GetMapping(value = "/expertMyinfoPage")
@@ -118,5 +128,12 @@ public class PageController {
     @GetMapping(value = "/adminInfoUpdatePage")
     public String infoUpdate() {
     	return "admin/infoUpdate";				// 관리자 도움주는 정보 관리 페이지
+    }
+    
+    /* 회원 전용 페이지(공용) */
+    
+    @GetMapping(value = "/chatBoardPage")
+    public String chatBoard() {
+    	return "chatboard/chat_board";
     }
 }

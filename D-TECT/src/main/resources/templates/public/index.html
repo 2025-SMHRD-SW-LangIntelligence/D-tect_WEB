@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>D-tect | Log-in</title>
 <link rel="stylesheet" th:href="@{/css/public/index.css}" />
+<!-- (선택) AJAX용 CSRF 메타 
 <meta th:name="_csrf" th:content="${_csrf.token}" />
 <meta th:name="_csrf_header" th:content="${_csrf.headerName}" />
-
+-->
 </head>
 
 <body>
@@ -23,9 +24,9 @@
 
 			<!-- ✅ Spring Security 처리 엔드포인트로 POST -->
 			<form id="loginForm" th:action="@{/login}" method="post" novalidate>
-				<!-- ✅ CSRF (활성화 상태라면 필수) -->
+				<!-- ✅ CSRF (활성화 상태라면 필수) 
 				<input type="hidden" th:name="${_csrf.parameterName}"
-					th:value="${_csrf.token}" /> <label class="field"> <input
+					th:value="${_csrf.token}" /> --> <label class="field"> <input
 					type="text" id="username" name="username" placeholder="아이디를 입력하세요"
 					autocomplete="username" required th:value="${param.username}" />
 				</label> <label class="field"> <input type="password" id="password"

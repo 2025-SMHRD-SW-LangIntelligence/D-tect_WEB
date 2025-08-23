@@ -4,28 +4,32 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.smhrd.dtect.security.CustomOAuth2UserService;
+import com.smhrd.dtect.security.FormFailureHandler;
+import com.smhrd.dtect.security.OAuth2FailureHandler;
+import com.smhrd.dtect.security.RoleBasedAuthenticationSuccessHandler;
 import com.smhrd.dtect.service.UserDetailsServiceImpl;
 
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import lombok.RequiredArgsConstructor;
 
-@Configuration
+
+@Configuration(proxyBeanMethods = false) // ★ 추가
+@RequiredArgsConstructor                 // ★ 생성자 1개(필드 기반)만 유지
 public class SecurityConfiguration {
-
-    private final UserDetailsServiceImpl userDetailsServiceimpl;
+    
+	private final OAuth2FailureHandler oAuth2FailureHandler;
     private final RoleBasedAuthenticationSuccessHandler successHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+	private final FormFailureHandler formFailureHandler;
+    private final UserDetailsServiceImpl userDetailsServiceimpl;
 
-    public SecurityConfiguration(UserDetailsServiceImpl userDetailsServiceimpl, RoleBasedAuthenticationSuccessHandler successHandler) {
-        this.userDetailsServiceimpl = userDetailsServiceimpl;
-        this.successHandler = successHandler;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -47,46 +51,35 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider) throws Exception {
-        CsrfTokenRequestAttributeHandler csrfReqHandler = new CsrfTokenRequestAttributeHandler();
-        csrfReqHandler.setCsrfRequestAttributeName("_csrf");
-
-        http
-                .authenticationProvider(provider)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/", "/loginPage", "/chooseRolePage",
-                                "/findIdPage", "/changePasswordPage",
-                                "/joinUserPage", "/userTermPage",
-                                "/joinExpertPage", "/expertTermPage",
-                                "/css/**", "/js/**", "/images/**",
-                                "/api/members/**", "/oauth2/**"
-                        ).permitAll()
-                        .requestMatchers("/admin/api/experts/**").permitAll() // 인가만 해제(참고: CSRF는 아래에서 예외 처리)
-                        .requestMatchers("/userMainPage", "/userMyinfoPage", "/capturePage").hasRole("USER")
-                        .requestMatchers("/expertMainPage", "/expertMyinfoPage").hasRole("EXPERT")
-                        .requestMatchers("/adminMainPage", "/adminUserBlockPage", "/adminInfoUpdatePage").hasRole("ADMIN")
-                        .requestMatchers("/admin/api/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/loginPage")
-                        .loginProcessingUrl("/login")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .successHandler(successHandler)
-                        .failureUrl("/loginPage?error")
-                        .permitAll()
-                )
-                .oauth2Login(o -> o.loginPage("/loginPage").successHandler(successHandler))
-                .logout(l -> l.logoutUrl("/logout").logoutSuccessUrl("/").permitAll())
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(csrfReqHandler)
-                        .ignoringRequestMatchers(
-                                new AntPathRequestMatcher("/admin/api/experts/**")
-                        )
-                );
-
-        return http.build();
+      http
+      	.csrf(csrf -> csrf.disable())
+      	.authorizeHttpRequests(auth -> auth
+              .anyRequest().permitAll())
+        .formLogin(form -> form
+          .loginPage("/loginPage")
+          .loginProcessingUrl("/login")
+          .usernameParameter("username")
+          .passwordParameter("password")
+          .successHandler(successHandler)
+          .failureHandler(formFailureHandler)
+          .permitAll()
+        )
+        .oauth2Login(oauth -> oauth
+                .loginPage("/loginPage") // 커스텀 로그인 페이지 사용 시
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(successHandler)
+                .failureHandler(oAuth2FailureHandler)
+            )
+            .logout(Customizer.withDefaults());
+        
+        
+        
+        
+        
+        
+//        .oauth2Login(o -> o.loginPage("/loginPage").successHandler(successHandler))
+//        .logout(l -> l.logoutUrl("/logout").logoutSuccessUrl("/").permitAll());
+      // CSRF: 메타/헤더 사용(A안) 또는 api 예외(B안) 중 프로젝트 정책에 맞춰 선택
+      return http.build();
     }
 }

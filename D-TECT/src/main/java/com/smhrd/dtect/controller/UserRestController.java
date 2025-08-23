@@ -55,4 +55,5 @@ public class UserRestController {
         boolean ok = userService.verifyEmailCode(email, code);
         return ResponseEntity.ok(Map.of("success", ok));
     }
+    
 }
