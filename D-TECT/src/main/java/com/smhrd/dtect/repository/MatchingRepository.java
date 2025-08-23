@@ -51,4 +51,9 @@ public interface MatchingRepository extends JpaRepository<Matching, Long> {
         order by m.requestedAt desc
     """)
     List<ExpertMatchingSummaryDto> findExpertSummaries(@Param("expertId") Long expertId);
+
+    boolean existsByUser_UserIdxAndExpert_ExpertIdxAndIsActiveTrue(Long userId, Long expertId);
+
+    boolean existsByUser_UserIdxAndExpert_ExpertIdxAndStatusIn(
+            Long userId, Long expertId, java.util.Collection<MatchingStatus> statuses);
 }
