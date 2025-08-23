@@ -88,6 +88,24 @@ public class MyPageController {
         return "expert/expert_mypage";
     }
 
+    @GetMapping("/expert/mainpage")
+    public String expertMainPage(@RequestParam Long expertId,
+                                 @AuthenticationPrincipal CustomUser principal,
+                                 Model model) {
+        if (expertId == null && principal != null && principal.getMember() != null) {
+            Long memIdx = principal.getMember().getMemIdx();
+            Long resolved = expertService.findExpertIdByMemIdx(memIdx);
+            if (resolved != null) expertId = resolved;
+        }
+        if (expertId == null) {
+            return "redirect:/loginPage";
+        }
+
+        model.addAttribute("expertId", expertId);
+        // 템플릿 경로가 templates/expert/mainpage.html 인 경우:
+        return "expert/expert_mainpage";
+    }
+
     // 전문가 - 신청현황
     @GetMapping(value = "/api/expert/{expertId}/matchings", produces = "application/json")
     @ResponseBody
