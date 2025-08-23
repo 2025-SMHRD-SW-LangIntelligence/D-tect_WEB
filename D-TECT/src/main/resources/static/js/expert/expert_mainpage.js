@@ -105,7 +105,3 @@ document.getElementById("statPending").textContent = pendingCnt;
 document.getElementById("statUnread").textContent = unreadChats;
 document.getElementById("statTasks").textContent = openTasks;
 
-/* ===== API 연동 가이드 =====
-- 마이페이지/스케줄 경로는 상단 상수 SCHEDULE_PATH / MYPAGE_PATH 수정
-- 상담 요청/알림/요약 통계는 각 배열/값 대신 API 응답으로 교체 후 다시 렌더하세요.
-*/

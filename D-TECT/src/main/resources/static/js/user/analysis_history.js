@@ -39,7 +39,6 @@ function render() {
     const slice = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     listEl.innerHTML = slice.map(row => {
-        // 상태 컬럼이 없다면 기본 점만, 필요시 DTO에 status 추가
         const dotClass = 'dot';
         const created  = fmtDate(row.createdAt);
         const rate     = row.analRate ?? '-';

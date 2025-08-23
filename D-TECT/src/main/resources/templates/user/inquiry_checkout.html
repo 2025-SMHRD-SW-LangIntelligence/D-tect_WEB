@@ -83,7 +83,6 @@
 </main>
 
 <script>
-    // ===== [추가] 아주 가벼운 미니 모달(안내창) 유틸 =====
     function openMiniDialog(message, opts = {}) {
         const id = 'miniDialog';
         let wrap = document.getElementById(id);
@@ -172,19 +171,19 @@
 
         const msg = (messageEl.value || "").trim();
         if (msg.length < 5) {
-            openMiniDialog("상담 설명을 5자 이상 작성해주세요.", { onClose: () => messageEl.focus() }); // [수정] alert → 미니 모달
+            openMiniDialog("상담 설명을 5자 이상 작성해주세요.", { onClose: () => messageEl.focus() });
             submitBtn.disabled = false;
             return;
         }
         if (!hiddenReason.value) {
-            openMiniDialog("상담 유형을 1개 선택해주세요."); // [수정]
+            openMiniDialog("상담 유형을 1개 선택해주세요.");
             submitBtn.disabled = false;
             return;
         }
 
         const f = upload.files?.[0];
         if (f && !/\.(pdf|jpg|jpeg|png)$/i.test(f.name)) {
-            openMiniDialog("PDF/JPG/PNG 파일만 업로드할 수 있습니다."); // [수정]
+            openMiniDialog("PDF/JPG/PNG 파일만 업로드할 수 있습니다.");
             submitBtn.disabled = false;
             return;
         }
@@ -194,7 +193,6 @@
         setTimeout(() => { submitBtn.disabled = false; }, 8000);
     });
 
-    // ===== [추가] 서버에서 redirect로 온 에러(param.error)를 모달로 안내 =====
     (function showServerErrorIfAny() {
         const err = document.body.dataset.error; // th:attr로 내려옴
         if (!err) return;

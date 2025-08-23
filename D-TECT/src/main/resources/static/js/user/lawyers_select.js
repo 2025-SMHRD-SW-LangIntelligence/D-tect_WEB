@@ -12,7 +12,7 @@ const mBody   = document.getElementById("mBody");
 const mClose  = document.getElementById("mClose");
 const bookBtn = document.getElementById("bookBtn");
 const matchForm = document.getElementById("matchForm");
-const searchBtn = document.getElementById("searchBtn"); // [수정]
+const searchBtn = document.getElementById("searchBtn");
 
 let currentLawyer = null;
 
@@ -38,14 +38,14 @@ const LABEL_TO_CODE = Object.fromEntries(
 );
 
 // ===== 칩/필터 =====
-let ALL_SKILLS = []; // [{code:'DEFAMATION', label:'명예훼손'}, ...]
+let ALL_SKILLS = [];
 let activeSkill = null;
 
 function uniqSkills(rows) {
     const pairs = new Map(); // code -> label
     rows.forEach(l => {
         (l.skillCodes || []).forEach((code, i) => {
-            const label = (l.skills && l.skills[i]) || SKILL_LABELS[code] || code; // [수정]
+            const label = (l.skills && l.skills[i]) || SKILL_LABELS[code] || code;
             if (!pairs.has(code)) pairs.set(code, label);
         });
     });
@@ -158,7 +158,7 @@ function render() {
                 ...(l.skillCodes || [])  // 영문 코드
             ].join(' ').toLowerCase();
 
-            if (!blob.includes(term)) return false; // 부분 일치 [수정]
+            if (!blob.includes(term)) return false; // 부분 일치
         }
         return true;
     });
@@ -204,7 +204,7 @@ bookBtn.addEventListener("click", () => {
     window.location.href = `/matching/inquiry?userId=${USER_ID}&expertId=${currentLawyer.id}`;
 });
 
-// ===== [수정] 검색어 → 전문분야 코드 변환(부분 일치 지원)
+// ===== 검색어 → 전문분야 코드 변환(부분 일치 지원)
 function toSkillCode(termRaw) {
     if (!termRaw) return null;
     const t = termRaw.trim().toLowerCase();
@@ -222,7 +222,7 @@ function toSkillCode(termRaw) {
         .map(([code]) => code);
 
     // 유일하게 매칭되면 채택, 다수면 모호하므로 일반 검색으로 처리
-    return partial.length === 1 ? partial[0] : null; // [수정]
+    return partial.length === 1 ? partial[0] : null;
 }
 
 // ===== 서버 연동 =====

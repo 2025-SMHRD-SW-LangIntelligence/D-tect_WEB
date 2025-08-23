@@ -6,11 +6,9 @@
     <title>D-tect | 변호사 선택</title>
     <link rel="stylesheet" th:href="@{/css/user/lawyers_select.css}" />
     <style>
-        /* [수정] 검색 UI 컴팩트 스타일 */
         .search-wrap { display:flex; gap:8px; align-items:center; }
         .search-wrap .search { flex:1; height:40px; padding:0 12px; }
-        .btn--sm { height:40px; padding:0 16px; font-size:14px; line-height:40px; } /* [수정] */
-        /* 버튼이 너무 커보이지 않도록 최소한의 보정 */
+        .btn--sm { height:40px; padding:0 16px; font-size:14px; line-height:40px; }
     </style>
 </head>
 
@@ -27,11 +25,11 @@
 <main class="container">
     <!-- 필터 바 -->
     <section class="filters">
-        <div class="search-wrap"> <!-- [수정] 래퍼 + 컴팩트 버튼 -->
+        <div class="search-wrap">
             <input id="q" class="search" type="search"
                    placeholder="이름, 지역, 키워드, 전문분야(예: 정보·명예훼손·LEAK)"
                    aria-label="검색어" />
-            <button id="searchBtn" type="button" class="btn btn--accent btn--sm">검색</button> <!-- [수정] -->
+            <button id="searchBtn" type="button" class="btn btn--accent btn--sm">검색</button>
         </div>
         <div id="chips" class="chips" role="group" aria-label="분야 필터"></div>
         <select id="sort" class="sort" aria-label="정렬">
