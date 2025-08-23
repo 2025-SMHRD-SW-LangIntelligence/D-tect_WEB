@@ -96,20 +96,20 @@ public class PageController {
     	return "expert/expert_terms";			// 전문가 회원 약관 페이지
     }
 
-    @GetMapping(value = "/expertMainPage")
-    public String expert() {
-        return "expert/expert_mainpage";   		// 전문가 회원 메인 페이지
-    }
+//    @GetMapping(value = "/expertMainPage")
+//    public String expert() {
+//        return "expert/expert_mypage";   		// 전문가 회원 메인 페이지
+//    }
     
     @GetMapping(value = "/expertSchedulePage")
     public String expertSchedule() {
     	return "expert/expert_schedule";		// 전문가 회원 일정확인 페이지
     }
     
-    @GetMapping(value = "/expertMyinfoPage")
-    public String expertInfo() {
-    	return "expert/expert_mypage";			// 전문가 내 정보 페이지
-    }
+//    @GetMapping(value = "/expertMyinfoPage")
+//    public String expertInfo() {
+//    	return "expert/expert_mainpage";			// 전문가 내 정보 페이지
+//    }
     
     /* 관리자 페이지 */
 

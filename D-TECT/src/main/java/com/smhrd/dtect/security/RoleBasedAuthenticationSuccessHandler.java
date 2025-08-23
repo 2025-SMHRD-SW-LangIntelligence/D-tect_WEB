@@ -2,6 +2,7 @@ package com.smhrd.dtect.security;
 
 import java.io.IOException;
 
+import com.smhrd.dtect.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -10,10 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.smhrd.dtect.entity.ExpertStatus;
-import com.smhrd.dtect.entity.MemRole;
-import com.smhrd.dtect.entity.Member;
-import com.smhrd.dtect.entity.MemberStatus;
 import com.smhrd.dtect.repository.ExpertRepository;
 import com.smhrd.dtect.repository.MemberRepository;
 
@@ -65,10 +62,19 @@ public class RoleBasedAuthenticationSuccessHandler implements AuthenticationSucc
 		    boolean hasPending = !hasApproved && expertRepository
 		        .findFirstByMemberAndExpertStatusOrderByExpertIdxDesc(member, ExpertStatus.PENDING)
 		        .isPresent();
-		    
+
 			if (hasApproved) {
-				log.info("[AUTH] EXPERT(approved) -> /expertMainPage");
-				response.sendRedirect(ctx + "/expertMainPage");
+				// ✅ 전문가: 바로 전문가 마이페이지로
+				Long expertId = expertRepository
+						.findFirstByMemberAndExpertStatusOrderByExpertIdxDesc(member, ExpertStatus.APPROVED)
+						.map(Expert::getExpertIdx)
+						.orElse(null);
+
+				if (expertId != null) {
+					response.sendRedirect(ctx + "/mypage/expert/" + expertId);
+				} else {
+					response.sendRedirect(ctx + "/mypage");
+				}
 				return;
 			}
 
