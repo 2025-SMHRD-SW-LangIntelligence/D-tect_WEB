@@ -1,8 +1,6 @@
 const REFRESH_MS = 1000;
-
 const USE_ICON_BUTTON = true;
 
-/* ========= 파라미터 ========= */
 function resolveMatchingId() {
     const parts = location.pathname.split("/").filter(Boolean);
     const idx = parts.findIndex(p => p === "room");
@@ -22,12 +20,11 @@ function resolveMyMemIdx() {
 }
 
 const MATCHING_ID = resolveMatchingId();
-const MY_ROLE     = resolveMyRole();     // 'user' | 'expert'
-const ME_MEM_IDX  = resolveMyMemIdx();   // meMemIdx
+const MY_ROLE     = resolveMyRole();   // 'user' | 'expert'
+const ME_MEM_IDX  = resolveMyMemIdx(); // meMemIdx
 
 if (!MATCHING_ID) alert("유효하지 않은 채팅방 주소입니다. (matchingId 없음)");
 
-/* ========= DOM ========= */
 const listEl     = document.getElementById("messageList");
 const composerEl = document.getElementById("composer");
 const sendBtn    = document.getElementById("sendBtn");
@@ -48,26 +45,73 @@ let unseenCount  = 0;
 
 /* ========= 유틸 ========= */
 const fmt = (ts) => {
-    const d = new Date(ts);
-    if (Number.isNaN(d.getTime())) return "-";
+    const d = toDate(ts);
+    if (!d) return "-";
     return d.toLocaleString("ko-KR", { hour12: false });
 };
-// 파일 시간: "YYYY.MM.DD HH:mm"
+
+// 파일 타임스탬프(분까지만)
 const fmtHM = (ts) => {
-    const d = new Date(ts);
-    if (Number.isNaN(d.getTime())) return "-";
-    const y  = d.getFullYear();
-    const m  = String(d.getMonth()+1).padStart(2,"0");
-    const da = String(d.getDate()).padStart(2,"0");
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    return `${y}.${m}.${da} ${hh}:${mm}`;
+    const d = toDate(ts);
+    if (!d) return "-";
+    return new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false
+    }).format(d);
 };
+
+function toDate(ts) {
+    if (ts == null) return null;
+
+    // 숫자
+    if (typeof ts === "number") {
+        // 초 단위면 ms로 올림
+        if (ts < 1e12) ts *= 1000;
+        const d = new Date(ts);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    // 문자열
+    const s = String(ts).trim();
+
+    // 순수 숫자 문자열
+    if (/^\d{5,}$/.test(s)) {
+        const n = Number(s);
+        if (n > 1e12) { // 이미 ms
+            const d = new Date(n);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        if (n > 1e9) { // 초단위 epoch
+            const d = new Date(n * 1000);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        if (n >= 20000 && n <= 80000) {
+            const base = new Date(Date.UTC(1899, 11, 30));
+            const ms = base.getTime() + n * 86400000;
+            const d = new Date(ms);
+            return isNaN(d.getTime()) ? null : d;
+        }
+    }
+
+    if (/^\d{4}[./-]\d{1,2}[./-]\d{1,2}/.test(s)) {
+        const norm = s.replace(/\./g, "-").replace(" ", "T");
+        const d = new Date(norm);
+        if (!isNaN(d.getTime())) return d;
+    }
+
+    const t = Date.parse(s);
+    if (!isNaN(t)) return new Date(t);
+
+    return null;
+}
 
 const nearBottom = () => (listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight) < 80;
 const scrollToBottom = () => (listEl.scrollTop = listEl.scrollHeight);
-function escapeHtml(s){
-    return (s || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function escapeHtml(s) {
+    return (s || "").replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
 }
 
 /* ========= 서버 API ========= */
@@ -103,42 +147,34 @@ async function apiListFiles() {
         if (!res.ok) return [];
         const raw = await res.json();
 
+        const normalize = (f, fallbackTs) => {
+            const tsAny = f.ts ?? f.createdAt ?? fallbackTs ?? Date.now();
+            const d = toDate(tsAny);
+            const tsMs = d ? d.getTime() : 0;
+            const rawRole = (f.by && f.by.role) || f.senderType || f.uploaderType || f.role || "";
+            const roleUp  = String(rawRole).toUpperCase();
+            const role    = roleUp === "EXPERT" ? "expert" : roleUp === "USER" ? "user" : "neutral";
+            return {
+                id:   f.id ?? f.fileIdx,
+                url:  f.url ?? (`/api/chat/file/${f.id ?? f.fileIdx}`),
+                ts:   tsAny,
+                tsMs,
+                name: f.fileName ?? f.name ?? "첨부",
+                role
+            };
+        };
+
         if (Array.isArray(raw) && raw.length && (raw[0].id || raw[0].name || raw[0].fileIdx || raw[0].fileName)) {
-            return raw.map(f => {
-                const rawRole = (f.by && f.by.role) || f.senderType || f.uploaderType || f.role || "";
-                const roleUp  = String(rawRole).toUpperCase();
-                const role    = roleUp === "EXPERT" ? "expert" : roleUp === "USER" ? "user" : null;
-                return {
-                    id:   f.id ?? f.fileIdx,
-                    url:  f.url ?? (`/api/chat/file/${f.id ?? f.fileIdx}`),
-                    ts:   f.ts ?? f.createdAt ?? Date.now(),
-                    name: f.fileName ?? f.name ?? "첨부",
-                    role
-                };
-            });
+            return raw.map(f => normalize(f)).sort((a, b) => b.tsMs - a.tsMs); // 최신순
         }
 
         const flat = [];
         (raw || []).forEach(u => {
-            const uploadAt  = u.ts ?? u.createdAt ?? Date.now();
-            const upRoleRaw = (u.by && u.by.role) || u.uploaderType || u.senderType || u.role || "";
-            const upRoleUp  = String(upRoleRaw).toUpperCase();
-
-            (u.uploadFileList || u.files || []).forEach(f => {
-                const fileRoleRaw = (f.by && f.by.role) || f.uploaderType || f.senderType || f.role || upRoleUp;
-                const fileRoleUp  = String(fileRoleRaw).toUpperCase();
-                const role        = fileRoleUp === "EXPERT" ? "expert" : fileRoleUp === "USER" ? "user" : null;
-
-                flat.push({
-                    id:   f.id ?? f.fileIdx,
-                    url:  f.url ?? (`/api/chat/file/${f.id ?? f.fileIdx}`),
-                    ts:   f.ts ?? f.createdAt ?? uploadAt,
-                    name: f.fileName ?? f.name ?? "첨부",
-                    role
-                });
-            });
+            const uploadTsAny = u.ts ?? u.createdAt ?? Date.now();
+            const files = u.uploadFileList || u.files || [];
+            files.forEach(f => flat.push(normalize(f, uploadTsAny)));
         });
-        return flat;
+        return flat.sort((a, b) => b.tsMs - a.tsMs); // 최신순
     } catch {
         return [];
     }
@@ -154,7 +190,6 @@ async function apiUploadFiles(fileList) {
     return await r.json().catch(() => ([]));
 }
 
-/* ========= 메시지 렌더 ========= */
 function renderMessages(items) {
     if (!items?.length) return;
     const atBottom = nearBottom();
@@ -169,7 +204,7 @@ function renderMessages(items) {
                 .find(el => {
                     const roleClass = el.closest('.row')?.classList.contains('me') ? 'me' : 'other';
                     const isMine = (m.role === MY_ROLE);
-                    const elText = el.querySelector('.body')?.textContent?.trim() || '';
+                    const elText = el.querySelector('.body, .file-bubble .file-name')?.textContent?.trim() || '';
                     return (isMine && roleClass === 'me' && elText === bodyText);
                 });
             if (tempMsg) {
@@ -195,9 +230,13 @@ function renderMessages(items) {
         <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>`;
-        const fileLink = m.file
-            ? `<div class="file"><a class="dl-btn" href="${escapeHtml(m.file)}" download aria-label="다운로드" title="다운로드">${icon}</a></div>`
-            : "";
+
+        const bodyHtml = m.file
+        ? `<a class="file-bubble" href="${escapeHtml(m.file)}" download>
+       <span class="file-ico">${icon}</span>
+       <span class="file-name">${escapeHtml(m.text || "파일")}</span>
+         </a>`
+              : `<div class="body">${escapeHtml(m.text || "")}</div>`;
 
         msg.innerHTML = `
       <div class="meta">
@@ -205,8 +244,7 @@ function renderMessages(items) {
         <span class="name">${escapeHtml(m.name || (m.role === "expert" ? "전문가" : "사용자"))}</span>
         <span class="time">${fmt(m.ts || Date.now())}</span>
       </div>
-      <div class="body">${escapeHtml(m.text || "")}</div>
-      ${fileLink}
+      ${bodyHtml}
     `;
         row.appendChild(msg);
         frag.appendChild(row);
@@ -222,7 +260,6 @@ function renderMessages(items) {
     }
 }
 
-/* ========= 파일 렌더 ========= */
 function renderFiles(items){
     const icon = `
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
@@ -231,11 +268,10 @@ function renderFiles(items){
     </svg>`;
 
     fileListEl.innerHTML = (items || []).map(f => {
-        const rawRole = (f?.by?.role ?? f.role ?? "").toString().toLowerCase();
-        const role    = rawRole === "expert" ? "expert" : rawRole === "user" ? "user" : "neutral";
-        const roleText= role === "expert" ? "전문가" : role === "user" ? "사용자" : "첨부";
-        const nameSafe= escapeHtml(f.name || "첨부");
-        const urlSafe = escapeHtml(f.url);
+        const role  = (f.role === "expert" || f.role === "user") ? f.role : "neutral";
+        const label = role === "expert" ? "전문가" : role === "user" ? "사용자" : "Unknown";
+        const nameSafe = escapeHtml(f.name || "첨부");
+        const urlSafe  = escapeHtml(f.url);
 
         const btnHtml = USE_ICON_BUTTON
             ? `<a class="dl-btn" href="${urlSafe}" download aria-label="다운로드" title="다운로드">${icon}</a>`
@@ -243,7 +279,7 @@ function renderFiles(items){
 
         return `
       <li class="file-row">
-        <span class="role-badge role--${role}">${roleText}</span>
+        <span class="role-badge role--${role}">${label}</span>
         <div class="ftext">
           <div class="fname" title="${nameSafe}">${nameSafe}</div>
           <div class="ftime">${fmtHM(f.ts)}</div>
