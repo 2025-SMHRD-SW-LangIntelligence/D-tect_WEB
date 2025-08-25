@@ -7,7 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/expert/expert_mypage.css}" />
 </head>
 
-<body th:attr="data-expert-id=${expertId}">
+<body th:attr="data-expert-id=${expertId}, data-mem-idx=${memIdx}">
 <header class="topbar">
     <div class="left">
         <a class="logo-wrap" href="/" aria-label="홈으로">
@@ -56,7 +56,7 @@
                     <input type="text" name="officeAddress" th:value="${profile.officeAddress}" disabled />
                 </label>
 
-                <!-- ✅ 전문분야: 칩 + (편집용) 다중 선택 -->
+                <!-- 전문분야: 칩 + (편집용) 다중 선택 -->
                 <label class="field">
                     <span class="label">전문분야</span>
 

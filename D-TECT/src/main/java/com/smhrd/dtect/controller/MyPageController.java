@@ -60,10 +60,15 @@ public class MyPageController {
 
     // 사용자 마이페이지
     @GetMapping("/user/{userId}")
-    public String userMyPage(@PathVariable Long userId, Model model) {
+    public String userMyPage(@PathVariable Long userId, Model model,
+                             @AuthenticationPrincipal CustomUser principal) {
         model.addAttribute("userId", userId);
         UserProfileDto profile = userService.getProfile(userId);
         model.addAttribute("profile", profile);
+
+        Long memIdx = (principal != null && principal.getMember() != null)
+                ? principal.getMember().getMemIdx() : null;
+        model.addAttribute("memIdx", memIdx != null ? memIdx : 0L);
         return "user/user_mypage";
         
     }
@@ -76,7 +81,8 @@ public class MyPageController {
     }
 
     @GetMapping("/expert/{expertId}")
-    public String expertMyPage(@PathVariable Long expertId, Model model) {
+    public String expertMyPage(@PathVariable Long expertId, Model model,
+                               @AuthenticationPrincipal CustomUser principal) {
         model.addAttribute("expertId", expertId);
 
         ExpertProfileDto profile = expertService.getProfile(expertId);
@@ -84,7 +90,12 @@ public class MyPageController {
 
         model.addAttribute("profile", profile);
         model.addAttribute("specialtyOptions", specialtyOptions);
-        
+
+        Long memIdx = (principal != null && principal.getMember() != null)
+                ? principal.getMember().getMemIdx() : null;
+        model.addAttribute("memIdx", memIdx != null ? memIdx : 0L);
+
+
         return "expert/expert_mypage";
     }
 

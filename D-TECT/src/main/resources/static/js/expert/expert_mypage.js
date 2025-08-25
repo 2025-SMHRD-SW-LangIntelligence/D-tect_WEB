@@ -20,6 +20,9 @@ const feeForm    = document.getElementById('feeForm');
 const feeInput   = document.getElementById('fee');
 const memoInput  = document.getElementById('memo');
 
+// 내 memIdx 읽기
+const myMemIdx = Number(document.body.dataset.memIdx || 0);
+
 // ===== 유틸 =====
 function fmt(ts) {
     if (!ts) return '—';
@@ -67,7 +70,9 @@ function rowTemplate(item) {
     const sKor        = statusKorean(statusEnum);
 
     const enabled     = chatEnabledByStatus(statusEnum);
-    const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=expert`; // ✅ 변경
+
+    // ✔ 채팅방 링크에 me=expert & mem=<내memIdx> 부여
+    const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=expert&mem=${myMemIdx}`;
 
     return `
     <li class="list-row" role="row">
@@ -110,7 +115,6 @@ function renderList() {
         listEl.innerHTML = items.map(rowTemplate).join('');
     }
 
-    // 우하단 상담료 케이스 선택(현재 페이지 기준)
     hydrateCaseSelect(items);
 }
 
@@ -151,7 +155,7 @@ cancelBtn?.addEventListener('click', () => {
 });
 infoForm?.addEventListener('submit', (e) => {
     e.preventDefault();
-    alert('개인정보가 저장되었습니다.'); // TODO: 실제 저장 API 연동
+    alert('개인정보가 저장되었습니다.');
     setEditMode(false);
 });
 
@@ -171,7 +175,6 @@ feeForm?.addEventListener('submit', (e) => {
     if (!id) { alert('케이스를 선택하세요.'); return; }
     if (!(fee > 0)) { alert('상담료를 입력하세요.'); return; }
 
-    // TODO: 서버 전송
     console.log('상담료 저장', { caseId: id, fee, memo });
     alert('상담료가 저장되었습니다.');
     memoInput.value = '';

@@ -7,7 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/user/user_mypage.css}" />
 </head>
 
-<body th:attr="data-user-id=${userId != null ? userId : 0}">
+<body th:attr="data-user-id=${userId != null ? userId : 0}, data-mem-idx=${memIdx}">
 <header class="topbar">
     <div class="left">
         <a class="logo-wrap" href="/" aria-label="홈으로">
