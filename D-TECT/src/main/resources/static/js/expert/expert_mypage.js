@@ -16,15 +16,29 @@ const feeInput   = document.getElementById('fee');
 const memoInput  = document.getElementById('memo');
 
 const expertId = Number(document.body.dataset.expertId || 0);
-
-// 공통 팝업 호출 (전문분야 다중 선택 기본)
-// 서버에서 내려준 옵션을 전역에 실어두었다면:
-initProfileEditPopup('#editToggleBtn', {
-  specialtyOptions: window.__SPECIALTIES__ || [], // [{code,label}] 서버에서 내려준 옵션
-  // specialtyInputType: 'radio'  // 라디오가 필요할 때만 지정, 기본은 체크박스
-});
-// 내 memIdx 읽기
 const myMemIdx = Number(document.body.dataset.memIdx || 0);
+
+// 공통 팝업 호출 (전문분야 다중 선택)
+initProfileEditPopup('#editToggleBtn', {
+  specialtyOptions: window.__SPECIALTIES__ || [],
+});
+
+// ===== 사유 코드 → 한글 라벨 =====
+const REASON_LABELS = {
+  VIOLENCE:  "폭력",
+  DEFAMATION:"명예훼손",
+  STALKING:  "스토킹",
+  SEXUAL:    "성범죄",
+  LEAK:      "정보유출",
+  BULLYING:  "따돌림·집단괴롭힘",
+  CHANTAGE:  "협박·갈취",
+  EXTORTION: "공갈·갈취",
+};
+const mapReason = (val) => {
+  if (!val) return "—";
+  const key = String(val).trim().toUpperCase();
+  return REASON_LABELS[key] || val;
+};
 
 // ===== 유틸 =====
 function fmt(ts) {
@@ -51,18 +65,24 @@ function badgeClassKor(k) {
 function chatEnabledByStatus(statusEnumUpper) {
   return statusEnumUpper === 'APPROVED' || statusEnumUpper === 'COMPLETED';
 }
+
 function rowTemplate(item) {
   const requestedAt = fmt(item.requestedAt);
   const matchedAt   = fmt(item.matchedAt);
   const customer    = item.customerName ?? '—';
-  const reason      = item.requestReason ?? '—';
+
+  // 한글 라벨 매핑
+  const reasonRaw   = item.reasonLabel || item.requestReason || '';
+  const reason      = mapReason(reasonRaw);
+
   const statusEnum  = String(item.status || '').toUpperCase();
   const sKor        = statusKorean(statusEnum);
   const enabled     = chatEnabledByStatus(statusEnum);
-  // ✔ 채팅방 링크에 me=expert & mem=<내memIdx> 부여
+
+  // 채팅방 링크에 me=expert & mem=<나의 memIdx> 부여
   const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=expert&mem=${myMemIdx}`;
 
-    return `
+  return `
     <li class="list-row" role="row">
       <div class="col">${requestedAt}</div>
       <div class="col">${customer}</div>
@@ -108,9 +128,10 @@ nextBtn?.addEventListener('click', () => { page++; renderList(); });
 
 // 상담료 케이스 셀렉트
 function hydrateCaseSelect(visibleItems) {
-  const options = visibleItems.map(i =>
-    `<option value="${i.matchingIdx}">[${fmt(i.requestedAt)}] ${i.customerName ?? '—'} - ${i.requestReason ?? '—'}</option>`
-  );
+  const options = visibleItems.map(i => {
+    const reason = mapReason(i.reasonLabel || i.requestReason || '');
+    return `<option value="${i.matchingIdx}">[${fmt(i.requestedAt)}] ${i.customerName ?? '—'} - ${reason}</option>`;
+  });
   caseSelect.innerHTML = options.join('');
 }
 feeForm?.addEventListener('submit', (e) => {
@@ -137,9 +158,10 @@ async function loadData() {
     const res = await fetch(`/mypage/api/expert/${id}/matchings`, { headers: { 'Accept':'application/json' } });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     const data = await res.json(); // ExpertMatchingSummaryDto[]
+
     allItems = Array.isArray(data)
-      ? data.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
-      : [];
+        ? data.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
+        : [];
   } catch (e) {
     console.error(e);
     allItems = [];

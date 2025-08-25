@@ -134,8 +134,6 @@
 	</main>
 
 	<script th:inline="javascript">
-		// 서버에서 내려준 전문분야 리스트를 그대로 JS로
-		// specialtyOptions: [{code:"VIOLENCE", label:"폭력"}, ...]
 		window.__SPECIALTIES__ = /*[[${specialtyOptions}]]*/[];
 	</script>
 	<script type="module" th:src="@{/js/expert/expert_mypage.js}"></script>

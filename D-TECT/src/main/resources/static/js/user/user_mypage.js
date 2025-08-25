@@ -3,7 +3,7 @@ import { initProfileEditPopup } from '/js/public/common.js';
 (function () {
   // ---------- 신청현황/페이징 ----------
   const userId   = Number(document.body?.dataset?.userId || 0);
-  const myMemIdx = Number(document.body?.dataset?.memIdx || 0); // 내 member idx
+  const myMemIdx = Number(document.body?.dataset?.memIdx || 0);
   const listEl   = document.getElementById('applyList');
   const pageInfo = document.getElementById('pageInfo');
   const prevBtn  = document.getElementById('prevPage');
@@ -13,8 +13,25 @@ import { initProfileEditPopup } from '/js/public/common.js';
   let items = [];
   let page  = 1;
 
-  // 내 정보 수정(공통 팝업/토글) - common.js 사용
+  // 내 정보 수정
   initProfileEditPopup('#editToggleBtn');
+
+  // ===== 사유 코드 → 한글 라벨 =====
+  const REASON_LABELS = {
+    VIOLENCE:  "폭력",
+    DEFAMATION:"명예훼손",
+    STALKING:  "스토킹",
+    SEXUAL:    "성범죄",
+    LEAK:      "정보유출",
+    BULLYING:  "따돌림·집단괴롭힘",
+    CHANTAGE:  "협박·갈취",
+    EXTORTION: "공갈·갈취",
+  };
+  const mapReason = (val) => {
+    if (!val) return "—";
+    const key = String(val).trim().toUpperCase();
+    return REASON_LABELS[key] || val; // label이 이미 오면 그대로 노출
+  };
 
   // ===== 유틸 =====
   function fmt(ts){
@@ -35,12 +52,13 @@ import { initProfileEditPopup } from '/js/public/common.js';
   }
   const badgeClassKor = k => (k==='확정'||k==='완료')?'badge badge--ok':(k==='반려'||k==='취소')?'badge badge--danger':'badge badge--warn';
 
-  // ===== 한 행 템플릿(채팅 버튼 포함) =====
   function rowTemplate(item){
     const requestedAt=item.requestedAt?fmt(item.requestedAt):'—';
     const matchedAt  =item.matchedAt?fmt(item.matchedAt):'—';
     const lawyerName =(item.lawyerName||'').trim()||'—';
-    const reason     =(item.requestReason||'').trim()||'—';
+
+    const reasonRaw  = item.reasonLabel || item.requestReason || '';
+    const reason     = mapReason(reasonRaw);
 
     const statusEnum = String(item.status||'').toUpperCase(); // APPROVED/REJECTED/...
     const sKor       = statusKorean(statusEnum);
@@ -48,8 +66,8 @@ import { initProfileEditPopup } from '/js/public/common.js';
 
     // 채팅 링크에 me=user & mem=<나의_memIdx> 부여
     const chatUrl    = item.matchingIdx
-      ? (item.chatUrl || `/chat/room/${item.matchingIdx}?me=user&mem=${myMemIdx}`)
-      : '#';
+        ? (item.chatUrl || `/chat/room/${item.matchingIdx}?me=user&mem=${myMemIdx}`)
+        : '#';
 
     return `
       <li class="list-row" role="row">
@@ -65,7 +83,6 @@ import { initProfileEditPopup } from '/js/public/common.js';
     `;
   }
 
-  // 채팅 버튼 클릭 위임
   listEl?.addEventListener('click', (e) => {
     const btn = e.target.closest('.chat-btn');
     if (!btn || btn.disabled) return;
@@ -120,7 +137,6 @@ import { initProfileEditPopup } from '/js/public/common.js';
 
   // ===== 상/하단 버튼 =====
   document.getElementById('logoutBtn')?.addEventListener('click', ()=>{
-   
     window.location.href = '#';
   });
 
@@ -148,6 +164,5 @@ import { initProfileEditPopup } from '/js/public/common.js';
     }
   });
 
-  // 초기 로드
   load();
 })();
