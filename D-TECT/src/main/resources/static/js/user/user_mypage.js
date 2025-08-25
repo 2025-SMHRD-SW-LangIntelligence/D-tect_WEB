@@ -1,5 +1,6 @@
 (function () {
     const userId   = Number(document.body.dataset.userId || 0);
+    const myMemIdx = Number(document.body.dataset.memIdx || 0); // ✔ 추가
     const listEl   = document.getElementById('applyList');
     const pageInfo = document.getElementById('pageInfo');
     const prevBtn  = document.getElementById('prevPage');
@@ -51,8 +52,8 @@
         const sKor        = statusKorean(statusEnum);
         const chatEnabled = (statusEnum === 'APPROVED' || statusEnum === 'COMPLETED');
 
-        // ✅ 기본 경로: /chat/room/{matchingId}?me=user
-        const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=user`;
+        // 채팅 링크에 me=user & mem=<나의_memIdx> 부여
+        const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=user&mem=${myMemIdx}`;
 
         return `
       <li class="list-row" role="row">
@@ -126,7 +127,7 @@
         render();
     }
 
-    // ===== 개인정보 폼 데모 동작(원래 코드 유지) =====
+    // ===== 개인정보 폼 데모 동작 =====
     const editToggleBtn = document.getElementById('editToggleBtn');
     const infoForm = document.getElementById('infoForm');
     const saveBtn = document.getElementById('saveBtn');
@@ -153,7 +154,7 @@
     });
     infoForm?.addEventListener('submit', (e) => {
         e.preventDefault();
-        alert('저장되었습니다.'); // TODO: 저장 API 연동
+        alert('저장되었습니다.');
         setEditMode(false);
     });
 
