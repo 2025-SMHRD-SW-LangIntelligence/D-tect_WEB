@@ -1,10 +1,15 @@
 package com.smhrd.dtect.dto;
 
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UpdateMeRequest {
     private String name;
     private String email;
