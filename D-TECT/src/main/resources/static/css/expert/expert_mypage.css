@@ -69,7 +69,7 @@ body{
 .help{opacity:.7; font-size:.82rem}
 .form-actions{display:flex; gap:8px; margin-top:16px}
 
-/* ✅ 전문분야 칩 */
+/* 전문분야 칩 */
 .tag-wrap{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
 .tag{
     display:inline-flex; align-items:center;
@@ -79,21 +79,21 @@ body{
 .card:not(.card--dark) .tag{background:#f2f2f2; border-color:#e4e4e4; color:#111}
 .tag--empty{border-style:dashed; background:transparent; color:#cfcfcf}
 
-/* 신청현황: 6열(채팅방 포함) */
+/* 신청현황: 6열*/
 .list{
     --col1:140px; /* 신청일   */
     --col2:150px; /* 고객명   */
     --col3:140px; /* 분류     */
     --col4:140px; /* 매칭일   */
     --col5:160px; /* 매칭여부 */
-    --col6:160px; /* 채팅방   */
+    --col6:120px; /* 채팅방   */
 }
 .list-scroll{
     border:1.5px solid #dcdcdc; border-radius:12px; overflow:auto; max-height:320px; background:#fff; position:relative;
 }
 .list-grid, .list-row{
     display:grid;
-    grid-template-columns: var(--col1,140px) var(--col2,150px) var(--col3,140px) var(--col4,140px) minmax(var(--col5,160px),1fr) var(--col6,160px);
+    grid-template-columns: var(--col1,140px) var(--col2,150px) var(--col3,140px) var(--col4,140px) minmax(var(--col5,160px),1fr) var(--col6,120px);
     gap:12px; align-items:center;
 }
 .list-head{
@@ -103,9 +103,27 @@ body{
 .list-body{list-style:none; margin:0; padding:0}
 .list-row{padding:12px; border-top:1px solid #eee; background:#fff}
 
-/* ✅ 한 줄 고정 */
 .list-head .col, .list-row .col{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
+/* 채팅 버튼*/
+.chat-btn{
+    border:none;
+    cursor:pointer;
+    font-weight:800;
+    border-radius:999px;
+    padding: 6px 12px;
+    background:var(--brand);
+    color:var(--brand-ink);
+    box-shadow:inset 0 0 0 2px #00000020;
+}
+.chat-btn[disabled]{
+    background:#efefef;
+    color:#888;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+
+/* 상태 배지 */
 .badge{display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; border-radius:999px; font-weight:700; white-space:nowrap}
 .badge--ok{background:#e8ffd1}
 .badge--warn{background:#fff5c7}
