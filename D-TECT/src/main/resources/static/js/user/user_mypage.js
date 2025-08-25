@@ -41,16 +41,21 @@ import { initProfileEditPopup } from '/js/public/common.js';
     const HH=String(d.getHours()).padStart(2,'0'), MM=String(d.getMinutes()).padStart(2,'0');
     return `${yyyy}-${mm}-${dd} ${HH}:${MM}`;
   }
+
   function statusKorean(s){
     switch(String(s||'').toUpperCase()){
-      case 'APPROVED': return '확정';
+      case 'APPROVED': return '승인';
       case 'REJECTED': return '반려';
       case 'COMPLETED':return '완료';
       case 'CANCELED': return '취소';
       default:         return '대기';
     }
   }
-  const badgeClassKor = k => (k==='확정'||k==='완료')?'badge badge--ok':(k==='반려'||k==='취소')?'badge badge--danger':'badge badge--warn';
+
+  const badgeClassKor = k =>
+      (k==='승인'||k==='완료') ? 'badge badge--ok'
+          : (k==='반려'||k==='취소') ? 'badge badge--danger'
+              : 'badge badge--warn';
 
   function rowTemplate(item){
     const requestedAt=item.requestedAt?fmt(item.requestedAt):'—';

@@ -47,9 +47,10 @@ function fmt(ts) {
   if (Number.isNaN(d.getTime())) return '—';
   return d.toISOString().slice(0, 10);
 }
+
 function statusKorean(status) {
   switch (String(status || '').toUpperCase()) {
-    case 'APPROVED':  return '확정';
+    case 'APPROVED':  return '승인';
     case 'REJECTED':  return '반려';
     case 'PENDING':   return '대기';
     case 'COMPLETED': return '완료';
@@ -57,11 +58,13 @@ function statusKorean(status) {
     default:          return '—';
   }
 }
+
 function badgeClassKor(k) {
-  if (k==='확정'||k==='완료') return 'badge badge--ok';
+  if (k==='승인'||k==='완료') return 'badge badge--ok';
   if (k==='반려'||k==='취소') return 'badge badge--danger';
   return 'badge badge--warn';
 }
+
 function chatEnabledByStatus(statusEnumUpper) {
   return statusEnumUpper === 'APPROVED' || statusEnumUpper === 'COMPLETED';
 }
