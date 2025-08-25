@@ -102,7 +102,6 @@ body{
 }
 .list-body{list-style:none; margin:0; padding:0}
 .list-row{padding:12px; border-top:1px solid #eee; background:#fff}
-
 .list-head .col, .list-row .col{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
 /* 채팅 버튼*/
@@ -131,6 +130,35 @@ body{
 
 .list-foot{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px}
 .page-info{min-width:60px; text-align:center}
+
+/* ===== 상태 변경 드롭다운 ===== */
+.status-trigger.badge{ cursor:pointer; padding-right:22px; }
+.status-trigger .caret{ margin-left:6px; font-weight:900; }
+
+/* body에 붙는 실제 메뉴 */
+.status-menu-portal{
+    position:fixed;
+    top:0; left:0;
+    background:#fff;
+    border:1px solid #e5e5e5;
+    border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.12);
+    min-width:140px;
+    padding:6px;
+    z-index:99999;
+}
+.status-option{
+    width:100%;
+    text-align:left;
+    border:none;
+    background:transparent;
+    padding:9px 12px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+}
+.status-option:hover{ background:#f5f5f5; }
+.status-empty{ padding:10px; color:#777; font-size:.9rem; }
 
 /* Responsive */
 @media (min-width:1200px){
