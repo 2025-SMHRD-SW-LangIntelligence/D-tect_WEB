@@ -16,7 +16,8 @@ const els = {
     statusText : document.getElementById('statusText'),
     video      : document.getElementById('video'),
     canvas     : document.getElementById('canvas'),
-    log        : document.getElementById('log')
+    log        : document.getElementById('log'),
+	gotoBtn    : document.getElementById('gotoResultBtn')
 };
 
 // ===== 상태 =====
@@ -56,7 +57,19 @@ function confirmDownloadFallback(){
         '확인: 다운로드로 진행 / 취소: 캡처 취소'
     );
 }
-
+// 분석결과 페이지로 이동
+function gotoResults(){
+	const url = els.gotoBtn?.dataset?.href || '/analysis';
+	// 캡처 진행중이면 경호 후 중지
+	const capturing = !!(timerId || stream);
+	if(capturing){
+		const ok = window.confirm('캡처가 진행 중입니다. 이동하면 중지됩니다. 이동할까요?')
+		if(!ok) return;
+		stop('페이지 이동');
+	}
+	location.href = url;
+}
+els.gotoBtn?.addEventListener('click', goToResults);
 // 기본 = 폴더 저장. 불가하면 모달 안내 후 동의 시 download, 아니면 취소
 async function ensureStorageStrategy(){
     saveStrategy = 'folder';
