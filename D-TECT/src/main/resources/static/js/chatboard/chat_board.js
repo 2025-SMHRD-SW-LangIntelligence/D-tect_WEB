@@ -1,5 +1,8 @@
-const REFRESH_MS = 5000;
+const REFRESH_MS = 1000;
 
+const USE_ICON_BUTTON = true;
+
+/* ========= 파라미터 ========= */
 function resolveMatchingId() {
     const parts = location.pathname.split("/").filter(Boolean);
     const idx = parts.findIndex(p => p === "room");
@@ -20,10 +23,9 @@ function resolveMyMemIdx() {
 
 const MATCHING_ID = resolveMatchingId();
 const MY_ROLE     = resolveMyRole();     // 'user' | 'expert'
-const ME_MEM_IDX  = resolveMyMemIdx();   // ✔ 서버가 요구하는 meMemIdx
+const ME_MEM_IDX  = resolveMyMemIdx();   // meMemIdx
 
 if (!MATCHING_ID) alert("유효하지 않은 채팅방 주소입니다. (matchingId 없음)");
-if (!ME_MEM_IDX)  console.warn("경고: meMemIdx가 0입니다. (URL에 mem= 누락?)");
 
 /* ========= DOM ========= */
 const listEl     = document.getElementById("messageList");
@@ -50,10 +52,22 @@ const fmt = (ts) => {
     if (Number.isNaN(d.getTime())) return "-";
     return d.toLocaleString("ko-KR", { hour12: false });
 };
+// 파일 시간: "YYYY.MM.DD HH:mm"
+const fmtHM = (ts) => {
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return "-";
+    const y  = d.getFullYear();
+    const m  = String(d.getMonth()+1).padStart(2,"0");
+    const da = String(d.getDate()).padStart(2,"0");
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    return `${y}.${m}.${da} ${hh}:${mm}`;
+};
+
 const nearBottom = () => (listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight) < 80;
 const scrollToBottom = () => (listEl.scrollTop = listEl.scrollHeight);
-function escapeHtml(s) {
-    return (s || "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+function escapeHtml(s){
+    return (s || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 /* ========= 서버 API ========= */
@@ -65,19 +79,17 @@ async function apiListMessages() {
     return (arr || []).map(m => ({
         id:   m.id ?? m.chatIdx ?? m.messageId,
         role: (String(m.senderType || "").toUpperCase() === "EXPERT") ? "expert" : "user",
-        name: (String(m.senderType || "").toUpperCase() === "EXPERT") ? "전문가" : "사용자",
+        name: m.senderName || (String(m.senderType || "").toUpperCase() === "EXPERT" ? "전문가" : "사용자"),
         text: m.chatContent ?? m.content ?? m.text ?? "",
         ts:   m.chatedAt ?? m.createdAt ?? m.ts ?? Date.now(),
-        file: m.sendedFile || null
+        file: m.sendedFile || m.file || null
     }));
 }
 
 async function apiPostMessage(text) {
     const fd = new FormData();
-    fd.append("meMemIdx", String(ME_MEM_IDX)); // ✔ 컨트롤러 @RequestParam
+    fd.append("meMemIdx", String(ME_MEM_IDX));
     fd.append("content", text);
-    // fd.append("file", fileTokenOrPath);
-
     const url = `/api/chat/${encodeURIComponent(MATCHING_ID)}/messages`;
     const r = await fetch(url, { method: "POST", body: fd });
     if (!r.ok) throw new Error("전송 실패");
@@ -89,28 +101,60 @@ async function apiListFiles() {
         const url = `/api/chat/${encodeURIComponent(MATCHING_ID)}/files?meMemIdx=${encodeURIComponent(ME_MEM_IDX)}`;
         const res = await fetch(url, { headers: { "Accept": "application/json" } });
         if (!res.ok) return [];
-        const arr = await res.json();
-        return (arr || []).map(f => ({
-            id:  f.id ?? f.fileIdx,
-            url: f.url ?? (`/api/chat/${MATCHING_ID}/files/${f.id}?meMemIdx=${ME_MEM_IDX}`),
-            ts:  f.createdAt ?? f.ts ?? Date.now(),
-            name: f.fileName ?? "첨부",
-            by:   { role: (String(f.by || f.senderType || "").toUpperCase() === "EXPERT") ? "expert" : "user" }
-        }));
-    } catch { return []; }
+        const raw = await res.json();
+
+        if (Array.isArray(raw) && raw.length && (raw[0].id || raw[0].name || raw[0].fileIdx || raw[0].fileName)) {
+            return raw.map(f => {
+                const rawRole = (f.by && f.by.role) || f.senderType || f.uploaderType || f.role || "";
+                const roleUp  = String(rawRole).toUpperCase();
+                const role    = roleUp === "EXPERT" ? "expert" : roleUp === "USER" ? "user" : null;
+                return {
+                    id:   f.id ?? f.fileIdx,
+                    url:  f.url ?? (`/api/chat/file/${f.id ?? f.fileIdx}`),
+                    ts:   f.ts ?? f.createdAt ?? Date.now(),
+                    name: f.fileName ?? f.name ?? "첨부",
+                    role
+                };
+            });
+        }
+
+        const flat = [];
+        (raw || []).forEach(u => {
+            const uploadAt  = u.ts ?? u.createdAt ?? Date.now();
+            const upRoleRaw = (u.by && u.by.role) || u.uploaderType || u.senderType || u.role || "";
+            const upRoleUp  = String(upRoleRaw).toUpperCase();
+
+            (u.uploadFileList || u.files || []).forEach(f => {
+                const fileRoleRaw = (f.by && f.by.role) || f.uploaderType || f.senderType || f.role || upRoleUp;
+                const fileRoleUp  = String(fileRoleRaw).toUpperCase();
+                const role        = fileRoleUp === "EXPERT" ? "expert" : fileRoleUp === "USER" ? "user" : null;
+
+                flat.push({
+                    id:   f.id ?? f.fileIdx,
+                    url:  f.url ?? (`/api/chat/file/${f.id ?? f.fileIdx}`),
+                    ts:   f.ts ?? f.createdAt ?? uploadAt,
+                    name: f.fileName ?? f.name ?? "첨부",
+                    role
+                });
+            });
+        });
+        return flat;
+    } catch {
+        return [];
+    }
 }
 
-async function apiUploadFile(file) {
+async function apiUploadFiles(fileList) {
     const fd = new FormData();
-    fd.append("file", file);
+    Array.from(fileList).forEach(f => fd.append("file", f)); // key = "file"
     fd.append("meMemIdx", String(ME_MEM_IDX));
     const url = `/api/chat/${encodeURIComponent(MATCHING_ID)}/files`;
     const r = await fetch(url, { method: "POST", body: fd });
     if (!r.ok) throw new Error("파일 업로드 실패");
-    return await r.json().catch(() => ({}));
+    return await r.json().catch(() => ([]));
 }
 
-/* ========= 렌더 ========= */
+/* ========= 메시지 렌더 ========= */
 function renderMessages(items) {
     if (!items?.length) return;
     const atBottom = nearBottom();
@@ -132,7 +176,7 @@ function renderMessages(items) {
                 tempMsg.dataset.id = idStr;
                 tempMsg.removeAttribute('data-temp');
                 seenIds.add(idStr);
-                continue; // 새로 append하지 않음
+                continue;
             }
         }
 
@@ -145,20 +189,24 @@ function renderMessages(items) {
         const msg = document.createElement("div");
         msg.className = "msg";
         msg.dataset.id = idStr || "";
-        if (m.clientTemp) msg.dataset.temp = "1"; // ✅ 임시표식
 
-        const delBtn = (m.role === MY_ROLE) ? `<button class="del-btn" data-id="${escapeHtml(idStr)}" aria-label="메시지 삭제">×</button>` : "";
-        const fileLink = m.file ? `<div class="file"><a href="${escapeHtml(m.file)}" download>첨부 다운로드</a></div>` : "";
+        const icon = `
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+        const fileLink = m.file
+            ? `<div class="file"><a class="dl-btn" href="${escapeHtml(m.file)}" download aria-label="다운로드" title="다운로드">${icon}</a></div>`
+            : "";
 
         msg.innerHTML = `
       <div class="meta">
-        <span class="badge">${m.role === "expert" ? "변호사" : "사용자"}</span>
+        <span class="badge">${m.role === "expert" ? "법률 전문가" : "사용자"}</span>
         <span class="name">${escapeHtml(m.name || (m.role === "expert" ? "전문가" : "사용자"))}</span>
         <span class="time">${fmt(m.ts || Date.now())}</span>
       </div>
       <div class="body">${escapeHtml(m.text || "")}</div>
       ${fileLink}
-      ${delBtn}
     `;
         row.appendChild(msg);
         frag.appendChild(row);
@@ -174,27 +222,44 @@ function renderMessages(items) {
     }
 }
 
+/* ========= 파일 렌더 ========= */
+function renderFiles(items){
+    const icon = `
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
 
-function renderFiles(items) {
-    fileListEl.innerHTML = (items || []).map(f => `
-    <li>
-      <div class="meta">
-        <span class="badge ${f.by?.role === 'expert' ? 'expert' : 'user'}">${f.by?.role === 'expert' ? '변호사' : '사용자'}</span>
-        <span class="name">${escapeHtml(f.name)}</span>
-        <span class="time">${fmt(f.ts)}</span>
-      </div>
-      <a class="dl" href="${f.url}" download>다운로드</a>
-    </li>
-  `).join("");
+    fileListEl.innerHTML = (items || []).map(f => {
+        const rawRole = (f?.by?.role ?? f.role ?? "").toString().toLowerCase();
+        const role    = rawRole === "expert" ? "expert" : rawRole === "user" ? "user" : "neutral";
+        const roleText= role === "expert" ? "전문가" : role === "user" ? "사용자" : "첨부";
+        const nameSafe= escapeHtml(f.name || "첨부");
+        const urlSafe = escapeHtml(f.url);
+
+        const btnHtml = USE_ICON_BUTTON
+            ? `<a class="dl-btn" href="${urlSafe}" download aria-label="다운로드" title="다운로드">${icon}</a>`
+            : `<a class="dl-btn" style="width:88px;height:34px;padding:0 10px;">다운로드</a>`;
+
+        return `
+      <li class="file-row">
+        <span class="role-badge role--${role}">${roleText}</span>
+        <div class="ftext">
+          <div class="fname" title="${nameSafe}">${nameSafe}</div>
+          <div class="ftime">${fmtHM(f.ts)}</div>
+        </div>
+        ${btnHtml}
+      </li>
+    `;
+    }).join("");
 }
 
-/* ========= 폴링 ========= */
 async function poll() {
     if (pendingPoll) return;
     pendingPoll = true;
     listEl.setAttribute("aria-busy", "true");
     try {
-        const msgs = await apiListMessages();
+        const msgs  = await apiListMessages();
         renderMessages(msgs);
 
         const files = await apiListFiles();
@@ -214,7 +279,6 @@ function startPolling() {
     pollingTimer = setInterval(poll, REFRESH_MS);
 }
 
-/* ========= 전송/삭제 ========= */
 async function sendMessage() {
     const text = (composerEl.value || "").trim();
     if (!text) return;
@@ -226,10 +290,8 @@ async function sendMessage() {
     scrollToBottom();
 
     try {
-        // 서버 전송
-        const res = await apiPostMessage(text); // {id or chatIdx ...}
+        const res = await apiPostMessage(text);
         const realId = String(res?.id ?? res?.chatIdx ?? "");
-
         if (realId) {
             const el = listEl.querySelector(`.msg[data-id="${CSS.escape(tempId)}"]`);
             if (el) {
@@ -238,8 +300,6 @@ async function sendMessage() {
             }
             seenIds.add(realId);
         }
-
-        // 4) 동기화
         await poll();
     } catch (err) {
         const el = listEl.querySelector(`.msg[data-id="${CSS.escape(tempId)}"]`);
@@ -249,22 +309,6 @@ async function sendMessage() {
     }
 }
 
-
-async function deleteMessage(messageId) {
-    if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
-    try {
-        const url = `/api/chat/${encodeURIComponent(MATCHING_ID)}/messages/${encodeURIComponent(messageId)}?meMemIdx=${encodeURIComponent(ME_MEM_IDX)}`;
-        const r = await fetch(url, { method: "DELETE" });
-        if (!r.ok) throw new Error("삭제 실패");
-        const el = listEl.querySelector(`.msg[data-id="${CSS.escape(String(messageId))}"]`);
-        if (el) el.closest(".row")?.remove();
-    } catch (err) {
-        alert("삭제에 실패했습니다.");
-        console.error(err);
-    }
-}
-
-/* ========= 이벤트 ========= */
 sendBtn.addEventListener("click", sendMessage);
 composerEl.addEventListener("compositionstart", () => composing = true);
 composerEl.addEventListener("compositionend", () => composing = false);
@@ -274,32 +318,23 @@ composerEl.addEventListener("keydown", (e) => {
         sendMessage();
     }
 });
-listEl.addEventListener("click", (e) => {
-    const btn = e.target.closest(".del-btn");
-    if (!btn) return;
-    const msg = btn.closest(".msg");
-    if (!msg) return;
-    deleteMessage(msg.dataset.id);
-});
 refreshBtn.addEventListener("click", poll);
-jumpNewBtn.addEventListener("click", () => {
-    unseenCount = 0;
-    jumpNewBtn.hidden = true;
-    scrollToBottom();
-});
+jumpNewBtn.addEventListener("click", () => { unseenCount = 0; jumpNewBtn.hidden = true; scrollToBottom(); });
+
 uploadBtn.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", async () => {
-    const file = fileInput.files?.[0];
-    if (!file) return;
+    const files = fileInput.files;
+    if (!files || files.length === 0) return;
     try {
-        await apiUploadFile(file);
+        await apiUploadFiles(files);
         fileInput.value = "";
-        poll();
+        await poll();
     } catch (err) {
         alert("파일 업로드 실패");
         console.error(err);
     }
 });
+
 listEl.addEventListener("scroll", () => {
     if (nearBottom()) {
         unseenCount = 0;
@@ -307,7 +342,6 @@ listEl.addEventListener("scroll", () => {
     }
 });
 
-/* ========= 초기화 ========= */
 (async function init() {
     await poll();
     startPolling();
