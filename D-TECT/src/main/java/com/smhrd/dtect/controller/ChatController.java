@@ -47,25 +47,31 @@ public class ChatController {
         return ChatDto.from(c);
     }
 
-
     @GetMapping(value = "/{matchingId}/files", produces = "application/json")
     public List<Map<String, Object>> listFiles(@PathVariable Long matchingId) {
         List<Upload> ups = fileService.findUploadsByMatching(matchingId);
         List<Map<String, Object>> out = new ArrayList<>();
+
         for (Upload u : ups) {
             String role = Optional.ofNullable(u.getUploaderType())
                     .map(Enum::name).orElse("UNKNOWN"); // USER / EXPERT / UNKNOWN
-            String roleLower = role.equals("EXPERT") ? "expert" : role.equals("USER") ? "user" : "unknown";
+            String roleLower = "unknown";
+            if ("EXPERT".equals(role)) roleLower = "expert";
+            else if ("USER".equals(role)) roleLower = "user";
 
             if (u.getUploadFileList() == null) continue;
             for (UploadFile f : u.getUploadFileList()) {
-                out.add(Map.of(
-                        "id",   f.getFileIdx(),
-                        "name", f.getFileName(),
-                        "url",  "/api/chat/file/" + f.getFileIdx(),
-                        "ts",   u.getCreatedAt() != null ? u.getCreatedAt().getTime() : null,
-                        "by",   Map.of("role", roleLower)
-                ));
+                Map<String, Object> by = new HashMap<>();
+                by.put("role", roleLower);
+
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("id",   f.getFileIdx());
+                row.put("name", f.getFileName());
+                row.put("url",  "/api/chat/file/" + f.getFileIdx());
+                row.put("ts",   (u.getCreatedAt() != null) ? u.getCreatedAt().getTime() : null);
+                row.put("by",   by);
+
+                out.add(row);
             }
         }
         return out;
@@ -76,7 +82,7 @@ public class ChatController {
     public List<Map<String, Object>> uploadFiles(
             @PathVariable Long matchingId,
             @RequestParam("file") List<MultipartFile> files,
-            @RequestParam Long meMemIdx      // ← 가능하면 required 로
+            @RequestParam Long meMemIdx
     ) throws Exception {
 
         // 1) 파일 저장
@@ -84,7 +90,8 @@ public class ChatController {
 
         // 2) 업로더 역할 기록
         ChatSenderType type = ChatSenderType.USER;
-        var m = saved.getMatching();
+        // var 사용 금지(Java 8 호환)
+        com.smhrd.dtect.entity.Matching m = saved.getMatching();
         Long userMem   = (m.getUser()!=null && m.getUser().getMember()!=null)    ? m.getUser().getMember().getMemIdx()    : null;
         Long expertMem = (m.getExpert()!=null && m.getExpert().getMember()!=null)? m.getExpert().getMember().getMemIdx()  : null;
         if (Objects.equals(meMemIdx, expertMem)) type = ChatSenderType.EXPERT;
@@ -110,29 +117,33 @@ public class ChatController {
                     url
             );
 
-            out.add(Map.of(
-                    "id",   f.getFileIdx(),
-                    "name", f.getFileName(),
-                    "url",  url,
-                    "ts",   saved.getCreatedAt()!=null ? saved.getCreatedAt().getTime() : null,
-                    "by",   Map.of("role", roleLower)
-            ));
+            Map<String, Object> by = new HashMap<>();
+            by.put("role", roleLower);
+
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id",   f.getFileIdx());
+            row.put("name", f.getFileName());
+            row.put("url",  url);
+            row.put("ts",   (saved.getCreatedAt()!=null) ? saved.getCreatedAt().getTime() : null);
+            row.put("by",   by);
+
+            out.add(row);
         }
 
         return out;
     }
 
-
     // 다운로드
     @GetMapping("/file/{fileId}")
     public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
-        var meta = uploadFileRepository.findById(fileId).orElse(null);
-        if (meta == null) return ResponseEntity.notFound().build();
+        Optional<UploadFile> opt = uploadFileRepository.findById(fileId);
+        if (!opt.isPresent()) return ResponseEntity.notFound().build();
 
+        UploadFile meta = opt.get();
         byte[] plain = fileService.downloadFilePlain(fileId);
         if (plain == null) return ResponseEntity.notFound().build();
 
-        String filename = Optional.ofNullable(meta.getFileName()).orElse("download.bin");
+        String filename = (meta.getFileName() != null) ? meta.getFileName() : "download.bin";
         String encoded  = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
 
         return ResponseEntity.ok()
