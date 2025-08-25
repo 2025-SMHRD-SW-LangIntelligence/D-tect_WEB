@@ -166,7 +166,15 @@
         if (!userId) return;
         window.location.href = `/analysis/user/${userId}/history`;
     });
-    document.getElementById('reserveBtn')?.addEventListener('click', () => alert('상담 일정 예약하기로 이동'));
+    const reserveBtn = document.getElementById('reserveBtn');
+    reserveBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!userId) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        window.location.href = `/matching/select?userId=${encodeURIComponent(userId)}`;
+    })
     document.getElementById('withdrawBtn')?.addEventListener('click', () => {
         if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');
     });
