@@ -1,5 +1,6 @@
 package com.smhrd.dtect.repository;
 
+import com.smhrd.dtect.entity.Expert;
 import com.smhrd.dtect.entity.Field;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -21,5 +22,9 @@ public interface FieldRepository extends JpaRepository<Field, Long> {
     List<Field> findByExpert_ExpertIdxIn(List<Long> expertIds);
 
     List<Field> findAllByExpert_ExpertIdxIn(List<Long> expertIdxs);
+    
+ // ✅ 전문가 한 명에 대한 분야 일괄 조회/삭제
+    List<Field> findAllByExpert(Expert expert);
+    void deleteByExpert(Expert expert);
 
 }

@@ -7,13 +7,18 @@ import com.smhrd.dtect.repository.UserRepository;
 import com.smhrd.dtect.security.CustomUser;
 import com.smhrd.dtect.service.ExpertService;
 import com.smhrd.dtect.service.MatchingService;
+import com.smhrd.dtect.service.MyPageService;
 import com.smhrd.dtect.service.PrincipalIdService;
 import com.smhrd.dtect.service.UserService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -26,7 +31,10 @@ public class MyPageController {
     private final UserService userService;
     private final ExpertService expertService;
     private final PrincipalIdService principalIdService;
-
+    
+    // ✅ 새로 추가된 서비스
+    private final MyPageService myPageService;
+    
     @GetMapping
     public String mypageRoot(@AuthenticationPrincipal CustomUser principal) {
         if (principal == null || principal.getMember() == null) {
@@ -122,6 +130,28 @@ public class MyPageController {
     @ResponseBody
     public List<ExpertMatchingSummaryDto> expertMatchingsApi(@PathVariable Long expertId) {
         return matchingService.getExpertMatchings(expertId);
+    }
+    
+ // ✅ 공통: 내 정보 조회 (팝업 프리필)
+    @GetMapping("/api/me")
+    @ResponseBody
+    public MeProfileDto me(@AuthenticationPrincipal CustomUser principal) {
+        if (principal == null || principal.getMember() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        return myPageService.getMe(principal.getMember().getMemIdx());
+    }
+
+    // ✅ 공통: 내 정보 수정 (현재 비밀번호 확인 + 옵션 비번변경 + 전문가 전문분야 반영)
+    @PatchMapping("/api/me")
+    @ResponseBody
+    @Transactional
+    public MeProfileDto updateMe(@AuthenticationPrincipal CustomUser principal,
+                                 @RequestBody UpdateMeRequest req) {
+        if (principal == null || principal.getMember() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+        return myPageService.updateMe(principal.getMember().getMemIdx(), req);
     }
 
 }
