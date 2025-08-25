@@ -78,7 +78,7 @@ public class ChatController {
                                                  @RequestParam(required = false) Long meMemIdx) throws Exception {
         Upload saved = fileService.uploadFiles(matchingId, files);
 
-        // 업로더 역할 계산
+        // 업로더 역할 저장
         // 사용자가 올린건지 전문가가 올린건지
         ChatSenderType type = ChatSenderType.USER;
         if (meMemIdx != null) {

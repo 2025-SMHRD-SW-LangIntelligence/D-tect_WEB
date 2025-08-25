@@ -1,11 +1,5 @@
-// 채팅방 프런트 (mem 파라미터 기반)
-// URL 예) /chat/room/5?me=expert&mem=12
 const REFRESH_MS = 1000;
 
-/* ====== 옵션: 아이콘/텍스트 버튼 전환 ======
-   true  -> 아이콘형(작고 정사각형)
-   false -> 텍스트형(‘다운로드’ 글자 표시)
-================================================ */
 const USE_ICON_BUTTON = true;
 
 /* ========= 파라미터 ========= */
@@ -109,7 +103,6 @@ async function apiListFiles() {
         if (!res.ok) return [];
         const raw = await res.json();
 
-        // 1) 파일 단위(flat)
         if (Array.isArray(raw) && raw.length && (raw[0].id || raw[0].name || raw[0].fileIdx || raw[0].fileName)) {
             return raw.map(f => {
                 const rawRole = (f.by && f.by.role) || f.senderType || f.uploaderType || f.role || "";
@@ -125,7 +118,6 @@ async function apiListFiles() {
             });
         }
 
-        // 2) 업로드 단위(중첩) → 평탄화
         const flat = [];
         (raw || []).forEach(u => {
             const uploadAt  = u.ts ?? u.createdAt ?? Date.now();
@@ -171,7 +163,6 @@ function renderMessages(items) {
     for (const m of items) {
         const idStr = String(m.id ?? "");
 
-        // 임시 → 실제 ID 치환
         if (idStr) {
             const bodyText = (m.text || "").trim();
             const tempMsg = Array.from(listEl.querySelectorAll('.msg[data-temp="1"]'))
@@ -199,7 +190,6 @@ function renderMessages(items) {
         msg.className = "msg";
         msg.dataset.id = idStr || "";
 
-        // 메시지 내 첨부도 아이콘 버튼 재사용
         const icon = `
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
         <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"
@@ -264,7 +254,6 @@ function renderFiles(items){
     }).join("");
 }
 
-/* ========= 폴링 ========= */
 async function poll() {
     if (pendingPoll) return;
     pendingPoll = true;
@@ -290,7 +279,6 @@ function startPolling() {
     pollingTimer = setInterval(poll, REFRESH_MS);
 }
 
-/* ========= 전송 ========= */
 async function sendMessage() {
     const text = (composerEl.value || "").trim();
     if (!text) return;
@@ -321,7 +309,6 @@ async function sendMessage() {
     }
 }
 
-/* ========= 이벤트 ========= */
 sendBtn.addEventListener("click", sendMessage);
 composerEl.addEventListener("compositionstart", () => composing = true);
 composerEl.addEventListener("compositionend", () => composing = false);
@@ -348,7 +335,6 @@ fileInput.addEventListener("change", async () => {
     }
 });
 
-// 스크롤이 하단 근처면 새 글 배지 숨김
 listEl.addEventListener("scroll", () => {
     if (nearBottom()) {
         unseenCount = 0;
@@ -356,7 +342,6 @@ listEl.addEventListener("scroll", () => {
     }
 });
 
-/* ========= 초기화 ========= */
 (async function init() {
     await poll();
     startPolling();
