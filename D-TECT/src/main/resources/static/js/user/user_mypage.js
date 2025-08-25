@@ -51,8 +51,8 @@
         const sKor        = statusKorean(statusEnum);
         const chatEnabled = (statusEnum === 'APPROVED' || statusEnum === 'COMPLETED');
 
-        // 서버에서 chatUrl을 내려주지 않는다면 matchingIdx로 기본 경로 생성
-        const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}`;
+        // ✅ 기본 경로: /chat/room/{matchingId}?me=user
+        const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=user`;
 
         return `
       <li class="list-row" role="row">
@@ -161,8 +161,8 @@
     document.getElementById('logoutBtn')?.addEventListener('click', () => alert('로그아웃 처리'));
     const historyBtn = document.getElementById('historyBtn');
     historyBtn?.addEventListener('click', (e) => {
-        e.preventDefault();             // 혹시 <a>로 바뀌더라도 깔끔하게
-        if (!userId) return;            // userId 없을 때는 아무 것도 안 함 (팝업 X)
+        e.preventDefault();
+        if (!userId) return;
         window.location.href = `/analysis/user/${userId}/history`;
     });
     document.getElementById('reserveBtn')?.addEventListener('click', () => alert('상담 일정 예약하기로 이동'));

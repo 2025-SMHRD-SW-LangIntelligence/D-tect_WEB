@@ -67,7 +67,7 @@ function rowTemplate(item) {
     const sKor        = statusKorean(statusEnum);
 
     const enabled     = chatEnabledByStatus(statusEnum);
-    const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}`;
+    const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=expert`; // ✅ 변경
 
     return `
     <li class="list-row" role="row">

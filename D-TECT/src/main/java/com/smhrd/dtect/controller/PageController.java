@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.smhrd.dtect.entity.Member;
 import com.smhrd.dtect.service.AdminService;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class PageController {
@@ -131,9 +132,10 @@ public class PageController {
     }
     
     /* 회원 전용 페이지(공용) */
-    
-    @GetMapping(value = "/chatBoardPage")
-    public String chatBoard() {
-    	return "chatboard/chat_board";
+
+    @GetMapping("/chat/room/{matchingId}")
+    public String chatRoom(@PathVariable Long matchingId) {
+        return "chatboard/chat_board";
     }
+
 }
