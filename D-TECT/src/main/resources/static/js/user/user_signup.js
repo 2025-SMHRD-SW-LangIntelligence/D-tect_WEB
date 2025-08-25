@@ -4,7 +4,7 @@ import {
 } from '/js/public/common.js';
 
 const API_BASE = '/api/members';
-const LOGIN_PATH = '/loginpage';
+const LOGIN_PATH = '/loginPage';
 
 function csrf(){
   const h = document.querySelector('meta[name="_csrf_header"]')?.content;
@@ -16,7 +16,7 @@ const form = document.getElementById('signupForm');
 const nameEl = document.getElementById('name');
 const uidEl  = document.getElementById('uid');
 const pwEl   = document.getElementById('pw');
-const pw2El  = document.getElementById('pw2');
+const pw2El  = document.getElementById('password2');
 const emailEl= document.getElementById('email');
 const phoneEl= document.getElementById('phone');
 const addrEl = document.getElementById('addr');
