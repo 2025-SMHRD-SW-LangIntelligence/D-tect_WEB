@@ -2947,3 +2947,45 @@ Caused by: java.lang.IllegalStateException: Client id of registration 'kakao' mu
 2025-08-22T17:47:03.326+09:00  INFO 10496 --- [D-TECT] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
 2025-08-22T17:47:03.329+09:00  INFO 10496 --- [D-TECT] [restartedMain] com.smhrd.dtect.DTectApplication         : Started DTectApplication in 0.996 seconds (process running for 853.618)
 2025-08-22T17:47:03.330+09:00  INFO 10496 --- [D-TECT] [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2025-08-25T11:25:43.489+09:00  INFO 26264 --- [D-TECT] [restartedMain] com.smhrd.dtect.DTectApplication         : Starting DTectApplication using Java 17.0.15 with PID 26264 (C:\Users\smhrd\git\D-tect_WEB\D-TECT\target\classes started by smhrd in C:\Users\smhrd\git\D-tect_WEB\D-TECT)
+2025-08-25T11:25:43.491+09:00 DEBUG 26264 --- [D-TECT] [restartedMain] com.smhrd.dtect.DTectApplication         : Running with Spring Boot v3.5.4, Spring v6.2.9
+2025-08-25T11:25:43.491+09:00  INFO 26264 --- [D-TECT] [restartedMain] com.smhrd.dtect.DTectApplication         : No active profile set, falling back to 1 default profile: "default"
+2025-08-25T11:25:43.522+09:00  INFO 26264 --- [D-TECT] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-08-25T11:25:43.522+09:00  INFO 26264 --- [D-TECT] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-08-25T11:25:44.087+09:00  INFO 26264 --- [D-TECT] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-08-25T11:25:44.226+09:00  INFO 26264 --- [D-TECT] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 131 ms. Found 12 JPA repository interfaces.
+2025-08-25T11:25:44.725+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2025-08-25T11:25:44.736+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-08-25T11:25:44.737+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.43]
+2025-08-25T11:25:44.907+09:00  INFO 26264 --- [D-TECT] [restartedMain] org.apache.jasper.servlet.TldScanner     : At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+2025-08-25T11:25:44.914+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-08-25T11:25:44.914+09:00  INFO 26264 --- [D-TECT] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1391 ms
+2025-08-25T11:25:45.049+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-08-25T11:25:45.087+09:00  INFO 26264 --- [D-TECT] [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.22.Final
+2025-08-25T11:25:45.111+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-08-25T11:25:45.353+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-08-25T11:25:45.378+09:00  INFO 26264 --- [D-TECT] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-08-25T11:25:45.790+09:00  INFO 26264 --- [D-TECT] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6effd14e
+2025-08-25T11:25:45.793+09:00  INFO 26264 --- [D-TECT] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-08-25T11:25:45.835+09:00  WARN 26264 --- [D-TECT] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-25T11:25:45.836+09:00  WARN 26264 --- [D-TECT] [restartedMain] org.hibernate.orm.deprecation            : HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2025-08-25T11:25:45.849+09:00  INFO 26264 --- [D-TECT] [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.0
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-08-25T11:25:46.598+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-08-25T11:25:46.944+09:00  INFO 26264 --- [D-TECT] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-08-25T11:25:47.155+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-08-25T11:25:48.764+09:00  INFO 26264 --- [D-TECT] [restartedMain] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name daoAuthenticationProvider
+2025-08-25T11:25:48.764+09:00  WARN 26264 --- [D-TECT] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+2025-08-25T11:25:48.778+09:00  WARN 26264 --- [D-TECT] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-08-25T11:25:49.255+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-08-25T11:25:49.326+09:00  INFO 26264 --- [D-TECT] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2025-08-25T11:25:49.333+09:00  INFO 26264 --- [D-TECT] [restartedMain] com.smhrd.dtect.DTectApplication         : Started DTectApplication in 6.158 seconds (process running for 6.612)
+2025-08-25T11:25:51.276+09:00  INFO 26264 --- [D-TECT] [http-nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-08-25T11:25:51.276+09:00  INFO 26264 --- [D-TECT] [http-nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-08-25T11:25:51.277+09:00  INFO 26264 --- [D-TECT] [http-nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
