@@ -63,7 +63,7 @@ public class ChatController {
                         "id",   f.getFileIdx(),
                         "name", f.getFileName(),
                         "url",  "/api/chat/file/" + f.getFileIdx(),
-                        "ts",   u.getCreatedAt() != null ? u.getCreatedAt().getTime() : null, // ⬅ epoch(ms)
+                        "ts",   u.getCreatedAt() != null ? u.getCreatedAt().getTime() : null,
                         "by",   Map.of("role", roleLower)
                 ));
             }
@@ -73,40 +73,55 @@ public class ChatController {
 
     @PostMapping(value = "/{matchingId}/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = "application/json")
-    public List<Map<String, Object>> uploadFiles(@PathVariable Long matchingId,
-                                                 @RequestParam("file") List<MultipartFile> files,
-                                                 @RequestParam(required = false) Long meMemIdx) throws Exception {
+    public List<Map<String, Object>> uploadFiles(
+            @PathVariable Long matchingId,
+            @RequestParam("file") List<MultipartFile> files,
+            @RequestParam Long meMemIdx      // ← 가능하면 required 로
+    ) throws Exception {
+
+        // 1) 파일 저장
         Upload saved = fileService.uploadFiles(matchingId, files);
 
-        // 업로더 역할 저장
-        // 사용자가 올린건지 전문가가 올린건지
+        // 2) 업로더 역할 기록
         ChatSenderType type = ChatSenderType.USER;
-        if (meMemIdx != null) {
-            var m = saved.getMatching();
-            Long userMem   = (m.getUser()!=null && m.getUser().getMember()!=null) ? m.getUser().getMember().getMemIdx() : null;
-            Long expertMem = (m.getExpert()!=null && m.getExpert().getMember()!=null) ? m.getExpert().getMember().getMemIdx() : null;
-            if (Objects.equals(meMemIdx, expertMem)) type = ChatSenderType.EXPERT;
-            else if (Objects.equals(meMemIdx, userMem)) type = ChatSenderType.USER;
-        }
+        var m = saved.getMatching();
+        Long userMem   = (m.getUser()!=null && m.getUser().getMember()!=null)    ? m.getUser().getMember().getMemIdx()    : null;
+        Long expertMem = (m.getExpert()!=null && m.getExpert().getMember()!=null)? m.getExpert().getMember().getMemIdx()  : null;
+        if (Objects.equals(meMemIdx, expertMem)) type = ChatSenderType.EXPERT;
+        else if (Objects.equals(meMemIdx, userMem)) type = ChatSenderType.USER;
         saved.setUploaderType(type);
-        uploadRepository.save(saved); // 역할 저장
+        uploadRepository.save(saved);
 
         String roleLower = (type == ChatSenderType.EXPERT) ? "expert" : "user";
 
+        // 3) 방금 저장된 파일들을 DB에서 다시 읽음
+        List<UploadFile> freshFiles = uploadFileRepository.findAllByUpload_UploadIdx(saved.getUploadIdx());
+
+        // 4) 각 파일을 "채팅 메시지"로도 남김
         List<Map<String,Object>> out = new ArrayList<>();
-        if (saved.getUploadFileList() != null) {
-            for (UploadFile f : saved.getUploadFileList()) {
-                out.add(Map.of(
-                        "id",  f.getFileIdx(),
-                        "name", f.getFileName(),
-                        "url", "/api/chat/file/" + f.getFileIdx(),
-                        "ts",  saved.getCreatedAt()!=null ? saved.getCreatedAt().getTime() : null,
-                        "by",  Map.of("role", roleLower)
-                ));
-            }
+        for (UploadFile f : freshFiles) {
+            String url = "/api/chat/file/" + f.getFileIdx();
+
+            // 메시지 생성
+            chatService.writeMessage(
+                    matchingId,
+                    meMemIdx,
+                    f.getFileName(),
+                    url
+            );
+
+            out.add(Map.of(
+                    "id",   f.getFileIdx(),
+                    "name", f.getFileName(),
+                    "url",  url,
+                    "ts",   saved.getCreatedAt()!=null ? saved.getCreatedAt().getTime() : null,
+                    "by",   Map.of("role", roleLower)
+            ));
         }
+
         return out;
     }
+
 
     // 다운로드
     @GetMapping("/file/{fileId}")
