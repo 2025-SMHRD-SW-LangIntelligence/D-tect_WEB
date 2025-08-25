@@ -49,7 +49,7 @@ public class Member {
     private String address;
     
     // 회원 이메일
-    @Column(unique = true)
+    //@Column(unique = true)
     private String email;
 
     // 회원 약관동의

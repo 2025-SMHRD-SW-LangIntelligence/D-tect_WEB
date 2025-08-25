@@ -1,38 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>D-tect | 전문가 마이페이지</title>
-<!-- 공통 CSS -->
-<link rel="stylesheet" th:href="@{/css/public/common.css}" />
-<!-- 전문가 내 정보 페이지 전용 CSS -->
-<link rel="stylesheet" th:href="@{/css/expert/expert_mypage.css}" />
-<!-- 카카오 우편번호 SDK -->
-<script
-	src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
-	defer></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 전문가 마이페이지</title>
+    <link rel="stylesheet" th:href="@{/css/expert/expert_mypage.css}" />
 </head>
 
-<<<<<<< HEAD
-<body th:attr="data-expert-id=${expertId}">
-	<header class="topbar">
-		<div class="left">
-			<a class="logo-wrap" href="/" aria-label="홈으로"> <img
-				th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
-			</a>
-			<h1 class="page-title">마이페이지</h1>
-		</div>
-		<div class="right">
-			<div class="user-chip">
-				<img th:src="@{/images/user_icon.png}" alt="" class="avatar" /> <span
-					class="user-name"
-					th:text="${profile.name} != null ? ${profile.name} + ' 전문가님' : '전문가님'">전문가님</span>
-			</div>
-			<button type="button" class="text-link" id="logoutBtn">로그아웃</button>
-		</div>
-	</header>
-=======
 <body th:attr="data-expert-id=${expertId}, data-mem-idx=${memIdx}">
 <header class="topbar">
     <div class="left">
@@ -50,111 +24,139 @@
         <button type="button" class="text-link" id="logoutBtn">로그아웃</button>
     </div>
 </header>
->>>>>>> 6861fcd8d88e276d0f791864f54d5ff3bde37378
 
-	<main class="container">
-		<section class="grid">
-			<!-- 좌: 개인정보 -->
-			<article class="card card--dark">
-				<header class="card-head">
-					<h2>개인정보</h2>
-					<button type="button" class="chip" id="editToggleBtn">수정</button>
-				</header>
+<main class="container">
+    <section class="grid">
 
-				<form class="info-form" id="infoForm">
-					<label class="field"> <span class="label">이름</span> <input
-						type="text" name="name" th:value="${profile.name}" disabled />
-					</label> <label class="field"> <span class="label">이메일</span> <input
-						type="email" name="email" th:value="${profile.email}" disabled />
-					</label> <label class="field"> <span class="label">사무소명</span> <input
-						type="text" name="officeName" th:value="${profile.officeName}"
-						disabled />
-					</label> <label class="field"> <span class="label">사무소 주소</span> <input
-						type="text" name="officeAddress"
-						th:value="${profile.officeAddress}" disabled />
-					</label>
+        <!-- 좌: 개인정보 -->
+        <article class="card card--dark">
+            <header class="card-head">
+                <h2>개인정보</h2>
+                <button type="button" class="chip" id="editToggleBtn">수정</button>
+            </header>
 
-					<!-- 읽기용 전문분야 칩 + (옵션 복제용 select) -->
-					<label class="field"> <span class="label">전문분야</span>
-						<div class="tag-wrap">
-							<span class="tag" th:each="opt : ${specialtyOptions}"
-								th:if="${profile.specialtyCodes != null and profile.specialtyCodes.contains(opt.code)}"
-								th:text="${opt.label}">전문분야</span> <span class="tag tag--empty"
-								th:if="${profile.specialtyCodes == null or #lists.isEmpty(profile.specialtyCodes)}">
-								전문분야 미등록 </span>
-								</div>
-								</label>
-				</form>
-			</article>
+            <form class="info-form" id="infoForm">
+                <label class="field">
+                    <span class="label">이름</span>
+                    <input type="text" name="name" th:value="${profile.name}" disabled />
+                </label>
 
-			<!-- 우: 신청현황 -->
-			<article class="card list">
-				<header class="card-head">
-					<h2>신청현황</h2>
-				</header>
+                <label class="field">
+                    <span class="label">이메일</span>
+                    <input type="email" name="email" th:value="${profile.email}" disabled />
+                </label>
 
-				<div class="list-scroll">
-					<div class="list-head list-grid" role="rowgroup" aria-hidden="true">
-						<div class="col">신청일</div>
-						<div class="col">고객명</div>
-						<div class="col">분류</div>
-						<div class="col">매칭일</div>
-						<div class="col">매칭여부</div>
-						<div class="col">채팅방</div>
-					</div>
-					<ul id="applyList" class="list-body" role="rowgroup"
-						aria-live="polite"></ul>
-				</div>
+                <label class="field">
+                    <span class="label">사무소명</span>
+                    <input type="text" name="officeName" th:value="${profile.officeName}" disabled />
+                </label>
 
-				<footer class="list-foot">
-					<button type="button" class="btn btn--ghost" id="prevPage">이전</button>
-					<span id="pageInfo" class="page-info">1 / 1</span>
-					<button type="button" class="btn btn--ghost" id="nextPage">다음</button>
-				</footer>
-			</article>
+                <label class="field">
+                    <span class="label">사무소 주소</span>
+                    <input type="text" name="officeAddress" th:value="${profile.officeAddress}" disabled />
+                </label>
 
-<<<<<<< HEAD
-			<!-- 우하: 상담료 작성란 -->
-			<article class="card align-right">
-				<header class="card-head">
-					<h2>상담료 작성란</h2>
-				</header>
-				<form id="feeForm" class="fee-form">
-					<label class="field"> <span class="label">케이스 선택</span> <select
-						id="caseSelect"></select>
-					</label> <label class="field"> <span class="label">상담 메모</span> <textarea
-							id="memo" rows="5" placeholder="상담 관련 메모를 입력하세요."></textarea>
-					</label> <label class="field"> <span class="label">상담료(원)</span> <input
-						type="number" id="fee" min="0" step="1000" placeholder="예) 50000" />
-					</label>
-					<div class="form-actions">
-						<button type="submit" class="btn btn--primary">작성 저장</button>
-					</div>
-				</form>
-			</article>
-		</section>
-=======
                 <!-- 전문분야: 칩 + (편집용) 다중 선택 -->
                 <label class="field">
                     <span class="label">전문분야</span>
->>>>>>> 6861fcd8d88e276d0f791864f54d5ff3bde37378
 
-		<section class="cta-wrap">
-			<a class="btn btn--accent"
-				th:href="@{/mypage/expert/mainpage(expertId=${expertId})}"
-				id="reqBtn" role="button">상담 신청 확인</a>
-			<button type="button" class="btn btn--accent" id="scheduleBtn">상담
-				일정 확인하기</button>
-			<button type="button" class="btn btn--accent btn--danger"
-				id="withdrawBtn">회원탈퇴</button>
-		</section>
-	</main>
-	<script th:inline="javascript">
-		// 서버에서 내려준 전문분야 리스트를 그대로 JS로
-		// specialtyOptions: [{code:"VIOLENCE", label:"폭력"}, ...]
-		window.__SPECIALTIES__ = /*[[${specialtyOptions}]]*/[];
-	</script>
-	<script type="module" th:src="@{/js/expert/expert_mypage.js}"></script>
+                    <!-- 읽기용 칩 -->
+                    <div class="tag-wrap">
+            <span class="tag"
+                  th:each="opt : ${specialtyOptions}"
+                  th:if="${profile.specialtyCodes != null and profile.specialtyCodes.contains(opt.code)}"
+                  th:text="${opt.label}">전문분야</span>
 
+                        <!-- 등록된 전문분야가 없을 때 -->
+                        <span class="tag tag--empty"
+                              th:if="${profile.specialtyCodes == null or #lists.isEmpty(profile.specialtyCodes)}">
+              전문분야 미등록
+            </span>
+                    </div>
+
+                    <!-- 편집용 셀렉트(수정 모드 때 enable 예정) -->
+                    <select id="specialties" name="specialties" multiple disabled style="margin-top:10px">
+                        <option th:each="opt : ${specialtyOptions}"
+                                th:value="${opt.code}"
+                                th:text="${opt.label}"
+                                th:selected="${profile.specialtyCodes != null and profile.specialtyCodes.contains(opt.code)}">
+                        </option>
+                    </select>
+                    <small class="help">Ctrl/⌘ 또는 Shift로 다중 선택</small>
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary" id="saveBtn" disabled>저장</button>
+                    <button type="button" class="btn btn--ghost" id="cancelBtn" disabled>취소</button>
+                </div>
+            </form>
+        </article>
+
+        <!-- 우: 신청현황 -->
+        <article class="card list">
+            <header class="card-head">
+                <h2>신청현황</h2>
+            </header>
+
+            <div class="list-scroll">
+                <div class="list-head list-grid" role="rowgroup" aria-hidden="true">
+                    <div class="col">신청일</div>
+                    <div class="col">고객명</div>
+                    <div class="col">분류</div>
+                    <div class="col">매칭일</div>
+                    <div class="col">매칭여부</div>
+                    <div class="col">채팅방</div>
+                </div>
+
+                <ul id="applyList" class="list-body" role="rowgroup" aria-live="polite"></ul>
+            </div>
+
+            <footer class="list-foot">
+                <button type="button" class="btn btn--ghost" id="prevPage">이전</button>
+                <span id="pageInfo" class="page-info">1 / 1</span>
+                <button type="button" class="btn btn--ghost" id="nextPage">다음</button>
+            </footer>
+        </article>
+
+        <!-- 우하: 상담료 작성란(옵션) -->
+        <article class="card align-right">
+            <header class="card-head">
+                <h2>상담료 작성란</h2>
+            </header>
+
+            <form id="feeForm" class="fee-form">
+                <label class="field">
+                    <span class="label">케이스 선택</span>
+                    <select id="caseSelect"></select>
+                </label>
+
+                <label class="field">
+                    <span class="label">상담 메모</span>
+                    <textarea id="memo" rows="5" placeholder="상담 관련 메모를 입력하세요."></textarea>
+                </label>
+
+                <label class="field">
+                    <span class="label">상담료(원)</span>
+                    <input type="number" id="fee" min="0" step="1000" placeholder="예) 50000" />
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary">작성 저장</button>
+                </div>
+            </form>
+        </article>
+    </section>
+
+    <section class="cta-wrap">
+        <a class="btn btn--accent"
+           th:href="@{/mypage/expert/mainpage(expertId=${expertId})}"
+           id="reqBtn"
+           role="button">상담 신청 확인</a>
+        <button type="button" class="btn btn--accent" id="scheduleBtn">상담 일정 확인하기</button>
+        <button type="button" class="btn btn--accent btn--danger" id="withdrawBtn">회원탈퇴</button>
+    </section>
+</main>
+
+<script th:src="@{/js/expert/expert_mypage.js}"></script>
 </body>
 </html>
