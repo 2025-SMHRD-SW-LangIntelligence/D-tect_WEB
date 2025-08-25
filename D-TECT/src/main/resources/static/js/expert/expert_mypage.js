@@ -23,6 +23,8 @@ initProfileEditPopup('#editToggleBtn', {
   specialtyOptions: window.__SPECIALTIES__ || [], // [{code,label}] 서버에서 내려준 옵션
   // specialtyInputType: 'radio'  // 라디오가 필요할 때만 지정, 기본은 체크박스
 });
+// 내 memIdx 읽기
+const myMemIdx = Number(document.body.dataset.memIdx || 0);
 
 // ===== 유틸 =====
 function fmt(ts) {
@@ -57,9 +59,10 @@ function rowTemplate(item) {
   const statusEnum  = String(item.status || '').toUpperCase();
   const sKor        = statusKorean(statusEnum);
   const enabled     = chatEnabledByStatus(statusEnum);
-  const chatUrl     = item.chatUrl || (item.matchingIdx ? `/chat/room/${item.matchingIdx}` : '#');
+  // ✔ 채팅방 링크에 me=expert & mem=<내memIdx> 부여
+  const chatUrl     = item.chatUrl || `/chat/room/${item.matchingIdx}?me=expert&mem=${myMemIdx}`;
 
-  return `
+    return `
     <li class="list-row" role="row">
       <div class="col">${requestedAt}</div>
       <div class="col">${customer}</div>

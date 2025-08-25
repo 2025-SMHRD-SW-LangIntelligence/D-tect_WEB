@@ -1,4 +1,3 @@
-// src/main/java/com/smhrd/dtect/service/FileService.java
 package com.smhrd.dtect.service;
 
 import jakarta.annotation.PostConstruct;
@@ -33,33 +32,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FileService {
 
-    // ======= 기존(매칭 업로드)에서 쓰는 저장소들 - 그대로 유지 =======
     private final UploadRepository uploadRepository;
     private final UploadFileRepository uploadFileRepository;
     private final MatchingRepository matchingRepository;
-
-    // ======= (선택) 파일시스템 저장 유지 시 경로 =======
-    @Value("${file.upload-dir}")
-    private String uploadDir;
-
-    // 필요시 유지(다른 곳에서 경로 저장을 계속 쓸 때)
-    public String saveFileToServer(MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) return null;
-        File dir = new File(uploadDir);
-        if (!dir.exists() && !dir.mkdirs()) {
-            throw new IOException("업로드 디렉토리를 생성할 수 없습니다: " + uploadDir);
-        }
-        String savedFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        File dest = new File(dir, savedFileName);
-        file.transferTo(dest);
-        return savedFileName;
-    }
 
     // ======= AES 키 준비 =======
     @Value("${app.aes.secret}")
     private String aesSecret;
 
-    private byte[] aesKey; // 32 bytes
+    private byte[] aesKey;
 
     @PostConstruct
     void initKey() throws Exception {
@@ -82,7 +63,6 @@ public class FileService {
         return decryptAesCbcPkcs5(cipher, aesKey, iv);
     }
 
-    // ======= (기존) 매칭 기준 업로드들 - 유지 =======
 
     // 전문가 인증서 파일 업로드
     public static class EncodedFile {

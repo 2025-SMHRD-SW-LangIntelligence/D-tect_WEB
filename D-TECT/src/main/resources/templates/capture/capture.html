@@ -1,65 +1,76 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>화면 캡처</title>
-    <link rel="stylesheet" th:href="@{/css/capture/tabshot.css}" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>화면 캡처</title>
+<link rel="stylesheet" th:href="@{/css/capture/tabshot.css}" />
 </head>
 <body>
-<div class="wrap">
-    <header>
-        <div>
-            <div class="ttl">화면 캡처</div>
-            <div class="hint">브라우저 선택 UI로 화면/창/탭을 고른 뒤, 설정한 주기로 스크린샷을 저장합니다.</div>
-        </div>
-        <div class="status" id="statusWrap">
-            <span id="statusDot" class="dot idle"></span>
-            <span id="statusText">대기</span>
-            <!-- 최소화/가림 상태 배지는 JS에서 동적 삽입(minBadge) -->
-        </div>
-    </header>
+	<div class="wrap">
+		<header>
+			<div>
+				<div class="ttl">화면 캡처</div>
+				<div class="hint">브라우저 선택 UI로 화면/창/탭을 고른 뒤, 설정한 주기로 스크린샷을
+					저장합니다.</div>
+			</div>
+			<div class="status" id="statusWrap">
+				<span id="statusDot" class="dot idle"></span> <span id="statusText">대기</span>
+				<!-- 최소화/가림 상태 배지는 JS에서 동적 삽입(minBadge) -->
+			</div>
+		</header>
 
-    <div class="card">
-        <div class="row">
-            <button class="btn" id="reselectBtn" type="button" title="대상 다시 선택">대상 선택</button>
-            <button class="btn" id="resetBtn" type="button" title="스트림/타이머 전체 재시작">강제 리셋</button>
-            <span class="badge">미리보기 활성</span>
+		<div class="card">
+			<div class="row">
+				<button class="btn" id="reselectBtn" type="button" title="대상 다시 선택">대상
+					선택</button>
+				<button class="btn" id="resetBtn" type="button"
+					title="스트림/타이머 전체 재시작">강제 리셋</button>
+				<span class="badge">미리보기 활성</span>
 
-            <div class="spacer"></div>
+				<div class="spacer"></div>
 
-            <div class="interval-panel" role="group" aria-label="캐پ처 주기 설정">
-                <label for="intervalSec">주기</label>
-                <div class="interval-box">
-                    <input id="intervalSec" type="range" min="1" max="60" step="1" value="5" aria-label="주기 슬라이더">
-                    <input id="intervalNum" class="num" type="number" min="1" max="60" value="5"
-                           inputmode="numeric" pattern="[0-9]*" aria-label="주기(초)">
-                    <span class="unit">초</span>
-                </div>
-            </div>
+				<div class="interval-panel" role="group" aria-label="캐پ처 주기 설정">
+					<label for="intervalSec">주기</label>
+					<div class="interval-box">
+						<input id="intervalSec" type="range" min="1" max="60" step="1"
+							value="5" aria-label="주기 슬라이더"> <input id="intervalNum"
+							class="num" type="number" min="1" max="60" value="5"
+							inputmode="numeric" pattern="[0-9]*" aria-label="주기(초)">
+						<span class="unit">초</span>
+					</div>					
+				</div>
 
-            <label for="prefix" class="sr-only">파일명 접두사</label>
-            <input id="prefix" class="text" type="text" placeholder="capture_" value="capture_" title="파일명 접두사" />
+				<label for="prefix" class="sr-only">파일명 접두사</label> <input
+					id="prefix" class="text" type="text" placeholder="capture_"
+					value="capture_" title="파일명 접두사" />
 
-            <!-- 시작/중지  -->
-            <div class="btn-row">
-                <button class="btn primary" id="startBtn" type="button">캡처 시작</button>
-                <button class="btn" id="stopBtn" type="button" disabled>중지</button>
-            </div>
-        </div>
+				<!-- 시작/중지  -->
+				<div class="btn-row">
+					<button class="btn primary" id="startBtn" type="button">캡처
+						시작</button>
+					<button class="btn" id="stopBtn" type="button" disabled>중지</button>
+				</div>
+			</div>
 
-        <div class="row" style="margin-top:12px">
-            <div class="pane">
-                <div class="hint">현재 선택 미리보기</div>
-                <video id="video" autoplay muted playsinline></video>
-                <canvas id="canvas" style="display:none"></canvas>
-            </div>
-        </div>
+			<div class="row" style="margin-top: 12px">
+				<div class="pane">
+					<div class="hint">현재 선택 미리보기</div>
+					<video id="video" autoplay muted playsinline></video>
+					<canvas id="canvas" style="display: none"></canvas>
+				</div>				
+			</div>
 
-        <div class="log" id="log" role="log" aria-live="polite"></div>
-    </div>
-</div>
+			<div class="log" id="log" role="log" aria-live="polite"></div>
+			<!-- 분석결과로 이동 CTA -->
+					<div class="cta-wrap">
+						<!-- data-href 로 이동 경로 원하는 곳으로 바꾸세요 -->
+						<button id="gotoResultBtn" class="cta-btn" data-href="/analysis">
+							분석결과 보러가기</button>
+					</div>
+		</div>		
+	</div>
 
-<script type="module" th:src="@{/js/capture/tabshot.js}"></script>
+	<script type="module" th:src="@{/js/capture/tabshot.js}"></script>
 </body>
 </html>

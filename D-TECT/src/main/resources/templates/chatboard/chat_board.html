@@ -6,10 +6,9 @@
     <title>D-tect | 1:1 채팅 게시판</title>
     <link rel="stylesheet" th:href="@{/css/chatboard/chat_board.css}" />
 </head>
-
 <body class="chat-page">
 <main class="wrap">
-    <!-- 메시지 영역 + 첨부목록 2열 -->
+    <!-- 메시지 패널 -->
     <section class="pane pane--messages">
         <header class="pane__head">
             <div class="status">
@@ -19,7 +18,6 @@
         </header>
 
         <div id="messageList" class="messages" aria-live="polite" aria-busy="false"></div>
-
         <button id="jumpNew" class="jump" hidden>새 글 보기</button>
 
         <footer class="composer">
@@ -28,9 +26,11 @@
         </footer>
     </section>
 
+    <!-- 첨부파일 패널 -->
     <aside class="pane pane--files">
-        <header class="files__head">첨부파일 목록
-            <input id="fileInput" type="file" hidden />
+        <header class="files__head">
+            첨부파일 목록
+            <input id="fileInput" type="file" hidden multiple />
             <button id="uploadBtn" class="mini">추가</button>
         </header>
         <ul id="fileList" class="files" role="list"></ul>
