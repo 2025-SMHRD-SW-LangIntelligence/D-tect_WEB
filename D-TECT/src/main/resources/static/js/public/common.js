@@ -530,7 +530,6 @@ export function setupLogout(trigger, opts = {}) {
 	});
 }
 
-
 // === 세션 스토리지 유틸 ===
 export function saveDraft(key, obj) { sessionStorage.setItem(key, JSON.stringify(obj)); }
 export function loadDraft(key) { try { return JSON.parse(sessionStorage.getItem(key) || '{}'); } catch { return {}; } }

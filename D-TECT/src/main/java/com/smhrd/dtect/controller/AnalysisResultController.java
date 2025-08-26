@@ -6,8 +6,10 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -19,6 +21,7 @@ public class AnalysisResultController {
 	@Autowired
 	AnalysisResultService analysisResultService;
 	
+	@PostMapping("/analysis")
 	public void reportWrite(@RequestParam Map<String, String> result, Model model) {
 		
 		Map<String, Object> jsondata = new HashMap<>();
@@ -27,7 +30,7 @@ public class AnalysisResultController {
 		
 		try {
 			
-			String url = "";
+			String url = "http://127.0.0.1:8001/get_analyzed_data";
 			
 			WebClient webClient = WebClient.builder()
 					.baseUrl(url)
