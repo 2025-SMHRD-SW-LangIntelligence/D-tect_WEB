@@ -12,6 +12,8 @@
 <script
 	src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
 	defer></script>
+
+
 </head>
 
 <body
@@ -92,6 +94,46 @@
     </section>
 </main>
 
+	<!-- Toss Payments widget -->
+	<script src="https://js.tosspayments.com/v2/standard" defer></script>
+
+	<!-- 결제 대기 청구서 섹션 -->
+	<section id="invoiceSection" class="inv-wrap">
+		<div class="inv-head">
+			<h2>결제 대기 청구서</h2>
+			<button id="reloadInvoices" class="btn btn--ghost">새로고침</button>
+		</div>
+		<ul id="invoiceList" class="inv-list"></ul>
+		<div id="invoiceEmpty" class="inv-empty" hidden>결제 대기 중인 청구서가 없습니다.</div>
+	</section>
+
+	<!-- 결제 모달 -->
+	<div id="payModal" class="pay-modal" hidden>
+		<div class="pay-dialog">
+			<header class="pay-header">
+				<h3 id="pmTitle">청구서 결제</h3>
+				<button class="pay-close" id="pmClose" aria-label="닫기">×</button>
+			</header>
+			<div class="pay-body">
+				<div class="pm-info">
+					<div><span class="pm-label">제목</span><span id="pmInvoiceTitle"></span></div>
+					<div><span class="pm-label">금액</span><span id="pmAmount"></span></div>
+					<div><span class="pm-label">발행일</span><span id="pmIssuedAt"></span></div>
+				</div>
+				<div class="tp-box">
+					<div id="tp-methods"></div>
+					<div id="tp-agree" class="tp-agree"></div>
+				</div>
+			</div>
+			<footer class="pay-footer">
+				<button id="pmPayBtn" class="btn btn--primary">결제하기</button>
+				<button id="pmCancelBtn" class="btn">닫기</button>
+			</footer>
+		</div>
+	</div>
+
+	<script th:src="@{/js/pay/user-invoices.js?v=1}" defer></script>
 	<script type="module" th:src="@{/js/user/user_mypage.js}"></script>
 </body>
 </html>
+

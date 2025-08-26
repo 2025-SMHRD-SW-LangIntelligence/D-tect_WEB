@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>결제 성공</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Arial; margin:0; padding:24px; background:#f7f7f7; color:#111;}
+    .card{max-width:720px; margin:0 auto; background:#fff; border:1px solid #eee; border-radius:14px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,.06);}
+    .title{margin:0 0 12px; font-size:1.3rem; font-weight:800;}
+    .row{margin:6px 0;}
+    .label{display:inline-block; width:120px; color:#666;}
+    .cta{margin-top:16px; display:flex; gap:8px}
+    .btn{display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fff; cursor:pointer; text-decoration:none; color:#111;}
+    .btn--primary{background:#ffd400; border-color:#ffd400; font-weight:800;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1 class="title">결제가 완료되었습니다.</h1>
+
+  <div class="row"><span class="label">주문번호</span><span th:text="${res.orderId}">orderId</span></div>
+  <div class="row"><span class="label">결제키</span><span th:text="${res.paymentKey}">paymentKey</span></div>
+  <div class="row"><span class="label">결제금액</span><span th:text="${#numbers.formatInteger(amount, 0, 'COMMA')} + '원'">0원</span></div>
+  <div class="row"><span class="label">승인시각</span><span th:text="${res.approvedAt}">approvedAt</span></div>
+  <div class="row"><span class="label">수단</span><span th:text="${res.method}">CARD</span></div>
+  <div class="row" th:if="${res.receiptUrl}">
+    <span class="label">영수증</span>
+    <a th:href="${res.receiptUrl}" target="_blank" rel="noopener">열기</a>
+  </div>
+
+  <div class="cta">
+    <a class="btn btn--primary" href="/mypage/user">마이페이지로</a>
+    <a class="btn" href="/">홈으로</a>
+  </div>
+</div>
+</body>
+</html>
