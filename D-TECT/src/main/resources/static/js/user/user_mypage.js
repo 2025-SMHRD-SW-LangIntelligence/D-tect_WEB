@@ -150,8 +150,13 @@ import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
   setupLogout('#logoutBtn', { redirect: '/' });
   setupLogout(document.querySelectorAll('.logout-link'), { allowGetFallback: true });
 
-  document.getElementById('reserveBtn')?.addEventListener('click', () => {
-    alert('상담 일정 예약하기로 이동');
+  document.getElementById('reserveBtn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!userId) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    window.location.href = `/matching/select?userId=${encodeURIComponent(userId)}`;
   });
 
   document.getElementById('withdrawBtn')?.addEventListener('click', () => {
