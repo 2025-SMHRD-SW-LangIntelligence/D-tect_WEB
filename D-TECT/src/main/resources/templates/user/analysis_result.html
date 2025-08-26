@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D-tect | 분석 결과</title>
+
+    <!-- 페이지 전용 CSS -->
+    <link rel="stylesheet" th:href="@{/css/analysis_result.css}" />
+
+    <!-- 차트 & PDF (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+
+<body th:attr="data-user-id=${userId != null ? userId : 0}">
+    <!-- 헤더 -->
+    <header class="topbar">
+        <div class="left">
+            <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
+            <h1 class="page-title">분석 결과</h1>
+        </div>
+    </header>
+
+    <!-- 본문 -->
+    <main class="container">
+
+        <!-- 결과 카드(차트) -->
+        <section class="card result-card">
+            <div class="chart-head">모델 분석 결과</div>
+            <canvas id="radar" width="520" height="380" aria-label="욕설 카테고리 레이더 차트"></canvas>
+            <div class="legend">
+                <span class="key red"></span> 검출 비율(%) &nbsp;|&nbsp;
+                <span class="key gray"></span> 기준축
+            </div>
+        </section>
+
+        <!-- 액션 타일 -->
+        <section class="tiles">
+            <!-- 챗봇 -->
+            <a class="tile" th:href="@{/chat}" aria-label="챗봇 열기">
+                <img th:src="@{/images/chatAI.png}" alt="챗봇">
+                <span class="tile-caption">챗봇</span>
+            </a>
+
+            <!-- PDF 다운로드 -->
+            <button type="button" class="tile tile-btn" id="btnPdf" aria-label="PDF 다운로드">
+                <img th:src="@{/images/PDFimage.jfif}" alt="PDF 다운로드">
+                <span class="tile-caption">PDF 다운로드</span>
+            </button>
+
+            <!-- 전문가와 상담하기 -->
+            <a class="tile" id="btnConsult" th:if="${userId != null}" th:href="@{/matching/select(userId=${userId})}"
+                aria-label="전문가와 상담하기">
+                <img th:src="@{/images/lawyer.png}" alt="전문가와 상담하기">
+                <span class="tile-caption">전문가와 상담하기</span>
+            </a>
+
+            <!-- 마이페이지 -->
+            <a class="tile" th:href="@{/mypage}" aria-label="마이페이지">
+                <img th:src="@{/images/mypage.jfif}" alt="마이페이지">
+                <span class="tile-caption">마이페이지</span>
+            </a>
+        </section>
+    </main>
+
+    <!-- 페이지 전용 JS -->
+    <script th:src="@{/js/analysis_result.js}"></script>
+</body>
+
+</html>
