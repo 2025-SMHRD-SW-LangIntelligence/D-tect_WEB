@@ -107,11 +107,11 @@ public class PageController {
     	return "expert/expert_schedule";		// 전문가 회원 일정확인 페이지
     }
     
-//    @GetMapping(value = "/expertMyinfoPage")
-//    public String expertInfo() {
-//    	return "expert/expert_mainpage";			// 전문가 내 정보 페이지
-//    }
-//
+    @GetMapping(value = "/expertMyinfoPage")
+    public String expertInfo() {
+    	return "expert/expert_mainpage";			// 전문가 내 정보 페이지
+    }
+
     /* 관리자 페이지 */
 
     @GetMapping(value = "/adminMainPage")
@@ -135,7 +135,8 @@ public class PageController {
 
     @GetMapping("/chat/room/{matchingId}")
     public String chatRoom(@PathVariable Long matchingId) {
-        return "chatboard/chat_board";
+        return "chatboard/chat_board";			// 일반/전문가 간의 채팅방 페이지
     }
+    
 
 }
