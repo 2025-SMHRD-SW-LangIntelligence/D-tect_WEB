@@ -18,19 +18,13 @@ import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
 
   // ===== 사유 코드 → 한글 라벨 =====
   const REASON_LABELS = {
-    VIOLENCE:   "폭력",
-    DEFAMATION: "명예훼손",
-    STALKING:   "스토킹",
-    SEXUAL:     "성범죄",
-    LEAK:       "정보유출",
-    BULLYING:   "따돌림·집단괴롭힘",
-    CHANTAGE:   "협박·갈취",
-    EXTORTION:  "공갈·갈취",
+    VIOLENCE:"폭력", DEFAMATION:"명예훼손", STALKING:"스토킹", SEXUAL:"성범죄",
+    LEAK:"정보유출", BULLYING:"따돌림·집단괴롭힘", CHANTAGE:"협박·갈취", EXTORTION:"공갈·갈취",
   };
   const mapReason = (val) => {
     if (!val) return "—";
     const key = String(val).trim().toUpperCase();
-    return REASON_LABELS[key] || val; // 이미 한글 라벨이면 그대로 노출
+    return REASON_LABELS[key] || val;
   };
 
   // ===== 유틸 =====
@@ -56,28 +50,25 @@ import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
 
   const badgeClassKor = k =>
       (k==='승인'||k==='완료') ? 'badge badge--ok'
-        : (k==='반려'||k==='취소') ? 'badge badge--danger'
-          : 'badge badge--warn';
+          : (k==='반려'||k==='취소') ? 'badge badge--danger'
+              : 'badge badge--warn';
 
   function rowTemplate(item){
     const requestedAt = item.requestedAt ? fmt(item.requestedAt) : '—';
     const matchedAt   = item.matchedAt  ? fmt(item.matchedAt)  : '—';
     const lawyerName  = (item.lawyerName||'').trim() || '—';
 
-    // 서버가 넘겨주는 라벨/코드/문자열을 모두 대응
     const reasonRaw = item.reasonLabel || item.requestReason || '';
     const reason    = mapReason(reasonRaw);
 
-    // 상태/채팅
     const statusEnum  = String(item.status||'').toUpperCase();
     const sKor        = statusKorean(statusEnum);
     const chatEnabled = (statusEnum==='APPROVED' || statusEnum==='COMPLETED') && !!item.matchingIdx;
 
-    // 채팅 링크: me=user & mem=<내 memIdx> 부여 (필요 시 서버 기본 URL 사용)
     const baseChatUrl = item.chatUrl || (item.matchingIdx ? `/chat/room/${item.matchingIdx}` : '#');
     const chatUrl     = item.matchingIdx
-      ? `${baseChatUrl}${baseChatUrl.includes('?') ? '&' : '?'}me=user&mem=${myMemIdx}`
-      : '#';
+        ? `${baseChatUrl}${baseChatUrl.includes('?') ? '&' : '?'}me=user&mem=${myMemIdx}`
+        : '#';
 
     return `
       <li class="list-row" role="row">
