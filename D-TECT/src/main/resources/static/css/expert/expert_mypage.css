@@ -1,22 +1,10 @@
-:root{
-    --bg:#f6f6f6;
-    --ink:#1b1b1b;
-    --muted:#6a6a6a;
-    --panel:#2f2f2f;
-    --border:#3c3c3c;
-    --brand:#ffd400;
-    --brand-ink:#111;
-    --radius:14px;
-    --radius-lg:18px;
-}
+:root{ --bg:#f6f6f6; --ink:#1b1b1b; --muted:#6a6a6a; --panel:#2f2f2f; --border:#3c3c3c; --brand:#ffd400; --brand-ink:#111; --radius:14px; --radius-lg:18px; }
 
 /* Base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
+    margin:0; background:var(--bg); color:var(--ink);
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Arial,Helvetica,sans-serif;
 }
 
@@ -69,31 +57,30 @@ body{
 .help{opacity:.7; font-size:.82rem}
 .form-actions{display:flex; gap:8px; margin-top:16px}
 
-/* ✅ 전문분야 칩 */
+/* 전문분야 칩 */
 .tag-wrap{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
 .tag{
-    display:inline-flex; align-items:center;
-    padding:6px 10px; border-radius:999px; font-size:.9rem; font-weight:700;
+    display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; font-size:.9rem; font-weight:700;
     border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.10); color:#fff;
 }
 .card:not(.card--dark) .tag{background:#f2f2f2; border-color:#e4e4e4; color:#111}
 .tag--empty{border-style:dashed; background:transparent; color:#cfcfcf}
 
-/* 신청현황: 6열(채팅방 포함) */
+/* 신청현황: 6열 */
 .list{
-    --col1:140px; /* 신청일   */
-    --col2:150px; /* 고객명   */
-    --col3:140px; /* 분류     */
-    --col4:140px; /* 매칭일   */
+    --col1:140px; /* 신청일 */
+    --col2:150px; /* 고객명 */
+    --col3:140px; /* 분류 */
+    --col4:140px; /* 매칭일 */
     --col5:160px; /* 매칭여부 */
-    --col6:160px; /* 채팅방   */
+    --col6:220px; /* 채팅/청구 */
 }
 .list-scroll{
     border:1.5px solid #dcdcdc; border-radius:12px; overflow:auto; max-height:320px; background:#fff; position:relative;
 }
 .list-grid, .list-row{
     display:grid;
-    grid-template-columns: var(--col1,140px) var(--col2,150px) var(--col3,140px) var(--col4,140px) minmax(var(--col5,160px),1fr) var(--col6,160px);
+    grid-template-columns: var(--col1,140px) var(--col2,150px) var(--col3,140px) var(--col4,140px) minmax(var(--col5,160px),1fr) var(--col6,220px);
     gap:12px; align-items:center;
 }
 .list-head{
@@ -101,25 +88,71 @@ body{
     padding:12px; font-weight:800; border-top-left-radius:12px; border-top-right-radius:12px;
 }
 .list-body{list-style:none; margin:0; padding:0}
-.list-row{padding:12px; border-top:1px solid #eee; background:#fff}
+.list-row{padding:12px; border-top:1px solid #eee; background:#fff; position:relative; overflow:visible}
 
-/* ✅ 한 줄 고정 */
+/* 한 줄 고정 */
 .list-head .col, .list-row .col{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
+/* 채팅/청구 버튼 */
+.chat-btn, .invoice-btn{
+    border:none; cursor:pointer; font-weight:800; border-radius:999px; padding: 6px 12px; box-shadow:inset 0 0 0 2px #00000020;
+}
+.chat-btn{ background:var(--brand); color:var(--brand-ink); }
+.chat-btn[disabled]{ background:#efefef; color:#888; cursor:not-allowed; box-shadow:none; }
+.invoice-btn{ background:#111; color:#fff; margin-left:8px; }
+.invoice-btn[disabled]{ background:#bbb; color:#fff; cursor:not-allowed; box-shadow:none; }
+
+/* 상태 배지 */
 .badge{display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; border-radius:999px; font-weight:700; white-space:nowrap}
 .badge--ok{background:#e8ffd1}
 .badge--warn{background:#fff5c7}
 .badge--danger{background:#ffe2e0}
 
+/* 상태 드롭다운 (원 위치 기본 스타일) */
+.status-wrap{ position:relative; display:inline-block; z-index:2 }
+.status-btn.badge{ cursor:pointer; padding-right:22px; }
+.status-btn .caret{ margin-left:6px; font-weight:900; }
+.status-menu{
+    position:absolute; top:110%; left:0; background:#fff; border:1px solid #e5e5e5; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.14);
+    min-width:120px; padding:6px; z-index:50;
+}
+.status-option{ width:100%; text-align:left; border:none; background:transparent; padding:8px 10px; border-radius:8px; font-weight:700; cursor:pointer; }
+.status-option:hover{ background:#f5f5f5; }
+.status-empty{ padding:10px; color:#777; font-size:.9rem; }
+
+/* 드롭다운 잘림 방지(5열만 overflow visible) */
+.list-head .col:nth-child(5), .list-row .col:nth-child(5){ overflow: visible; }
+
+/* 포탈로 띄우는 메뉴(옆으로 뜸) */
+.status-menu-portal{
+    position:fixed !important; z-index:9999; background:#fff; border:1px solid #e5e5e5; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.14);
+    min-width:140px; padding:6px;
+}
+
+/* 페이지네이션 */
 .list-foot{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px}
 .page-info{min-width:60px; text-align:center}
 
 /* Responsive */
 @media (min-width:1200px){
-    .list{ --col1:160px; --col2:180px; --col3:160px; --col4:160px; --col5:220px; --col6:200px; }
+    .list{ --col1:160px; --col2:180px; --col3:160px; --col4:160px; --col5:220px; --col6:240px; }
 }
 @media (max-width:900px){
     .grid{grid-template-columns:1fr}
     .align-right{grid-column:auto}
     .cta-wrap{grid-template-columns:1fr}
 }
+
+/* ======= 청구서 모달(범위 한정) ======= */
+#invoiceModal{ position:fixed; inset:0; display:none; z-index:1000; }
+#invoiceModal[aria-hidden="false"]{ display:block; }
+#invoiceModal .modal__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
+#invoiceModal .modal__panel{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(560px, 92vw); max-height:86vh; overflow:auto; background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid #e9e9e9; }
+#invoiceModal .modal__head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #eee; }
+#invoiceModal .modal__close{ background:none; border:none; font-size:20px; cursor:pointer; }
+#invoiceModal .modal__body{ padding:16px 18px; }
+#invoiceModal .modal__body .field{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+#invoiceModal .modal__body .label{ font-size:.9rem; opacity:.9; }
+#invoiceModal .modal__body input, #invoiceModal .modal__body textarea{ border:1.2px solid #d2d2d2; border-radius:10px; padding:10px 12px; outline:none; }
+#invoiceModal .modal__actions{ display:flex; justify-content:flex-end; gap:10px; padding:12px 18px 18px; }
+#invoiceModal .modal__result{ padding:18px; }

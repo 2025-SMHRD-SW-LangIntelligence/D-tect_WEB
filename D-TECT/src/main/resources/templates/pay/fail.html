@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>D-tect | 결제 실패</title>
+
+    <!-- Toss 스타일 -->
+    <link rel="icon" href="https://static.toss.im/icons/png/4x/icon-toss-logo.png"/>
+    <link rel="stylesheet" th:href="@{/css/toss/style.css}"/>
+
+    <style>
+        .box_section{ width:600px; margin:40px auto; }
+    </style>
+</head>
+<body>
+<div class="box_section">
+    <img width="100" src="https://static.toss.im/lotties/error-spot-no-loop-space-apng.png" alt="fail"/>
+    <h2 class="title">결제를 실패했어요</h2>
+
+    <div class="p-grid typography--p" style="margin-top:40px">
+        <div class="p-grid-col text--left"><b>에러메시지</b></div>
+        <div class="p-grid-col text--right" th:text="${message} ?: '—'">—</div>
+    </div>
+    <div class="p-grid typography--p" style="margin-top:10px">
+        <div class="p-grid-col text--left"><b>에러코드</b></div>
+        <div class="p-grid-col text--right" th:text="${code} ?: '—'">—</div>
+    </div>
+
+    <div class="p-grid" style="margin-top:30px">
+        <button class="button p-grid-col5" onclick="location.href='/mypage/user'">마이페이지로</button>
+        <button class="button p-grid-col5" onclick="location.href='/'" style="background:#e8f3ff;color:#1b64da">홈으로</button>
+    </div>
+</div>
+</body>
+</html>

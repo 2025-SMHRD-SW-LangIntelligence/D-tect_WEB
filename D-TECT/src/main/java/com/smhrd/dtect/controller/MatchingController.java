@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -105,16 +106,30 @@ public class MatchingController {
 
     @PostMapping(value = "/api/matching/{matchingId}/approve", produces = "application/json")
     @ResponseBody
-    public java.util.Map<String, Object> approveApi(@PathVariable Long matchingId) {
+    public Map<String, Object> approveApi(@PathVariable Long matchingId) {
         matchingService.approve(matchingId);
-        return java.util.Map.of("ok", true, "id", matchingId, "status", MatchingStatus.APPROVED.name());
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.APPROVED.name());
     }
 
     @PostMapping(value = "/api/matching/{matchingId}/reject", produces = "application/json")
     @ResponseBody
-    public java.util.Map<String, Object> rejectApi(@PathVariable Long matchingId) {
+    public Map<String, Object> rejectApi(@PathVariable Long matchingId) {
         matchingService.reject(matchingId);
-        return java.util.Map.of("ok", true, "id", matchingId, "status", MatchingStatus.REJECTED.name());
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.REJECTED.name());
+    }
+
+    @PostMapping(value = "/api/matching/{matchingId}/complete", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> completeApi(@PathVariable Long matchingId) {
+        matchingService.complete(matchingId);
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.COMPLETED.name());
+    }
+
+    @PostMapping(value = "/api/matching/{matchingId}/cancel", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> cancelApi(@PathVariable Long matchingId) {
+        matchingService.cancel(matchingId);
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.CANCELED.name());
     }
 
     @GetMapping(value = "/api/users/{userId}/ongoing-experts", produces = "application/json")
@@ -124,6 +139,22 @@ public class MatchingController {
                 userId,
                 List.of(MatchingStatus.PENDING, MatchingStatus.APPROVED)
         );
+    }
+
+    @PatchMapping(value="/api/matching/{matchingId}/status", consumes="application/json", produces="application/json")
+    @ResponseBody
+    public Map<String,Object> updateStatus(@PathVariable Long matchingId, @RequestBody Map<String,String> body){
+        String to = String.valueOf(body.get("status")).toUpperCase();
+        if ("PENDING".equals(to)) throw new IllegalArgumentException("PENDING 으로 변경할 수 없습니다.");
+
+        switch (to){
+            case "APPROVED" -> matchingService.approve(matchingId);
+            case "REJECTED" -> matchingService.reject(matchingId);
+            case "COMPLETED"-> matchingService.complete(matchingId);
+            case "CANCELED" -> matchingService.cancel(matchingId);
+            default -> throw new IllegalArgumentException("알 수 없는 상태: "+to);
+        }
+        return Map.of("ok", true, "id", matchingId, "status", to);
     }
 
     private static final List<ConsultType> CONSULT_TYPES = List.of(
