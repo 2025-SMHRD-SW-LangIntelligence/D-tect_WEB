@@ -45,9 +45,11 @@ import { initProfileEditPopup } from '/js/public/common.js';
   function statusKorean(s){
     switch(String(s||'').toUpperCase()){
       case 'APPROVED': return '승인';
+      case 'PENDING':  return '대기';
       case 'REJECTED': return '반려';
       case 'COMPLETED':return '완료';
       case 'CANCELED': return '취소';
+      case 'PAID':     return '결제완료';
       default:         return '대기';
     }
   }
