@@ -68,4 +68,12 @@ public interface MatchingRepository extends JpaRepository<Matching, Long> {
 """)
     List<Long> findOngoingExpertIds(@Param("userId") Long userId,
                                     @Param("statuses") Collection<MatchingStatus> statuses);
+    
+    @Query("select m.matchingIdx from Matching m where m.user.userIdx = :userId")
+    List<Long> findIdsByUserId(@Param("userId") Long userId);
+
+    @Query("select m.matchingIdx from Matching m where m.expert.expertIdx = :expertId")
+    List<Long> findIdsByExpertId(@Param("expertId") Long expertId);
+
+    void deleteAllByIdInBatch(Iterable<Long> ids);
 }

@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
     List<Analysis> findByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
     Optional<Analysis> findByAnalIdxAndUser_UserIdx(Long analIdx, Long userIdx);
+    
+    void deleteByUser_UserIdx(Long userIdx);
 }

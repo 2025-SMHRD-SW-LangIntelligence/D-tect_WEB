@@ -1,4 +1,4 @@
-import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
+import { initProfileEditPopup, setupLogout, setupWithdraw } from '/js/public/common.js';
 
 (function () {
   // ---------- 신청현황/페이징 ----------
@@ -98,7 +98,7 @@ import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
     const total=items.length, totalPages=Math.max(1, Math.ceil(total/PAGE_SIZE));
     page=Math.min(Math.max(1,page), totalPages);
     pageInfo.textContent=`${page} / ${totalPages}`;
-
+    
     const start=(page-1)*PAGE_SIZE, slice=items.slice(start,start+PAGE_SIZE);
 
     if(slice.length===0){
@@ -150,11 +150,12 @@ import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
     window.location.href = `/matching/select?userId=${encodeURIComponent(userId)}`;
   });
 
-  document.getElementById('withdrawBtn')?.addEventListener('click', () => {
-    if (confirm('정말로 회원을 탈퇴하시겠습니까?')) {
-      alert('탈퇴 처리');
-    }
-  });
+  // 회원 탈퇴
+  setupWithdraw('#withdrawBtn', {
+	askEraseData: true,     // 전체 데이터 삭제 여부 묻기
+	eraseDefault: true,     // 기본값: 삭제
+	// askReason: true,      // 사유 받으려면 주석 해제
+});
 
   document.getElementById('historyBtn')?.addEventListener('click', (e) => {
     e.preventDefault();

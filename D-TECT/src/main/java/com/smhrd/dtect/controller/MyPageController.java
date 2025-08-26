@@ -10,6 +10,9 @@ import com.smhrd.dtect.service.MatchingService;
 import com.smhrd.dtect.service.MyPageService;
 import com.smhrd.dtect.service.PrincipalIdService;
 import com.smhrd.dtect.service.UserService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -155,5 +159,26 @@ public class MyPageController {
         }
         return myPageService.updateMe(principal.getMember().getMemIdx(), req);
     }
+    
+ // com/smhrd/dtect/controller/MyPageController.java
+    @DeleteMapping("/api/me")
+    @ResponseBody
+    @Transactional
+    public Map<String, Object> withdrawMe(@AuthenticationPrincipal CustomUser principal,
+                                          @RequestBody WithdrawRequest req,
+                                          HttpServletRequest request,
+                                          HttpServletResponse response) {
+        if (principal == null || principal.getMember() == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
+        myPageService.withdraw(principal.getMember().getMemIdx(), req);
+
+        // ✅ 세션 즉시 무효화(프론트 리다이렉트 전에)
+        new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler()
+                .logout(request, response, null);
+
+        return Map.of("ok", true, "redirect", "/");
+    }
+
 
 }

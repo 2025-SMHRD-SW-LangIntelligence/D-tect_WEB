@@ -85,9 +85,14 @@ public class PageController {
     	return "user/analysis_history";			// 기본 회원 분석 이력 페이지
     }
     
-    @GetMapping(value = "userChatbotPage")
+    @GetMapping(value = "/userChatboardPage")
+    public String chatboard() {
+    	return "";								// 기본 회원 채팅창 페이지
+    }
+    
+    @GetMapping(value = "/userChatbotPage")
     public String chatbot() {
-    	return "";								// 기본 회원 챗봇 페이지
+    	return "user/bot";
     }
     
     @GetMapping(value = "/userMyinfoPage")

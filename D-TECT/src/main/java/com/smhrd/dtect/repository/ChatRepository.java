@@ -1,10 +1,13 @@
 package com.smhrd.dtect.repository;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.smhrd.dtect.entity.Chat;
 
@@ -26,4 +29,8 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 //    List<Chat> findAllMessages(Long userIdx, Long expertIdx);
 
     List<Chat> findByMatching_MatchingIdxOrderByChatedAtAsc(Long matchingIdx);
+    
+    @Modifying
+    @Query("delete from Chat c where c.matching.matchingIdx in :ids")
+    void deleteByMatchingIds(@Param("ids") Collection<Long> ids);
 }
