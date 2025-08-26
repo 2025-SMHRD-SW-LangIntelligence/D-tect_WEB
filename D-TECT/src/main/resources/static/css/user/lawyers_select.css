@@ -326,3 +326,14 @@ body.lawyers-page {
     border:1px dashed #e6e6e6;
     cursor:not-allowed;
 }
+
+/* 카드 높이 균등 + 문의하기 버튼 하단 고정 */
+.grid { align-items: stretch; } /* 같은 행의 카드 높이를 동일하게 */
+
+.card{
+    display: grid;
+    grid-template-rows: 30px 1fr auto; /* 배너 / 본문(늘어남) / 푸터(고정) */
+}
+
+.card__banner{ height: 30px; } /* 배너 높이 고정 */
+.card__body{ min-height: 0; }  /* 내용이 길 때 오버플로우 방지 */

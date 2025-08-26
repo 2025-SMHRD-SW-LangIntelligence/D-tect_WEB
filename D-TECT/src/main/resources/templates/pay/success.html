@@ -3,36 +3,81 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>결제 성공</title>
+  <title>D-tect | 결제 성공</title>
+
+  <!-- Toss 스타일 -->
+  <link rel="icon" href="https://static.toss.im/icons/png/4x/icon-toss-logo.png"/>
+  <link rel="stylesheet" th:href="@{/css/toss/style.css}"/>
+
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Arial; margin:0; padding:24px; background:#f7f7f7; color:#111;}
-    .card{max-width:720px; margin:0 auto; background:#fff; border:1px solid #eee; border-radius:14px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,.06);}
-    .title{margin:0 0 12px; font-size:1.3rem; font-weight:800;}
-    .row{margin:6px 0;}
-    .label{display:inline-block; width:120px; color:#666;}
-    .cta{margin-top:16px; display:flex; gap:8px}
-    .btn{display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fff; cursor:pointer; text-decoration:none; color:#111;}
-    .btn--primary{background:#ffd400; border-color:#ffd400; font-weight:800;}
+    /* 카드 컨테이너 */
+    .box_section{ width:600px; margin:40px auto; }
+
+    /* 2열(라벨 120px / 값 1fr) 레이아웃 */
+    .p-grid{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      align-items:center;
+      gap:8px;
+    }
+    .p-grid-col{min-width:0}
+    .text--left{justify-self:start}
+    .text--right{justify-self:end}
+
+    /* 하단 버튼 2개를 동일 폭으로 */
+    .cta{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:30px}
+    .cta .button{width:100%} /* 같은 폭 강제 */
+
+    /* 모바일 대응 */
+    @media (max-width:680px){
+      .box_section{width:auto; margin:24px 16px}
+      .p-grid{grid-template-columns:1fr}
+      .text--right{justify-self:start; margin-top:4px}
+      .cta{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-<div class="card">
-  <h1 class="title">결제가 완료되었습니다.</h1>
+<div class="box_section">
+  <img width="100" src="https://static.toss.im/illusts/check-blue-spot-ending-frame.png" alt="success"/>
+  <h2 class="title">결제를 완료했어요</h2>
 
-  <div class="row"><span class="label">주문번호</span><span th:text="${res.orderId}">orderId</span></div>
-  <div class="row"><span class="label">결제키</span><span th:text="${res.paymentKey}">paymentKey</span></div>
-  <div class="row"><span class="label">결제금액</span><span th:text="${#numbers.formatInteger(amount, 0, 'COMMA')} + '원'">0원</span></div>
-  <div class="row"><span class="label">승인시각</span><span th:text="${res.approvedAt}">approvedAt</span></div>
-  <div class="row"><span class="label">수단</span><span th:text="${res.method}">CARD</span></div>
-  <div class="row" th:if="${res.receiptUrl}">
-    <span class="label">영수증</span>
-    <a th:href="${res.receiptUrl}" target="_blank" rel="noopener">열기</a>
+  <div class="p-grid typography--p" style="margin-top:40px">
+    <div class="p-grid-col text--left"><b>결제금액</b></div>
+    <div class="p-grid-col text--right" th:text="${#numbers.formatInteger(amount, 0, 'COMMA')} + '원'">0원</div>
   </div>
+
+  <div class="p-grid typography--p" style="margin-top:10px">
+    <div class="p-grid-col text--left"><b>주문번호</b></div>
+    <div class="p-grid-col text--right" th:text="${res.orderId}">orderId</div>
+  </div>
+
+  <div class="p-grid typography--p" style="margin-top:10px">
+    <div class="p-grid-col text--left"><b>paymentKey</b></div>
+    <div class="p-grid-col text--right" style="white-space:initial;width:250px" th:text="${res.paymentKey}">paymentKey</div>
+  </div>
+
+  <div class="p-grid typography--p" style="margin-top:10px">
+    <div class="p-grid-col text--left"><b>승인시각</b></div>
+    <div class="p-grid-col text--right" th:text="${res.approvedAt}">approvedAt</div>
+  </div>
+
+  <div class="p-grid typography--p" style="margin-top:10px">
+    <div class="p-grid-col text--left"><b>결제수단</b></div>
+    <div class="p-grid-col text--right" th:text="${res.method}">CARD</div>
+  </div>
+
 
   <div class="cta">
-    <a class="btn btn--primary" href="/mypage/user">마이페이지로</a>
-    <a class="btn" href="/">홈으로</a>
+    <button class="button" onclick="location.href='/mypage/user'">마이페이지로</button>
+    <button class="button" onclick="location.href='/'" style="background:#e8f3ff;color:#1b64da">홈으로</button>
   </div>
+</div>
+
+<!-- (옵션) 서버 응답 디버깅 박스: 필요 없으면 삭제 -->
+<div class="box_section" style="width:600px;text-align:left" th:if="${res != null}">
+  <b>Response Data :</b>
+  <pre th:text="${res}"></pre>
 </div>
 </body>
 </html>

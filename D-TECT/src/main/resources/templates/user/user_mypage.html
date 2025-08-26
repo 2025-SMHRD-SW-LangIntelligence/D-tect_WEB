@@ -1,139 +1,201 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>D-tect | 마이페이지</title>
-<!-- 공통 CSS -->
-<link rel="stylesheet" th:href="@{/css/public/common.css}" />
-<!-- 일반 내 정보 페이지 전용 CSS -->
-<link rel="stylesheet" th:href="@{/css/user/user_mypage.css}" />
-<!-- 카카오 우편번호 SDK -->
-<script
-	src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
-	defer></script>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>D-tect | 마이페이지</title>
 
+	<!-- 공통 CSS -->
+	<link rel="stylesheet" th:href="@{/css/public/common.css}" />
+	<!-- 사용자 마이페이지 전용 CSS -->
+	<link rel="stylesheet" th:href="@{/css/user/user_mypage.css}" />
 
+	<!-- 카카오 우편번호 SDK -->
+	<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" defer></script>
+
+	<style>
+		/* 토스 스타일 */
+		#payModal.toss-scope, #payModal.toss-scope * {
+			font-family: Toss Product Sans, -apple-system, BlinkMacSystemFont,
+			Bazier Square, Noto Sans KR, Segoe UI, Apple SD Gothic Neo,
+			Roboto, Helvetica Neue, Arial, sans-serif, Apple Color Emoji,
+			Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+			color: #333D4B;
+		}
+
+		#payModal.toss-scope .pay-dialog{
+			background:#fff;
+			border-radius:10px;
+			border:1px solid #eee;
+			box-shadow:0 10px 20px rgb(0 0 0 / 6%), 0 6px 6px rgb(0 0 0 / 6%);
+			overflow:hidden;
+		}
+
+		/* 헤더/푸터 라인 */
+		#payModal.toss-scope .pay-header{ border-bottom:1px solid #eee; }
+		#payModal.toss-scope .pay-footer{ border-top:1px solid #eee; }
+
+		/* 정보 라벨 컬러톤 */
+		#payModal.toss-scope .pm-label{
+			display:inline-block; min-width:72px; color:#4e5968; margin-right:6px;
+		}
+
+		/* 결제수단/약관 박스 */
+		#payModal.toss-scope .tp-box{
+			background:#fff; border:1px solid #e5e8eb; border-radius:10px; padding:14px;
+		}
+
+		/* 버튼을 토스 버튼처럼 */
+		#payModal.toss-scope .btn{
+			border:0; border-radius:7px; padding:11px 16px;
+			font-weight:400; line-height:18px; cursor:pointer;
+			transition:background .2s ease, color .1s ease;
+		}
+		/* Primary: 파란색 */
+		#payModal.toss-scope .btn.btn--primary{
+			background:#3182f6; color:#f9fafb;
+		}
+		#payModal.toss-scope .btn.btn--primary:hover{
+			background:#1b64da;
+		}
+
+		#payModal.toss-scope .btn:not(.btn--primary){
+			background:#e8f3ff; color:#1b64da;
+		}
+
+		#payModal.toss-scope .pay-header{
+			background-image: url('https://static.toss.im/ml-illust/img-back_005.jpg');
+			background-size: cover;
+			background-position: center;
+			color:#333D4B;
+		}
+
+		@media (max-width: 560px){
+			#payModal.toss-scope .pay-dialog{ width:96vw; }
+		}
+	</style>
 </head>
 
-<body
-	th:attr="data-user-id=${userId != null ? userId : 0}, data-mem-idx=${memIdx}">
-	<header class="topbar">
-		<div class="left">
-			<a class="logo-wrap" href="/" aria-label="홈으로"> <img
-				th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
-			</a>
-			<h1 class="page-title">마이페이지</h1>
+<body th:attr="data-user-id=${userId != null ? userId : 0}, data-mem-idx=${memIdx}">
+<header class="topbar">
+	<div class="left">
+		<a class="logo-wrap" href="/" aria-label="홈으로">
+			<img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
+		</a>
+		<h1 class="page-title">마이페이지</h1>
+	</div>
+	<div class="right">
+		<div class="user-chip">
+			<img th:src="@{/images/user_icon.png}" alt="" class="avatar" />
+			<span th:text="${(profile != null and profile.name != null and profile.name != '') ? profile.name + ' 님' : '--- 님'}"></span>
 		</div>
+		<button type="button" class="text-link" id="logoutBtn">로그아웃</button>
+	</div>
+</header>
 
-		<div class="right">
-			<div class="user-chip">
-				<img th:src="@{/images/user_icon.png}" alt="" class="avatar" /> <span
-					th:text="${(profile != null and profile.name != null and profile.name != '')
-                  ? profile.name + ' 님' : '--- 님'}"></span>
-			</div>
-			<button type="button" class="text-link" id="logoutBtn">로그아웃</button>
-		</div>
-	</header>
+<main class="container">
+	<!-- 상단 2열: 개인정보 + 신청현황 -->
+	<section class="grid">
+		<!-- 개인정보 (왼쪽 고정폭) -->
+		<article class="card card--dark">
+			<header class="card-head">
+				<h2>개인정보</h2>
+				<button type="button" class="chip" id="editToggleBtn">수정</button>
+			</header>
 
-	<main class="container">
-		<section class="grid">
-			<!-- 개인정보 -->
-			<article class="card card--dark">
-				<header class="card-head">
-					<h2>개인정보</h2>
-					<button type="button" class="chip" id="editToggleBtn">수정</button>
-				</header>
+			<form class="info-form" id="infoForm">
+				<label class="field">
+					<span class="label">이름</span>
+					<input type="text" name="name" th:value="${profile != null ? profile.name : ''}" disabled />
+				</label>
+				<label class="field">
+					<span class="label">이메일</span>
+					<input type="email" name="email" th:value="${profile != null ? profile.email : ''}" disabled />
+				</label>
+				<label class="field">
+					<span class="label">주소</span>
+					<input type="text" name="addr" th:value="${profile != null ? profile.address : ''}" disabled />
+				</label>
+			</form>
+		</article>
 
-				<form class="info-form" id="infoForm">
-					<label class="field"> <span class="label">이름</span> <input
-						type="text" name="name"
-						th:value="${profile != null ? profile.name    : ''}" disabled />
-					</label> <label class="field"> <span class="label">이메일</span> <input
-						type="email" name="email"
-						th:value="${profile != null ? profile.email   : ''}" disabled />
-					</label> <label class="field"> <span class="label">주소</span> <input
-						type="text" name="addr"
-						th:value="${profile != null ? profile.address : ''}" disabled />
-					</label>
+		<!-- 신청현황 (오른쪽 컬럼) -->
+		<article class="card list">
+			<header class="card-head">
+				<h2>신청현황</h2>
+			</header>
 
-				</form>
-			</article>
-
-			<!-- 신청현황 -->
-			<article class="card list">
-				<header class="card-head">
-					<h2>신청현황</h2>
-				</header>
-
-				<div class="list-scroll">
-					<div class="list-head list-grid" role="rowgroup" aria-hidden="true">
-						<div class="col">신청일</div>
-						<div class="col">변호사</div>
-						<div class="col">분류</div>
-						<div class="col">매칭일</div>
-						<div class="col">매칭여부</div>
-						<div class="col">채팅방</div>
-					</div>
-					<ul id="applyList" class="list-body" role="rowgroup"
-						aria-live="polite"></ul>
+			<div class="list-scroll">
+				<div class="list-head list-grid" role="rowgroup" aria-hidden="true">
+					<div class="col">신청일</div>
+					<div class="col">변호사</div>
+					<div class="col">분류</div>
+					<div class="col">매칭일</div>
+					<div class="col">매칭여부</div>
+					<div class="col">채팅방</div>
 				</div>
+				<ul id="applyList" class="list-body" role="rowgroup" aria-live="polite"></ul>
+			</div>
 
-				<footer class="list-foot">
-					<button type="button" class="btn btn--ghost" id="prevPage">이전</button>
-					<span id="pageInfo" class="page-info">1 / 1</span>
-					<button type="button" class="btn btn--ghost" id="nextPage">다음</button>
-				</footer>
-			</article>
+			<footer class="list-foot">
+				<button type="button" class="btn btn--ghost" id="prevPage">이전</button>
+				<span id="pageInfo" class="page-info">1 / 1</span>
+				<button type="button" class="btn btn--ghost" id="nextPage">다음</button>
+			</footer>
+		</article>
+
+		<!-- 결제 대기 청구서 (오른쪽 컬럼) -->
+		<article id="invoiceSection" class="card inv-wrap col-2">
+			<header class="card-head">
+				<h2>결제 대기 청구서</h2>
+				<button id="reloadInvoices" class="btn btn--ghost">새로고침</button>
+			</header>
+			<ul id="invoiceList" class="inv-list"></ul>
+			<div id="invoiceEmpty" class="inv-empty" hidden>결제 대기 중인 청구서가 없습니다.</div>
+		</article>
+
+		<!-- CTA 버튼 3개 (오른쪽 컬럼, 결제 대기 청구서와 같은 시작선) -->
+		<section class="cta-wrap col-2">
+			<button type="button" class="btn btn--accent" id="historyBtn">내 분석 내역</button>
+			<button type="button" class="btn btn--accent" id="reserveBtn">전문가와 상담하기</button>
+			<button type="button" class="btn btn--accent btn--danger" id="withdrawBtn">회원탈퇴</button>
 		</section>
-
-    <section class="cta-wrap">
-        <button type="button" class="btn btn--accent" id="historyBtn">내 분석 내역</button>
-        <button type="button" class="btn btn--accent" id="reserveBtn">전문가와 상담하기</button>
-        <button type="button" class="btn btn--accent btn--danger" id="withdrawBtn">회원탈퇴</button>
-    </section>
+	</section>
 </main>
 
-	<!-- Toss Payments widget -->
-	<script src="https://js.tosspayments.com/v2/standard" defer></script>
+<!-- Toss Payments widget -->
+<script src="https://js.tosspayments.com/v2/standard" defer></script>
 
-	<!-- 결제 대기 청구서 섹션 -->
-	<section id="invoiceSection" class="inv-wrap">
-		<div class="inv-head">
-			<h2>결제 대기 청구서</h2>
-			<button id="reloadInvoices" class="btn btn--ghost">새로고침</button>
-		</div>
-		<ul id="invoiceList" class="inv-list"></ul>
-		<div id="invoiceEmpty" class="inv-empty" hidden>결제 대기 중인 청구서가 없습니다.</div>
-	</section>
+<!-- 결제 모달 (토스 스타일 스코프 적용: toss-scope) -->
+<div id="payModal" class="pay-modal toss-scope" hidden>
+	<div class="pay-dialog">
+		<header class="pay-header">
+			<h3 id="pmTitle" style="margin:0">청구서 결제</h3>
+			<button class="pay-close" id="pmClose" aria-label="닫기" style="font-size:22px;background:transparent;border:0;cursor:pointer">×</button>
+		</header>
 
-	<!-- 결제 모달 -->
-	<div id="payModal" class="pay-modal" hidden>
-		<div class="pay-dialog">
-			<header class="pay-header">
-				<h3 id="pmTitle">청구서 결제</h3>
-				<button class="pay-close" id="pmClose" aria-label="닫기">×</button>
-			</header>
-			<div class="pay-body">
-				<div class="pm-info">
-					<div><span class="pm-label">제목</span><span id="pmInvoiceTitle"></span></div>
-					<div><span class="pm-label">금액</span><span id="pmAmount"></span></div>
-					<div><span class="pm-label">발행일</span><span id="pmIssuedAt"></span></div>
-				</div>
-				<div class="tp-box">
-					<div id="tp-methods"></div>
-					<div id="tp-agree" class="tp-agree"></div>
-				</div>
+		<div class="pay-body">
+			<div class="pm-info" style="display:grid;gap:6px;margin-bottom:14px">
+				<div><span class="pm-label">제목</span><span id="pmInvoiceTitle"></span></div>
+				<div><span class="pm-label">금액</span><span id="pmAmount"></span></div>
+				<div><span class="pm-label">발행일</span><span id="pmIssuedAt"></span></div>
 			</div>
-			<footer class="pay-footer">
-				<button id="pmPayBtn" class="btn btn--primary">결제하기</button>
-				<button id="pmCancelBtn" class="btn">닫기</button>
-			</footer>
-		</div>
-	</div>
 
-	<script th:src="@{/js/pay/user-invoices.js?v=1}" defer></script>
-	<script type="module" th:src="@{/js/user/user_mypage.js}"></script>
+			<div class="tp-box">
+				<div id="tp-methods"></div>
+				<div id="tp-agree" class="tp-agree" style="margin-top:8px"></div>
+			</div>
+		</div>
+
+		<footer class="pay-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:12px 16px">
+			<button id="pmPayBtn" class="btn btn--primary">결제하기</button>
+			<button id="pmCancelBtn" class="btn">닫기</button>
+		</footer>
+	</div>
+</div>
+
+<!-- 스크립트 -->
+<script th:src="@{/js/pay/user-invoices.js?v=1}" defer></script>
+<script type="module" th:src="@{/js/user/user_mypage.js}"></script>
 </body>
 </html>
-
