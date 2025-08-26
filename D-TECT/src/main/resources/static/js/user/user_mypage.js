@@ -87,7 +87,6 @@ import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
 	}
 
 	load();
-
 })();
 
 // 로그아웃
