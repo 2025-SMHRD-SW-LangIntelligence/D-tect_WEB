@@ -12,7 +12,12 @@
     const viewerFrame  = document.getElementById('viewerFrame');
     const viewerTitle  = document.getElementById('viewerTitle');
     const viewerClose  = document.getElementById('viewerClose');
-
+	
+	const sid = sessionStorage.getItem('analysisSid');
+	const progressEl = document.getElementById('progress');
+	const panelLoading = document.getElementById('panelLoading');
+	const panelResult  = document.getElementById('panelResult');
+	
     const PAGE_SIZE = 7;
     let all = [];       // 서버 데이터 전체
     let filtered = [];  // 검색 적용된 리스트
@@ -100,7 +105,60 @@
         viewer.setAttribute('aria-hidden', 'true');
         viewerFrame.src = 'about:blank';
     }
+	
+	if (!sid) { progressEl.textContent = '—'; return; }
 
+	  async function pollStatus(){
+	    const res = await fetch(`/api/analysis/status?sid=${encodeURIComponent(sid)}`, { headers: { 'Accept':'application/json' }});
+	    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	    return res.json(); // { received, processed, total }
+	  }
+	  async function fetchResult(){
+	    const res = await fetch(`/api/analysis/result?sid=${encodeURIComponent(sid)}`, { headers: { 'Accept':'application/json' }});
+	    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	    return res.json(); // [{ user, text, score, classification:{label,count} }, ...]
+	  }
+
+	  function toRadarData(arr){
+	    const labelCounts = {};
+	    let total = 0;
+	    for (const it of arr){
+	      const c = it?.classification;
+	      const label = c?.label || 'UNKNOWN';
+	      const cnt = Number(c?.count || 0);
+	      labelCounts[label] = (labelCounts[label] || 0) + cnt;
+	      total += cnt;
+	    }
+	    const labels = Object.keys(labelCounts);
+	    const values = labels.map(l => total ? Math.round(labelCounts[l] / total * 100) : 0);
+	    return { labels, values };
+	  }
+
+	  (async function loop(){
+	    let percent = 0;
+	    // 간단 폴링(1s)
+	    for (let i=0; i<60; i++){
+	      try{
+	        const st = await pollStatus();
+	        const denom = (st.total ?? Math.max(st.received, 1));
+	        percent = Math.min(100, Math.floor((st.processed / denom) * 100));
+	        progressEl.textContent = `${percent}%`;
+	      }catch{ /* 네트워크 일시 오류는 무시 */ }
+	      await new Promise(r => setTimeout(r, 1000));
+	    }
+
+	    // 결과 가져와 렌더
+	    const arr = await fetchResult();
+	    const { labels, values } = toRadarData(arr);
+
+	    panelLoading.classList.add('hidden');
+	    panelResult.classList.remove('hidden');
+	    // 🔽 기존 레이더 렌더러 호출 (있다고 가정)
+	    if (typeof window.renderRadar === 'function') {
+	      window.renderRadar('radar', labels, values);
+	    }
+	  })();
+	
     async function load() {
         if (!userId) {
             console.warn('userId 없음');

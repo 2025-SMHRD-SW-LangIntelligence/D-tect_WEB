@@ -1,4 +1,4 @@
-import { initProfileEditPopup } from '/js/public/common.js';
+import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
 
 const PAGE_SIZE = 5;
 let page = 1;
@@ -248,5 +248,20 @@ async function loadData(){
 }
 loadData();
 
-// ===== 로그아웃 (필요 시) =====
-document.getElementById('logoutBtn')?.addEventListener('click', ()=> location.href='/logout');
+// // ===== 로그아웃 (필요 시) =====
+// document.getElementById('logoutBtn')?.addEventListener('click', ()=> location.href='/logout');
+// 로그아웃
+// 단일 버튼
+setupLogout('#logoutBtn', { redirect: '/' });
+
+// 여러 개 링크
+setupLogout(document.querySelectorAll('.logout-link'), {
+	allowGetFallback: true, // 필요한 경우에만!
+});
+
+// 상단 버튼
+document.getElementById('reqBtn')?.addEventListener('click', () => alert('상담 신청 확인으로 이동'));
+document.getElementById('scheduleBtn')?.addEventListener('click', () => alert('상담 일정 확인하기로 이동'));
+document.getElementById('withdrawBtn')?.addEventListener('click', () => {
+  if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');
+});

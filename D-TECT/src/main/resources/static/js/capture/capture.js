@@ -17,6 +17,10 @@ let dirHandle = null;
 let captureIdx = 0;
 let busy = false;
 
+const ANALYSIS_SID_KEY = 'analysisSid';
+let analysisSid = sessionStorage.getItem(ANALYSIS_SID_KEY) || crypto.randomUUID();
+sessionStorage.setItem(ANALYSIS_SID_KEY, analysisSid);
+
 function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
 function ts(){
     const d = new Date();
@@ -153,6 +157,17 @@ async function uploadToServer(blob, fileName){
         els.status.textContent = `서버 응답 오류`;
     }
 }
+
+// 프레임 저장
+await fetch(`/api/analysis/frames?sid=${encodeURIComponent(analysisSid)}`, {
+  method: 'POST',
+  body: (() => {
+    const fd = new FormData();
+    fd.append('file', new File([blob], name, { type: 'image/jpeg' })); // JPEG 권장
+    return fd;
+  })()
+});
+
 
 function stopCapture(msg){
     if(timerId){ clearInterval(timerId); timerId = null; }

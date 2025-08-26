@@ -1,4 +1,4 @@
-import { initProfileEditPopup } from '/js/public/common.js';
+import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
 
 (function () {
   // ---------- 신청현황/페이징 ----------
@@ -13,24 +13,24 @@ import { initProfileEditPopup } from '/js/public/common.js';
   let items = [];
   let page  = 1;
 
-  // 내 정보 수정
+  // 내 정보 수정 (공통)
   initProfileEditPopup('#editToggleBtn');
 
   // ===== 사유 코드 → 한글 라벨 =====
   const REASON_LABELS = {
-    VIOLENCE:  "폭력",
-    DEFAMATION:"명예훼손",
-    STALKING:  "스토킹",
-    SEXUAL:    "성범죄",
-    LEAK:      "정보유출",
-    BULLYING:  "따돌림·집단괴롭힘",
-    CHANTAGE:  "협박·갈취",
-    EXTORTION: "공갈·갈취",
+    VIOLENCE:   "폭력",
+    DEFAMATION: "명예훼손",
+    STALKING:   "스토킹",
+    SEXUAL:     "성범죄",
+    LEAK:       "정보유출",
+    BULLYING:   "따돌림·집단괴롭힘",
+    CHANTAGE:   "협박·갈취",
+    EXTORTION:  "공갈·갈취",
   };
   const mapReason = (val) => {
     if (!val) return "—";
     const key = String(val).trim().toUpperCase();
-    return REASON_LABELS[key] || val; // label이 이미 오면 그대로 노출
+    return REASON_LABELS[key] || val; // 이미 한글 라벨이면 그대로 노출
   };
 
   // ===== 유틸 =====
@@ -44,37 +44,40 @@ import { initProfileEditPopup } from '/js/public/common.js';
 
   function statusKorean(s){
     switch(String(s||'').toUpperCase()){
-      case 'APPROVED': return '승인';
-      case 'PENDING':  return '대기';
-      case 'REJECTED': return '반려';
-      case 'COMPLETED':return '완료';
-      case 'CANCELED': return '취소';
-      case 'PAID':     return '결제완료';
-      default:         return '대기';
+      case 'APPROVED':  return '승인';
+      case 'PENDING':   return '대기';
+      case 'REJECTED':  return '반려';
+      case 'COMPLETED': return '완료';
+      case 'CANCELED':  return '취소';
+      case 'PAID':      return '결제완료';
+      default:          return '대기';
     }
   }
 
   const badgeClassKor = k =>
       (k==='승인'||k==='완료') ? 'badge badge--ok'
-          : (k==='반려'||k==='취소') ? 'badge badge--danger'
-              : 'badge badge--warn';
+        : (k==='반려'||k==='취소') ? 'badge badge--danger'
+          : 'badge badge--warn';
 
   function rowTemplate(item){
-    const requestedAt=item.requestedAt?fmt(item.requestedAt):'—';
-    const matchedAt  =item.matchedAt?fmt(item.matchedAt):'—';
-    const lawyerName =(item.lawyerName||'').trim()||'—';
+    const requestedAt = item.requestedAt ? fmt(item.requestedAt) : '—';
+    const matchedAt   = item.matchedAt  ? fmt(item.matchedAt)  : '—';
+    const lawyerName  = (item.lawyerName||'').trim() || '—';
 
-    const reasonRaw  = item.reasonLabel || item.requestReason || '';
-    const reason     = mapReason(reasonRaw);
+    // 서버가 넘겨주는 라벨/코드/문자열을 모두 대응
+    const reasonRaw = item.reasonLabel || item.requestReason || '';
+    const reason    = mapReason(reasonRaw);
 
-    const statusEnum = String(item.status||'').toUpperCase(); // APPROVED/REJECTED/...
-    const sKor       = statusKorean(statusEnum);
-    const chatEnabled= (statusEnum==='APPROVED' || statusEnum==='COMPLETED') && !!item.matchingIdx;
+    // 상태/채팅
+    const statusEnum  = String(item.status||'').toUpperCase();
+    const sKor        = statusKorean(statusEnum);
+    const chatEnabled = (statusEnum==='APPROVED' || statusEnum==='COMPLETED') && !!item.matchingIdx;
 
-    // 채팅 링크에 me=user & mem=<나의_memIdx> 부여
-    const chatUrl    = item.matchingIdx
-        ? (item.chatUrl || `/chat/room/${item.matchingIdx}?me=user&mem=${myMemIdx}`)
-        : '#';
+    // 채팅 링크: me=user & mem=<내 memIdx> 부여 (필요 시 서버 기본 URL 사용)
+    const baseChatUrl = item.chatUrl || (item.matchingIdx ? `/chat/room/${item.matchingIdx}` : '#');
+    const chatUrl     = item.matchingIdx
+      ? `${baseChatUrl}${baseChatUrl.includes('?') ? '&' : '?'}me=user&mem=${myMemIdx}`
+      : '#';
 
     return `
       <li class="list-row" role="row">
@@ -90,6 +93,7 @@ import { initProfileEditPopup } from '/js/public/common.js';
     `;
   }
 
+  // 채팅 입장 버튼
   listEl?.addEventListener('click', (e) => {
     const btn = e.target.closest('.chat-btn');
     if (!btn || btn.disabled) return;
@@ -142,34 +146,26 @@ import { initProfileEditPopup } from '/js/public/common.js';
     page=1; render();
   }
 
-  // ===== 상/하단 버튼 =====
-  document.getElementById('logoutBtn')?.addEventListener('click', ()=>{
-    window.location.href = '#';
+  // ===== 상단/하단 버튼 & 공통 로그아웃 =====
+  setupLogout('#logoutBtn', { redirect: '/' });
+  setupLogout(document.querySelectorAll('.logout-link'), { allowGetFallback: true });
+
+  document.getElementById('reserveBtn')?.addEventListener('click', () => {
+    alert('상담 일정 예약하기로 이동');
   });
 
-  const historyBtn = document.getElementById('historyBtn');
-  historyBtn?.addEventListener('click', (e)=>{
+  document.getElementById('withdrawBtn')?.addEventListener('click', () => {
+    if (confirm('정말로 회원을 탈퇴하시겠습니까?')) {
+      alert('탈퇴 처리');
+    }
+  });
+
+  document.getElementById('historyBtn')?.addEventListener('click', (e) => {
     e.preventDefault();
     if (!userId) return;
     window.location.href = `/analysis/user/${userId}/history`;
   });
 
-  // 전문가와 상담하기 → 전문가 선택 페이지로
-  const reserveBtn = document.getElementById('reserveBtn');
-  reserveBtn?.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if (!userId) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
-    window.location.href = `/matching/select?userId=${encodeURIComponent(userId)}`;
-  });
-
-  document.getElementById('withdrawBtn')?.addEventListener('click', ()=>{
-    if (confirm('정말로 회원을 탈퇴하시겠습니까?')) {
-      alert('탈퇴 처리')
-    }
-  });
-
+  // 실행
   load();
 })();

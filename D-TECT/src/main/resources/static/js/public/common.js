@@ -149,193 +149,193 @@ export function setupAddressSearch(buttonEl, targetEl, detailId = 'addrDetail') 
 // - role은 /mypage/api/me 응답에서 USER/EXPERT 판별
 // - 전문가: specialtyOptions 없으면 페이지의 <select id="specialties"> 또는 window.__SPECIALTIES__ 폴백
 export function initProfileEditPopup(trigger, options = {}) {
-  const getEl = (s) => (typeof s === 'string' ? document.querySelector(s) : s);
-  const btn = getEl(trigger);
-  if (!btn) return;
+	const getEl = (s) => (typeof s === 'string' ? document.querySelector(s) : s);
+	const btn = getEl(trigger);
+	if (!btn) return;
 
-  btn.addEventListener('click', async () => {
-    const res = await fetch('/mypage/api/me', { credentials: 'include' });
-    if (!res.ok) {
-      let msg = '내 정보를 불러오지 못했습니다.';
-      try { const j = await res.json(); if (j?.message) msg = j.message; } catch {}
-      alert(msg);
-      if (res.status === 401) location.href = '/loginPage';
-      return;
-    }
-    const me = await toJsonSafe(res);
+	btn.addEventListener('click', async () => {
+		const res = await fetch('/mypage/api/me', { credentials: 'include' });
+		if (!res.ok) {
+			let msg = '내 정보를 불러오지 못했습니다.';
+			try { const j = await res.json(); if (j?.message) msg = j.message; } catch { }
+			alert(msg);
+			if (res.status === 401) location.href = '/loginPage';
+			return;
+		}
+		const me = await toJsonSafe(res);
 
-    const role  = String(me.role || 'USER').toUpperCase();
-    const modal = buildModal(role, options);
-    document.body.appendChild(modal.root);
+		const role = String(me.role || 'USER').toUpperCase();
+		const modal = buildModal(role, options);
+		document.body.appendChild(modal.root);
 
-    modal.refs.name.value  = me.name  || '';
-    modal.refs.email.value = me.email || '';
+		modal.refs.name.value = me.name || '';
+		modal.refs.email.value = me.email || '';
 
-    if (role === 'USER') {
-      modal.refs.address.value = me.address || '';
-      setupAddressSearch(modal.refs.addrBtn, modal.refs.address);
-    } else if (role === 'EXPERT') {
-      modal.refs.officeName.value    = me.officeName    || '';
-      modal.refs.officeAddress.value = me.officeAddress || '';
-      setupAddressSearch(modal.refs.addrBtn, modal.refs.officeAddress);
+		if (role === 'USER') {
+			modal.refs.address.value = me.address || '';
+			setupAddressSearch(modal.refs.addrBtn, modal.refs.address);
+		} else if (role === 'EXPERT') {
+			modal.refs.officeName.value = me.officeName || '';
+			modal.refs.officeAddress.value = me.officeAddress || '';
+			setupAddressSearch(modal.refs.addrBtn, modal.refs.officeAddress);
 
-      // 전문분야 체크박스/라디오 렌더
-      const opts = getSpecialtyOptionSource(options);
-      const inputType = (options.specialtyInputType === 'radio') ? 'radio' : 'checkbox';
-      buildSpecialtyGroupInputs(modal.refs.specialtyGroup, opts, me.specialtyCodes || [], inputType);
-    }
+			// 전문분야 체크박스/라디오 렌더
+			const opts = getSpecialtyOptionSource(options);
+			const inputType = (options.specialtyInputType === 'radio') ? 'radio' : 'checkbox';
+			buildSpecialtyGroupInputs(modal.refs.specialtyGroup, opts, me.specialtyCodes || [], inputType);
+		}
 
-    // 유효성 & 동작
-    const { refs } = modal;
-    const validate = () => {
-      const hasCurrent = !!refs.currentPassword.value.trim();
-      let ok = !!(refs.name.value.trim() && refs.email.value.trim());
-      if (refs.changePwToggle.checked) {
-        const lenOk   = refs.newPassword.value.length >= 8;
-        const matchOk = validatePasswords(refs.newPassword, refs.newPasswordConfirm, refs.pwMsg, true);
-        ok = ok && lenOk && matchOk;
-      }
-      refs.save.disabled = !(ok && hasCurrent);
-    };
+		// 유효성 & 동작
+		const { refs } = modal;
+		const validate = () => {
+			const hasCurrent = !!refs.currentPassword.value.trim();
+			let ok = !!(refs.name.value.trim() && refs.email.value.trim());
+			if (refs.changePwToggle.checked) {
+				const lenOk = refs.newPassword.value.length >= 8;
+				const matchOk = validatePasswords(refs.newPassword, refs.newPasswordConfirm, refs.pwMsg, true);
+				ok = ok && lenOk && matchOk;
+			}
+			refs.save.disabled = !(ok && hasCurrent);
+		};
 
-    refs.changePwToggle.addEventListener('change', () => {
-      refs.changePwArea.classList.toggle('hidden', !refs.changePwToggle.checked);
-      validate();
-    });
-    refs.form.addEventListener('input', validate);
-    refs.specialtyGroup?.addEventListener('groupchange', validate);
-    validate();
+		refs.changePwToggle.addEventListener('change', () => {
+			refs.changePwArea.classList.toggle('hidden', !refs.changePwToggle.checked);
+			validate();
+		});
+		refs.form.addEventListener('input', validate);
+		refs.specialtyGroup?.addEventListener('groupchange', validate);
+		validate();
 
-    // 저장
-    refs.form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const payload = {
-        name:  refs.name.value.trim(),
-        email: refs.email.value.trim(),
-        currentPassword: refs.currentPassword.value,
-        changePassword: refs.changePwToggle.checked,
-        newPassword: refs.newPassword.value || null,
-        newPasswordConfirm: refs.newPasswordConfirm.value || null
-      };
+		// 저장
+		refs.form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const payload = {
+				name: refs.name.value.trim(),
+				email: refs.email.value.trim(),
+				currentPassword: refs.currentPassword.value,
+				changePassword: refs.changePwToggle.checked,
+				newPassword: refs.newPassword.value || null,
+				newPasswordConfirm: refs.newPasswordConfirm.value || null
+			};
 
-      if (role === 'USER') {
-        payload.address = refs.address.value.trim();
-      } else if (role === 'EXPERT') {
-        payload.officeName    = refs.officeName.value.trim();
-        payload.officeAddress = refs.officeAddress.value.trim();
-        // 체크박스/라디오 선택값 수집
-        payload.specialtyCodes = getSelectedSpecialtiesFromInputs(refs.specialtyGroup);
-      }
+			if (role === 'USER') {
+				payload.address = refs.address.value.trim();
+			} else if (role === 'EXPERT') {
+				payload.officeName = refs.officeName.value.trim();
+				payload.officeAddress = refs.officeAddress.value.trim();
+				// 체크박스/라디오 선택값 수집
+				payload.specialtyCodes = getSelectedSpecialtiesFromInputs(refs.specialtyGroup);
+			}
 
-      try {
-        const r = await fetch('/mypage/api/me', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
-          credentials: 'include',
-          body: JSON.stringify(payload)
-        });
-        const updated = await toJsonSafe(r);
+			try {
+				const r = await fetch('/mypage/api/me', {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
+					credentials: 'include',
+					body: JSON.stringify(payload)
+				});
+				const updated = await toJsonSafe(r);
 
-        // ✅ 저장 직후 즉시 화면 갱신 (옵션 소스 확보 → 칩 렌더)
-        const baseOpts = getSpecialtyOptionSource(options);
-        defaultApplyToView(updated, role, baseOpts);
+				// ✅ 저장 직후 즉시 화면 갱신 (옵션 소스 확보 → 칩 렌더)
+				const baseOpts = getSpecialtyOptionSource(options);
+				defaultApplyToView(updated, role, baseOpts);
 
-        // 페이지 단에서 후처리 필요시 이벤트 발행
-        document.dispatchEvent(new CustomEvent('profile:updated', { detail: updated }));
+				// 페이지 단에서 후처리 필요시 이벤트 발행
+				document.dispatchEvent(new CustomEvent('profile:updated', { detail: updated }));
 
-        alert('수정이 완료되었습니다.');
-        modal.close();
-      } catch (err) {
-        console.error('[profile:update]', err);
-        alert(err.body || err.message || '저장 중 오류가 발생했습니다.');
-      }
-    });
-  });
+				alert('수정이 완료되었습니다.');
+				modal.close();
+			} catch (err) {
+				console.error('[profile:update]', err);
+				alert(err.body || err.message || '저장 중 오류가 발생했습니다.');
+			}
+		});
+	});
 
-  // ---- 내부 util ----
+	// ---- 내부 util ----
 
-  function getSpecialtyOptionSource(opts) {
-    // 1) 페이지의 <select id="specialties">가 있으면 우선
-    const fromDom = readSpecialtyOptionsFromDOM();
-    if (fromDom.length) return fromDom;
-    // 2) init 옵션으로 전달된 값
-    if (Array.isArray(opts.specialtyOptions) && opts.specialtyOptions.length) return opts.specialtyOptions;
-    // 3) 서버가 심어준 전역 값
-    if (Array.isArray(window.__SPECIALTIES__) && window.__SPECIALTIES__.length) return window.__SPECIALTIES__;
-    return [];
-  }
+	function getSpecialtyOptionSource(opts) {
+		// 1) 페이지의 <select id="specialties">가 있으면 우선
+		const fromDom = readSpecialtyOptionsFromDOM();
+		if (fromDom.length) return fromDom;
+		// 2) init 옵션으로 전달된 값
+		if (Array.isArray(opts.specialtyOptions) && opts.specialtyOptions.length) return opts.specialtyOptions;
+		// 3) 서버가 심어준 전역 값
+		if (Array.isArray(window.__SPECIALTIES__) && window.__SPECIALTIES__.length) return window.__SPECIALTIES__;
+		return [];
+	}
 
-  function readSpecialtyOptionsFromDOM() {
-    const sel = document.querySelector('#specialties, select[name="specialties"]');
-    if (!sel) return [];
-    return [...sel.options].map(o => ({ code: o.value, label: o.textContent }));
-  }
+	function readSpecialtyOptionsFromDOM() {
+		const sel = document.querySelector('#specialties, select[name="specialties"]');
+		if (!sel) return [];
+		return [...sel.options].map(o => ({ code: o.value, label: o.textContent }));
+	}
 
-  // 체크박스/라디오를 필 버튼 스타일로
-  function buildSpecialtyGroupInputs(container, options, selected = [], type = 'checkbox') {
-    if (!container) return;
-    const sel  = new Set(selected);
-    const name = 'specialty';
-    container.innerHTML = options.map(o => `
+	// 체크박스/라디오를 필 버튼 스타일로
+	function buildSpecialtyGroupInputs(container, options, selected = [], type = 'checkbox') {
+		if (!container) return;
+		const sel = new Set(selected);
+		const name = 'specialty';
+		container.innerHTML = options.map(o => `
       <label class="pill">
         <input type="${type}" name="${name}" value="${o.code}" ${sel.has(o.code) ? 'checked' : ''}>
         <span class="pill__btn">${o.label}</span>
       </label>
     `).join('');
-    container.addEventListener('change', () => {
-      container.dispatchEvent(new Event('groupchange', { bubbles: true }));
-    });
-  }
+		container.addEventListener('change', () => {
+			container.dispatchEvent(new Event('groupchange', { bubbles: true }));
+		});
+	}
 
-  function getSelectedSpecialtiesFromInputs(container) {
-    if (!container) return [];
-    return [...container.querySelectorAll('input[type="checkbox"], input[type="radio"]')]
-      .filter(i => i.checked)
-      .map(i => i.value);
-  }
+	function getSelectedSpecialtiesFromInputs(container) {
+		if (!container) return [];
+		return [...container.querySelectorAll('input[type="checkbox"], input[type="radio"]')]
+			.filter(i => i.checked)
+			.map(i => i.value);
+	}
 
-  function defaultApplyToView(updated, role, optionsForChips = []) {
-    const nameChip = document.querySelector('.user-chip .user-name, .user-chip span');
-    if (nameChip) {
-      nameChip.textContent = (role === 'EXPERT')
-        ? (updated.name ? `${updated.name} 전문가님` : '전문가님')
-        : (updated.name ? `${updated.name} 님` : '--- 님');
-    }
+	function defaultApplyToView(updated, role, optionsForChips = []) {
+		const nameChip = document.querySelector('.user-chip .user-name, .user-chip span');
+		if (nameChip) {
+			nameChip.textContent = (role === 'EXPERT')
+				? (updated.name ? `${updated.name} 전문가님` : '전문가님')
+				: (updated.name ? `${updated.name} 님` : '--- 님');
+		}
 
-    const setVal = (sel, v) => {
-      const el = document.querySelector(sel);
-      if (!el) return;
-      el.value = v || '';
-      el.setAttribute('value', el.value);
-    };
+		const setVal = (sel, v) => {
+			const el = document.querySelector(sel);
+			if (!el) return;
+			el.value = v || '';
+			el.setAttribute('value', el.value);
+		};
 
-    setVal('input[name="name"]',  updated.name);
-    setVal('input[name="email"]', updated.email);
+		setVal('input[name="name"]', updated.name);
+		setVal('input[name="email"]', updated.email);
 
-    if (role === 'USER') {
-      setVal('input[name="addr"]', updated.address);
-    } else if (role === 'EXPERT') {
-      setVal('input[name="officeName"]',    updated.officeName);
-      setVal('input[name="officeAddress"]', updated.officeAddress);
+		if (role === 'USER') {
+			setVal('input[name="addr"]', updated.address);
+		} else if (role === 'EXPERT') {
+			setVal('input[name="officeName"]', updated.officeName);
+			setVal('input[name="officeAddress"]', updated.officeAddress);
 
-      // ✅ 칩 즉시 재렌더
-      const tagWrap = document.querySelector('.tag-wrap');
-      const src = optionsForChips.length ? optionsForChips
-        : (Array.isArray(window.__SPECIALTIES__) ? window.__SPECIALTIES__ : []);
-      if (tagWrap && src.length) {
-        const picked = new Set(updated.specialtyCodes || []);
-        const chips = src
-          .filter(o => picked.has(o.code))
-          .map(o => `<span class="tag">${o.label}</span>`);
-        tagWrap.innerHTML = chips.length ? chips.join('') : '<span class="tag tag--empty">전문분야 미등록</span>';
-      }
-    }
-  }
+			// ✅ 칩 즉시 재렌더
+			const tagWrap = document.querySelector('.tag-wrap');
+			const src = optionsForChips.length ? optionsForChips
+				: (Array.isArray(window.__SPECIALTIES__) ? window.__SPECIALTIES__ : []);
+			if (tagWrap && src.length) {
+				const picked = new Set(updated.specialtyCodes || []);
+				const chips = src
+					.filter(o => picked.has(o.code))
+					.map(o => `<span class="tag">${o.label}</span>`);
+				tagWrap.innerHTML = chips.length ? chips.join('') : '<span class="tag tag--empty">전문분야 미등록</span>';
+			}
+		}
+	}
 
-  function buildModal(role, options) {
-    const root = document.createElement('div');
-    root.className = 'modal';
-    root.innerHTML = `
+	function buildModal(role, options) {
+		const root = document.createElement('div');
+		root.className = 'modal';
+		root.innerHTML = `
       <div class="modal-panel">
         <button type="button" class="modal-close" data-close aria-label="닫기">&times;</button>
         <h2>내 정보 수정</h2>
@@ -387,41 +387,147 @@ export function initProfileEditPopup(trigger, options = {}) {
       </div>
     `;
 
-    const refs = {
-      root,
-      form: root.querySelector('#profileEditForm'),
-      save: root.querySelector('#modalSaveBtn'),
-      name: root.querySelector('#name'),
-      email: root.querySelector('#email'),
-      currentPassword: root.querySelector('#currentPassword'),
-      changePwToggle: root.querySelector('#changePwToggle'),
-      changePwArea: root.querySelector('#changePwArea'),
-      newPassword: root.querySelector('#newPassword'),
-      newPasswordConfirm: root.querySelector('#newPasswordConfirm'),
-      pwMsg: root.querySelector('#pwMsg'),
-      addrBtn: root.querySelector('#addrSearchBtn'),
-      address: root.querySelector('#address'),
-      officeName: root.querySelector('#officeName'),
-      officeAddress: root.querySelector('#officeAddress'),
-      specialtyGroup: root.querySelector('#specialtyGroup')
+		const refs = {
+			root,
+			form: root.querySelector('#profileEditForm'),
+			save: root.querySelector('#modalSaveBtn'),
+			name: root.querySelector('#name'),
+			email: root.querySelector('#email'),
+			currentPassword: root.querySelector('#currentPassword'),
+			changePwToggle: root.querySelector('#changePwToggle'),
+			changePwArea: root.querySelector('#changePwArea'),
+			newPassword: root.querySelector('#newPassword'),
+			newPasswordConfirm: root.querySelector('#newPasswordConfirm'),
+			pwMsg: root.querySelector('#pwMsg'),
+			addrBtn: root.querySelector('#addrSearchBtn'),
+			address: root.querySelector('#address'),
+			officeName: root.querySelector('#officeName'),
+			officeAddress: root.querySelector('#officeAddress'),
+			specialtyGroup: root.querySelector('#specialtyGroup')
+		};
+
+		const close = () => { root.remove(); };
+		root.addEventListener('click', (e) => {
+			if (e.target.matches('[data-close]') || e.target === root) close();
+		});
+		document.addEventListener('keydown', escClose);
+		function escClose(e) { if (e.key === 'Escape') close(); }
+		const ro = new MutationObserver(() => {
+			if (!document.body.contains(root)) {
+				document.removeEventListener('keydown', escClose);
+				ro.disconnect();
+			}
+		});
+		ro.observe(document.body, { childList: true, subtree: true });
+
+		return { root, refs, close };
+	}
+}
+
+// ==== 로그아웃(공통) ====
+// - 기본: POST /logout 로 요청 → 204면 redirect(기본 '/'), redirected면 해당 위치로 이동
+// - CSRF 비활성화 환경에서도 동작. (getCsrfHeaders()는 비어있으면 자동 무시)
+// - allowGetFallback: true 로 주면 405 시 GET /logout 재시도(보안상 권장X, 필요할 때만)
+// ==== 로그아웃(공통) - 성공 시 alert 추가 버전 ====
+export async function logout(options = {}) {
+  const {
+    url = '/logout',
+    method = 'POST',
+    redirect = '/',
+    includeCsrf = true,
+    allowGetFallback = false,
+    extraHeaders = {},
+    onBefore,
+    onAfter,
+    // ✅ 기본 메시지
+    successMessage = '로그아웃 되었습니다.',
+  } = options;
+
+  try {
+    if (typeof onBefore === 'function') onBefore();
+
+    const headers = {
+      Accept: 'application/json,text/html;q=0.9,*/*;q=0.8',
+      ...(includeCsrf ? getCsrfHeaders() : {}),
+      ...extraHeaders,
     };
 
-    const close = () => { root.remove(); };
-    root.addEventListener('click', (e) => {
-      if (e.target.matches('[data-close]') || e.target === root) close();
-    });
-    document.addEventListener('keydown', escClose);
-    function escClose(e){ if (e.key === 'Escape') close(); }
-    const ro = new MutationObserver(() => {
-      if (!document.body.contains(root)) {
-        document.removeEventListener('keydown', escClose);
-        ro.disconnect();
-      }
-    });
-    ro.observe(document.body, { childList: true, subtree: true });
+    const res = await fetch(url, { method, headers, credentials: 'include' });
 
-    return { root, refs, close };
+    const finish = (targetUrl) => {
+      if (successMessage) alert(successMessage);
+      location.href = targetUrl ?? redirect;
+    };
+
+    if (res.status === 204) {
+      // SmartLogoutSuccessHandler(204)
+      finish(redirect);
+      return { ok: true, status: res.status };
+    }
+    if (res.redirected) {
+      // 서버 리다이렉트
+      finish(res.url);
+      return { ok: true, status: res.status };
+    }
+    if (res.ok) {
+      // 200 등 정상 응답
+      finish(redirect);
+      return { ok: true, status: res.status };
+    }
+
+    // 메서드 제한 시 GET 폴백 허용 옵션
+    if (res.status === 405 && allowGetFallback) {
+      const r2 = await fetch(url, { method: 'GET', credentials: 'include' });
+      if (r2.redirected) { finish(r2.url); return { ok: true, status: r2.status }; }
+      if (r2.ok)        { finish(redirect); return { ok: true, status: r2.status }; }
+      throw new Error(`Logout failed (fallback ${r2.status})`);
+    }
+
+    throw new Error(`Logout failed (${res.status})`);
+  } catch (err) {
+    console.error('[logout]', err);
+    alert('로그아웃 중 오류가 발생했습니다.');
+    return { ok: false, error: err };
+  } finally {
+    if (typeof onAfter === 'function') { try { onAfter(); } catch {} }
   }
+}
+
+// 여러 버튼에 손쉽게 바인딩
+// - trigger: CSS 셀렉터 | Element | NodeList
+// - data 속성 지원: data-logout-url, data-logout-method, data-redirect
+export function setupLogout(trigger, opts = {}) {
+	const getEls = (t) => {
+		if (typeof t === 'string') return document.querySelectorAll(t);
+		if (t instanceof Element) return [t];
+		if (t && typeof t.length === 'number') return t;
+		return [];
+	};
+	const els = getEls(trigger);
+	els.forEach(el => {
+		el.addEventListener('click', async (e) => {
+			e.preventDefault();
+			const url = el.dataset.logoutUrl || opts.url || '/logout';
+			const method = (el.dataset.logoutMethod || opts.method || 'POST').toUpperCase();
+			const redirect = el.dataset.redirect || opts.redirect || '/';
+
+			el.disabled = true;
+			el.classList.add('is-loading');
+			try {
+				await logout({
+					url, method, redirect,
+					includeCsrf: opts.includeCsrf !== false,            // 기본 true (비활성화면 자동 무시)
+					allowGetFallback: !!opts.allowGetFallback,
+					extraHeaders: opts.extraHeaders || {},
+					onBefore: opts.onBefore,
+					onAfter: opts.onAfter,
+				});
+			} finally {
+				el.disabled = false;
+				el.classList.remove('is-loading');
+			}
+		});
+	});
 }
 
 // === 세션 스토리지 유틸 ===
