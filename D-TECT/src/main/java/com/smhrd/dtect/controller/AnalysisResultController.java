@@ -30,7 +30,7 @@ public class AnalysisResultController {
 		
 		try {
 			
-			String url = "http://127.0.0.1:8001/get_analyzed_data";
+			String url = "http://127.0.0.1:8001/analyze_images";
 			
 			WebClient webClient = WebClient.builder()
 					.baseUrl(url)

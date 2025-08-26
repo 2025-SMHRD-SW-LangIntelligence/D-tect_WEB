@@ -1,4 +1,4 @@
-import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
+import { initProfileEditPopup, setupLogout, setupWithdraw } from '/js/public/common.js';
 
 const PAGE_SIZE = 5;
 let page = 1;
@@ -160,7 +160,11 @@ setupLogout(document.querySelectorAll('.logout-link'), {
 
 // 상단 버튼
 document.getElementById('reqBtn')?.addEventListener('click', () => alert('상담 신청 확인으로 이동'));
-document.getElementById('scheduleBtn')?.addEventListener('click', () => alert('상담 일정 확인하기로 이동'));
-document.getElementById('withdrawBtn')?.addEventListener('click', () => {
-  if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리');
+document.getElementById('scheduleBtn')?.addEventListener('click', () => window.location.href = '/expertSchedulePage');
+
+// ✅ 회원탈퇴(공통 바인딩)
+setupWithdraw('#withdrawBtn', {
+  askEraseData: true,     // 전체 데이터 삭제 여부 묻기
+  eraseDefault: true,     // 기본값: 삭제
+  // askReason: true,      // 사유 받으려면 주석 해제
 });

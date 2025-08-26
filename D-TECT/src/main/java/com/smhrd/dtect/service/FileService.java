@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -144,6 +145,17 @@ public class FileService {
         Cipher c = Cipher.getInstance(TRANSFORMATION);
         c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
         return c.doFinal(cipher);
+    }
+    
+    @Transactional
+    public void purgeAllUploadsOfMember(Long memIdx) {
+        // USER 측 업로드
+        List<Upload> a = uploadRepository.findAllByMatching_User_Member_MemIdx(memIdx);
+        uploadRepository.deleteAll(a); // 엔티티 delete → UploadFile orphanRemoval 적용
+
+        // EXPERT 측 업로드
+        List<Upload> b = uploadRepository.findAllByMatching_Expert_Member_MemIdx(memIdx);
+        uploadRepository.deleteAll(b);
     }
 
 }

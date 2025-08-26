@@ -7,7 +7,7 @@
     <title>D-tect | 분석 결과</title>
 
     <!-- 페이지 전용 CSS -->
-    <link rel="stylesheet" th:href="@{/css/analysis_result.css}" />
+    <link rel="stylesheet" th:href="@{/css/user/analysis_result.css}" />
 
     <!-- 차트 & PDF (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -39,7 +39,7 @@
         <!-- 액션 타일 -->
         <section class="tiles">
             <!-- 챗봇 -->
-            <a class="tile" th:href="@{/chat}" aria-label="챗봇 열기">
+            <a class="tile" th:href="@{/userChatbotPage}" aria-label="챗봇 열기">
                 <img th:src="@{/images/chatAI.png}" alt="챗봇">
                 <span class="tile-caption">챗봇</span>
             </a>
@@ -66,7 +66,7 @@
     </main>
 
     <!-- 페이지 전용 JS -->
-    <script th:src="@{/js/analysis_result.js}"></script>
+    <script th:src="@{/js/user/analysis_result.js}"></script>
 </body>
 
 </html>

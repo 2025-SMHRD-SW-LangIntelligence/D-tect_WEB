@@ -1,7 +1,10 @@
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.dto.*;
+import com.smhrd.dtect.service.AnalysisGrader;
 import com.smhrd.dtect.service.AnalysisResultService;
+import com.smhrd.dtect.service.pdf.PdfWebhookClient;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import java.util.List;
 public class AnalysisPipelineRestController {
 
     private final AnalysisResultService analysisResultService;
+    private final PdfWebhookClient pdfWebhookClient;
 
     // 프레임 1장 수신 → 모델 호출 → 세션 누적
     @PostMapping(value = "/frames", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -44,5 +48,25 @@ public class AnalysisPipelineRestController {
     public ResponseEntity<?> clear(@RequestParam("sid") String sid) {
         analysisResultService.clear(sid);
         return ResponseEntity.noContent().build();
+    }
+    
+ // 🔽 최종화: 집계→등급 산출→PDF 웹훅 호출(비동기 파이프라인)
+    @PostMapping("/finalize")
+    public AnalysisFinalizeResponse finalize(
+            @RequestParam("sid") String sid,
+            @RequestParam("userId") Long userId
+    ) {
+        var items = analysisResultService.getResult(sid);
+        var rate  = AnalysisGrader.grade(items);
+
+        // 아직 analId/reportPath는 없으므로 null 전달
+        boolean ok = pdfWebhookClient.dispatchJson(userId, sid, items, rate, null, null);
+
+        return new AnalysisFinalizeResponse(
+                sid,
+                items != null ? items.size() : 0,
+                rate,
+                ok
+        );
     }
 }

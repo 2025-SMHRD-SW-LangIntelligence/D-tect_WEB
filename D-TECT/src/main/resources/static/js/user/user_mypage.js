@@ -1,4 +1,4 @@
-import { initProfileEditPopup, setupLogout } from '/js/public/common.js';
+import { initProfileEditPopup, setupLogout, setupWithdraw } from '/js/public/common.js';
 
 (function() {
 	// ---------- 신청현황/페이징 ----------
@@ -101,5 +101,11 @@ setupLogout(document.querySelectorAll('.logout-link'), {
 document.getElementById('historyBtn')?.addEventListener('click', e => { e.preventDefault(); if (!userId) return; window.location.href = `/analysis/user/${userId}/history`; });
 
 // 상단/하단 버튼
-document.getElementById('reserveBtn')?.addEventListener('click', () => alert('상담 일정 예약하기로 이동'));
-document.getElementById('withdrawBtn')?.addEventListener('click', () => { if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리'); });
+document.getElementById('reserveBtn')?.addEventListener('click', () => window.location.href = '/userMatchingPage');
+
+// ✅ 회원탈퇴(공통 바인딩)
+setupWithdraw('#withdrawBtn', {
+	askEraseData: true,     // 전체 데이터 삭제 여부 묻기
+	eraseDefault: true,     // 기본값: 삭제
+	// askReason: true,      // 사유 받으려면 주석 해제
+});
