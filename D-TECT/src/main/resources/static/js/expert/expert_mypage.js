@@ -9,11 +9,11 @@ const listEl   = document.getElementById('applyList');
 const pageInfo = document.getElementById('pageInfo');
 const prevBtn  = document.getElementById('prevPage');
 const nextBtn  = document.getElementById('nextPage');
+
 const expertId = Number(document.body.dataset.expertId || 0);
 const myMemIdx = Number(document.body.dataset.memIdx || 0);
 
-// 공통 팝업
-initProfileEditPopup?.('#editToggleBtn', {
+initProfileEditPopup('#editToggleBtn', {
   specialtyOptions: window.__SPECIALTIES__ || []
 });
 
@@ -23,12 +23,14 @@ const REASON_LABELS = {
   LEAK:"정보유출", BULLYING:"따돌림·집단괴롭힘", CHANTAGE:"협박·갈취", EXTORTION:"공갈·갈취",
 };
 const mapReason = v => (v && REASON_LABELS[String(v).trim().toUpperCase()]) || v || "—";
+
 const fmt = ts => {
   if (!ts) return '—';
   const d = new Date(ts);
   if (Number.isNaN(d.getTime())) return '—';
   return d.toISOString().slice(0,10);
 };
+
 function statusKorean(s){
   switch (String(s||'').toUpperCase()){
     case 'APPROVED': return '승인';
@@ -40,8 +42,10 @@ function statusKorean(s){
     default:         return '—';
   }
 }
-const badgeClassKor = k => (k==='승인'||k==='완료'||k==='결제완료') ? 'badge badge--ok'
-    : (k==='반려'||k==='취소') ? 'badge badge--danger' : 'badge badge--warn';
+const badgeClassKor = k =>
+    (k==='승인'||k==='완료'||k==='결제완료') ? 'badge badge--ok'
+        : (k==='반려'||k==='취소') ? 'badge badge--danger' : 'badge badge--warn';
+
 const chatEnabledByStatus = s => s === 'APPROVED' || s === 'COMPLETED';
 
 // ===== 상태 컨트롤 =====
@@ -51,6 +55,7 @@ const nextActions = () => ['APPROVED','REJECTED','COMPLETED','CANCELED'];
 function renderStatusControl(item){
   const statusEnum = String(item.status || '').toUpperCase();
   const sKor = statusKorean(statusEnum);
+
   if (statusEnum === 'PAID') {
     return `<span class="badge badge--ok">결제완료</span>`;
   }
@@ -58,6 +63,7 @@ function renderStatusControl(item){
       .filter(s => s !== statusEnum)
       .map(s => `<button type="button" class="status-option" data-id="${item.matchingIdx}" data-next="${s}">${LABELS[s]}</button>`)
       .join('');
+
   return `
     <div class="status-wrap">
       <button type="button" class="status-btn ${badgeClassKor(sKor)}" data-open="1">
@@ -89,7 +95,13 @@ function rowTemplate(item){
       <div class="col">${renderStatusControl(item)}</div>
       <div class="col">
         <button class="chat-btn" data-url="${chatUrl}" ${enabledChat ? '' : 'disabled'}>입장하기</button>
-        <button class="invoice-btn" data-open-invoice data-matching-id="${item.matchingIdx}" data-user-name="${customer}" data-reason="${reason}" ${canInvoice ? '' : 'disabled'}>청구서</button>
+        <button class="invoice-btn" data-open-invoice
+                data-matching-id="${item.matchingIdx}"
+                data-user-name="${customer}"
+                data-reason="${reason}"
+                ${canInvoice ? '' : 'disabled'}>
+          청구서
+        </button>
       </div>
     </li>`;
 }
@@ -99,17 +111,20 @@ function renderList(){
   const total = allItems.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   page = Math.min(Math.max(1,page), totalPages);
-  pageInfo.textContent = `${page} / ${totalPages}`;
 
-  const start=(page-1)*PAGE_SIZE;
-  const items=allItems.slice(start, start+PAGE_SIZE);
+  if (pageInfo) pageInfo.textContent = `${page} / ${totalPages}`;
 
-  listEl.innerHTML = items.length
-      ? items.map(rowTemplate).join('')
-      : `<li class="list-row"><div class="col" style="grid-column:1/7;text-align:center;color:#888">데이터가 없습니다.</div></li>`;
+  const start = (page - 1) * PAGE_SIZE;
+  const items = allItems.slice(start, start + PAGE_SIZE);
 
-  prevBtn && (prevBtn.disabled = page <= 1);
-  nextBtn && (nextBtn.disabled = page >= totalPages);
+  if (listEl) {
+    listEl.innerHTML = items.length
+        ? items.map(rowTemplate).join('')
+        : `<li class="list-row"><div class="col" style="grid-column:1/7;text-align:center;color:#888">데이터가 없습니다.</div></li>`;
+  }
+
+  if (prevBtn) prevBtn.disabled = page <= 1;
+  if (nextBtn) nextBtn.disabled = page >= totalPages;
 }
 prevBtn?.addEventListener('click', ()=>{ page--; renderList(); });
 nextBtn?.addEventListener('click', ()=>{ page++; renderList(); });
@@ -124,9 +139,10 @@ listEl?.addEventListener('click', (e) => {
   if (url && url !== '#') location.href = url;
 });
 
-// ===== 드롭다운 (portal + auto flip) =====
+// ===== 상태 드롭다운 (portal + auto flip) =====
 let openMenu = null;
 let ownerWrap = null;
+
 function closeStatusMenu(){
   if (!openMenu) return;
   openMenu.hidden = true;
@@ -139,6 +155,7 @@ function openStatusMenuBeside(btn){
   const wrap = btn.closest('.status-wrap');
   const menu = wrap?.querySelector('.status-menu');
   if (!menu) return;
+
   if (openMenu === menu){ closeStatusMenu(); return; }
   closeStatusMenu();
   ownerWrap = wrap;
@@ -163,21 +180,28 @@ function openStatusMenuBeside(btn){
   const r2 = menu.getBoundingClientRect();
   if (r2.top < 8) menu.style.top = `8px`;
   if (r2.bottom > vh - 8) menu.style.top = `${Math.max(8, vh - r2.height - 8)}px`;
+
   openMenu = menu;
 }
-// 열기/옵션/닫기
+
+// 열기 토글
 document.addEventListener('click', (e)=>{
   const btn = e.target.closest('.status-btn[data-open]');
-  if (btn && listEl?.contains(btn)){ e.preventDefault(); openStatusMenuBeside(btn); }
+  if (btn && listEl?.contains(btn)){
+    e.preventDefault();
+    openStatusMenuBeside(btn);
+  }
 });
+// 옵션 클릭
 document.addEventListener('click', (e)=>{
   const opt = e.target.closest('.status-option');
   if (!opt || !document.body.contains(opt)) return;
-  const id = Number(opt.dataset.id);
+  const id   = Number(opt.dataset.id);
   const next = String(opt.dataset.next || '').toUpperCase();
   closeStatusMenu();
   updateStatus(id, next);
 });
+// 바깥 클릭/스크롤/리사이즈 시 닫기
 window.addEventListener('click', (e)=>{
   if (e.target.closest('.status-wrap') || e.target.closest('.status-menu-portal')) return;
   closeStatusMenu();
@@ -194,22 +218,22 @@ async function updateStatus(id, next){
     COMPLETED: `/api/matching/${id}/complete`,
     CANCELED:  `/api/matching/${id}/cancel`,
   }[next];
-  if (!ep) return alert('알 수 없는 상태');
+  if (!ep) { alert('알 수 없는 상태'); return; }
+
   try{
     const r = await fetch(ep, { method:'POST', headers:{'Accept':'application/json'} });
     if (!r.ok) throw new Error(await r.text());
     await loadData();
   }catch(err){
-    alert('상태 변경 실패: ' + err.message);
+    alert('상태 변경 실패: ' + (err.message || ''));
   }
 }
 
 // ===== 데이터 로드 =====
 async function loadData(){
   try{
-    const id = Number(document.body.dataset.expertId || 0);
-    if (!id) throw new Error('expertId 바인딩 안됨.');
-    const res = await fetch(`/mypage/api/expert/${id}/matchings`, { headers:{'Accept':'application/json'} });
+    if (!expertId) throw new Error('expertId 바인딩 안됨.');
+    const res = await fetch(`/mypage/api/expert/${expertId}/matchings`, { headers:{'Accept':'application/json'} });
     if (!res.ok) throw new Error(`API ${res.status}`);
     const data = await res.json();
     allItems = Array.isArray(data)
@@ -224,28 +248,5 @@ async function loadData(){
 }
 loadData();
 
-// ===== 수정 버튼 (common.js 모달 우선, 없으면 토글 폴백) =====
-document.getElementById('editToggleBtn')?.addEventListener('click', (e)=>{
-  if (typeof window.openProfileEditModal === 'function') {
-    window.openProfileEditModal();
-    return;
-  }
-  const form = document.getElementById('infoForm');
-  if (!form) return;
-  const editing = form.dataset.editing === '1';
-  form.querySelectorAll('input, select, textarea').forEach(el => {
-    if (!el) return;
-    if (el.name === 'email') return;
-    el.disabled = editing;
-  });
-  form.dataset.editing = editing ? '0' : '1';
-  e.currentTarget.textContent = editing ? '수정' : '저장';
-});
-
-// 상단 버튼들
+// ===== 로그아웃 (필요 시) =====
 document.getElementById('logoutBtn')?.addEventListener('click', ()=> location.href='/logout');
-document.getElementById('reqBtn')?.addEventListener('click', ()=> alert('상담 신청 확인으로 이동'));
-document.getElementById('scheduleBtn')?.addEventListener('click', ()=> alert('상담 일정 확인하기로 이동'));
-document.getElementById('withdrawBtn')?.addEventListener('click', ()=>{
-  if (confirm('정말 탈퇴하시겠습니까?')) alert('탈퇴 처리');
-});

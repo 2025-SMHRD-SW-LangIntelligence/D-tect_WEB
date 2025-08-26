@@ -143,20 +143,16 @@ body{
     .cta-wrap{grid-template-columns:1fr}
 }
 
-/* ======= 모달 ======= */
-.modal{ position:fixed; inset:0; display:none; z-index:1000; }
-.modal[aria-hidden="false"]{ display:block; }
-.modal__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
-.modal__panel{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:min(560px, 92vw); max-height:86vh; overflow:auto; background:#fff; border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid #e9e9e9;
-}
-.modal__head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #eee; }
-.modal__close{ background:none; border:none; font-size:20px; cursor:pointer; }
-.modal__body{ padding:16px 18px; }
-.modal__body .field{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
-.modal__body .label{ font-size:.9rem; opacity:.9; }
-.modal__body input, .modal__body textarea{ border:1.2px solid #d2d2d2; border-radius:10px; padding:10px 12px; outline:none; }
-.modal__actions{ display:flex; justify-content:flex-end; gap:10px; padding:12px 18px 18px; }
-.modal__result{ padding:18px; }
+/* ======= 청구서 모달(범위 한정) ======= */
+#invoiceModal{ position:fixed; inset:0; display:none; z-index:1000; }
+#invoiceModal[aria-hidden="false"]{ display:block; }
+#invoiceModal .modal__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
+#invoiceModal .modal__panel{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(560px, 92vw); max-height:86vh; overflow:auto; background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.25); border:1px solid #e9e9e9; }
+#invoiceModal .modal__head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #eee; }
+#invoiceModal .modal__close{ background:none; border:none; font-size:20px; cursor:pointer; }
+#invoiceModal .modal__body{ padding:16px 18px; }
+#invoiceModal .modal__body .field{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+#invoiceModal .modal__body .label{ font-size:.9rem; opacity:.9; }
+#invoiceModal .modal__body input, #invoiceModal .modal__body textarea{ border:1.2px solid #d2d2d2; border-radius:10px; padding:10px 12px; outline:none; }
+#invoiceModal .modal__actions{ display:flex; justify-content:flex-end; gap:10px; padding:12px 18px 18px; }
+#invoiceModal .modal__result{ padding:18px; }
