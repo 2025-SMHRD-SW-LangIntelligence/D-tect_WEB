@@ -3,46 +3,47 @@ package com.smhrd.dtect.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.smhrd.dtect.dto.ModelResultDto;
+import com.smhrd.dtect.dto.ModelResponse;
 import com.smhrd.dtect.service.AnalysisResultService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 모델서버가 결과를 push로 알려줄 때 받는 콜백 엔드포인트.
+ * - 모델서버는 배열(JSON array)로 전송한다고 가정 → List<ModelResponse>로 수신
+ * - 내부 저장은 ModelMessage로 일원화되므로 Service에서 변환
+ */
 @RestController
-@RequestMapping("/api/analysis")
+@RequestMapping("/api/analysis/callback")
 @RequiredArgsConstructor
+@Slf4j
 public class AnalysisCallbackController {
 
     private final AnalysisResultService analysisResultService;
 
-    // 모델과 합의한 비밀키 (없으면 빈 문자열)
-    @Value("${app.model.callback-secret:}")
-    private String callbackSecret;
+    @Value("${model.callback.secret:}")
+    private String callbackSecret; // (선택) HMAC 검증 등에 사용
 
-    // 모델 서버가 아래 URL로 결과를 POST해줌
-    // 예: POST /api/analysis/callback?sid=...   Body: [ {user,text,score,classification{...}}, ... ]
-    @PostMapping(value = "/callback", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> callback(
+    @PostMapping(value = "/model", consumes = "application/json")
+    public ResponseEntity<Void> onModelCallback(
             @RequestParam("sid") String sid,
             @RequestHeader(value = "X-Model-Signature", required = false) String signature,
-            @RequestBody List<ModelResultDto> results
+            @RequestBody List<ModelResponse> results
     ) {
-        // (선택) HMAC 검증 ─ 모델과 합의된 방식으로 구현
-        if (!callbackSecret.isBlank()) {
-            // pseudo: if (!verifyHmac(signature, rawBody, callbackSecret)) return ResponseEntity.status(401).build();
-        }
+        log.info("[ModelCallback] sid={}, resultCount={}, signaturePresent={}",
+                sid, results != null ? results.size() : 0, signature != null);
 
-        // 세션에 결과 누적 (push용 메서드 하나 추가)
-        analysisResultService.appendResults(sid, results); // ← push 모드용 간단 메서드 추가
+        if (sid == null || sid.isBlank()) return ResponseEntity.badRequest().build();
+        if (results == null || results.isEmpty()) return ResponseEntity.ok().build();
+
+        // (선택) HMAC 검증 로직 필요 시 여기에 추가
+
+        // Service에서 ModelResponse → ModelMessage로 변환하여 누적
+        analysisResultService.appendResponses(sid, results);
 
         return ResponseEntity.ok().build();
     }

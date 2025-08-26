@@ -1,11 +1,16 @@
 package com.smhrd.dtect.controller;
 
-import com.smhrd.dtect.dto.*;
+import com.smhrd.dtect.dto.AnalysisFinalizeResponse;
+import com.smhrd.dtect.dto.AnalysisStartResponse;
+import com.smhrd.dtect.dto.AnalysisStatusDto;
+import com.smhrd.dtect.dto.ModelMessage;
+import com.smhrd.dtect.entity.AnalRate;
 import com.smhrd.dtect.service.AnalysisGrader;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,60 +18,51 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * 분석 파이프라인(업로드 → 모델 → 집계 → PDF 웹훅) REST 엔드포인트.
+ */
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/analysis")
+@RequiredArgsConstructor
+@Slf4j
 public class AnalysisPipelineRestController {
 
     private final AnalysisResultService analysisResultService;
     private final PdfWebhookClient pdfWebhookClient;
 
-    // 프레임 1장 수신 → 모델 호출 → 세션 누적
-    @PostMapping(value = "/frames", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public FrameIngestResponse ingest(
-            @RequestParam("sid") String sid,
-            @RequestPart("file") MultipartFile file
-    ) throws Exception {
-        long received = analysisResultService.appendFrame(sid, file);
-        return new FrameIngestResponse(true, received);
+    /** 1) 분석 시작: 세션 생성(+ 파일 등록은 Service로 위임) */
+    @PostMapping(value = "/start", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AnalysisStartResponse> start(
+            @RequestParam("userId") Long userId,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files
+    ) {
+        String sid = analysisResultService.beginSession(userId, files);
+        return ResponseEntity.ok(new AnalysisStartResponse(sid));
     }
 
-    // 진행 상태
-    @GetMapping("/status")
-    public AnalysisStatusDto status(@RequestParam("sid") String sid) {
-        return analysisResultService.getStatus(sid);
+    /** 2) 상태 조회(폴링) */
+    @GetMapping(value = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AnalysisStatusDto> status(@RequestParam("sid") String sid) {
+        var status = analysisResultService.getStatus(sid);
+        return ResponseEntity.ok(status);
     }
 
-    // 누적 결과(모델 원본 JSON 그대로)
-    @GetMapping("/result")
-    public List<ModelResultDto> result(@RequestParam("sid") String sid) {
-        return analysisResultService.getResult(sid);
-    }
-
-    // (선택) 세션 정리
-    @DeleteMapping("/session")
-    public ResponseEntity<?> clear(@RequestParam("sid") String sid) {
-        analysisResultService.clear(sid);
-        return ResponseEntity.noContent().build();
-    }
-    
- // 🔽 최종화: 집계→등급 산출→PDF 웹훅 호출(비동기 파이프라인)
-    @PostMapping("/finalize")
-    public AnalysisFinalizeResponse finalize(
+    /** 3) 최종 집계/등급 산정 → PDF 웹훅 전송 */
+    @PostMapping(value = "/finalize", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AnalysisFinalizeResponse> finalizeAnalysis(
             @RequestParam("sid") String sid,
             @RequestParam("userId") Long userId
     ) {
-        var items = analysisResultService.getResult(sid);
-        var rate  = AnalysisGrader.grade(items);
+        List<ModelMessage> items = analysisResultService.getResult(sid);
+        AnalRate rate = AnalysisGrader.grade(items);
 
-        // 아직 analId/reportPath는 없으므로 null 전달
         boolean ok = pdfWebhookClient.dispatchJson(userId, sid, items, rate, null, null);
 
-        return new AnalysisFinalizeResponse(
+        return ResponseEntity.ok(new AnalysisFinalizeResponse(
                 sid,
                 items != null ? items.size() : 0,
                 rate,
                 ok
-        );
+        ));
     }
 }

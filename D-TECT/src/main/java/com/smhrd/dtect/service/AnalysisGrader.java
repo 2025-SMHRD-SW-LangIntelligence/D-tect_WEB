@@ -1,18 +1,24 @@
 package com.smhrd.dtect.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.smhrd.dtect.dto.ModelResultDto;
+import com.smhrd.dtect.dto.LabelCount;
+import com.smhrd.dtect.dto.ModelMessage;
 import com.smhrd.dtect.entity.AnalRate;
 
+/**
+ * 간단한 등급 산정 로직.
+ * - score 평균 & 라벨 카운트 기반으로 NORMAL/WARNING/DANGER 판정
+ */
 public final class AnalysisGrader {
 
     private AnalysisGrader() {}
 
-    public static AnalRate grade(List<ModelResultDto> items) {
+    public static AnalRate grade(List<ModelMessage> items) {
         if (items == null || items.isEmpty()) return AnalRate.NORMAL;
 
         Map<String, Integer> counts = new HashMap<>();
@@ -20,35 +26,35 @@ public final class AnalysisGrader {
         int scoreCnt = 0;
         boolean dangerHit = false;
 
-        for (ModelResultDto r : items) {
-            if (r == null) continue;
-            var c = r.classification();
-            String label = c != null ? c.label() : "UNKNOWN";
-            int cnt = c != null ? c.count() : 0;
-            counts.merge(label, cnt, Integer::sum);
-
-            // score는 문자열로 온다고 했으니 안전 파싱
+        for (ModelMessage m : items) {
+            // score 평균
             try {
-                if (r.score() != null) {
-                    scoreSum = scoreSum.add(new BigDecimal(r.score()));
+                if (m.getScore() != null) {
+                    BigDecimal s = new BigDecimal(m.getScore());
+                    scoreSum = scoreSum.add(s);
                     scoreCnt++;
-                }
-            } catch (Exception ignore) { /* no-op */ }
-
-            // VIOLENCE 고득점 즉시 DANGER 후보
-            try {
-                if ("VIOLENCE".equalsIgnoreCase(label) && r.score() != null) {
-                    BigDecimal s = new BigDecimal(r.score());
-                    if (s.compareTo(new BigDecimal("0.85")) >= 0) {
+                    if (s.compareTo(new BigDecimal("0.90")) >= 0) {
                         dangerHit = true;
                     }
                 }
             } catch (Exception ignore) { /* no-op */ }
+
+            // 라벨 카운팅
+            if (m.getClassification() != null) {
+                for (LabelCount lc : m.getClassification()) {
+                    if (lc == null || lc.getLabel() == null) continue;
+                    counts.merge(lc.getLabel(), lc.getCount(), Integer::sum);
+                    if ("BULLYING".equalsIgnoreCase(lc.getLabel()) && lc.getCount() >= 1) {
+                        dangerHit = true;
+                    }
+                }
+            }
         }
 
         int totalCount = counts.values().stream().mapToInt(Integer::intValue).sum();
-        BigDecimal avgScore = (scoreCnt > 0) ? scoreSum.divide(BigDecimal.valueOf(scoreCnt), 4, BigDecimal.ROUND_HALF_UP)
-                                             : BigDecimal.ZERO;
+        BigDecimal avgScore = (scoreCnt > 0)
+                ? scoreSum.divide(BigDecimal.valueOf(scoreCnt), 4, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
 
         if (dangerHit) return AnalRate.DANGER;
         if (totalCount >= 3 && avgScore.compareTo(new BigDecimal("0.80")) >= 0) return AnalRate.DANGER;

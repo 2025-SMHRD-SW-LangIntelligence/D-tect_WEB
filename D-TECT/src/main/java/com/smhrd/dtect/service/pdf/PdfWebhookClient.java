@@ -1,7 +1,8 @@
 package com.smhrd.dtect.service.pdf;
 
 import com.smhrd.dtect.config.PdfProperties;
-import com.smhrd.dtect.dto.ModelResultDto;
+import com.smhrd.dtect.dto.LabelCount;
+import com.smhrd.dtect.dto.ModelMessage;
 import com.smhrd.dtect.entity.AnalRate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -24,7 +25,7 @@ public class PdfWebhookClient {
      */
     public boolean dispatchJson(Long userId,
                                 String sid,
-                                List<ModelResultDto> items,
+                                List<ModelMessage> items,
                                 AnalRate rate,
                                 Long analIdOrNull,
                                 String reportPathOrNull) {
@@ -59,34 +60,49 @@ public class PdfWebhookClient {
         }
     }
 
-    // 간단 요약문 생성: 상위 20개 항목을 한 줄씩 텍스트로 만든다(인쇄 친화)
-    private static String buildTextSummary(List<ModelResultDto> items) {
+ // 간단 요약문 생성: 상위 20개 항목을 한 줄씩 텍스트로 만든다(인쇄 친화)
+    private static String buildTextSummary(List<ModelMessage> items) {
         if (items == null || items.isEmpty()) return "감지된 유의미한 항목이 없습니다.";
         final int TOP = 20;
         StringBuilder sb = new StringBuilder(8_000);
+
         items.stream()
-                .sorted(Comparator.comparingDouble(PdfWebhookClient::score).reversed())
-                .limit(TOP)
-                .forEach(r -> {
-                    String label = (r.classification() != null) ? r.classification().label() : "UNKNOWN";
-                    int count    = (r.classification() != null) ? r.classification().count() : 0;
-                    String user  = nvl(r.user(), "—");
-                    String text  = nvl(r.text(), "—").replaceAll("\\s+", " ").trim();
-                    String score = fmt(r.score());
-                    sb.append("• [").append(label).append("] score=").append(score)
-                      .append(", count=").append(count)
-                      .append(", user=").append(user)
-                      .append(" — ").append(text)
-                      .append("\n");
-                });
+        	.sorted(Comparator.comparingDouble(m -> parseScore(((ModelMessage) m).getScore())).reversed())
+            .limit(TOP)
+            .forEach(m -> {
+                LabelCount top = topLabel(m.getClassification()); // 새 스키마: 배열 중 최댓값 1개 선택
+                String label = (top != null && top.getLabel() != null) ? top.getLabel() : "UNKNOWN";
+                int count    = (top != null) ? top.getCount() : 0;
+                String user  = nvl(m.getUser(), "—");
+                String text  = nvl(m.getText(), "—").replaceAll("\\s+", " ").trim();
+                String score = fmt(m.getScore());
+
+                sb.append("• [").append(label).append("] score=").append(score)
+                  .append(", count=").append(count)
+                  .append(", user=").append(user)
+                  .append(" — ").append(text)
+                  .append("\n");
+            });
+
         return sb.toString();
     }
 
-    private static String nvl(String s, String d){ return (s==null || s.isBlank()) ? d : s; }
-    private static double score(ModelResultDto r){
-        try { return r != null && r.score() != null ? Double.parseDouble(r.score()) : 0d; }
-        catch(Exception e){ return 0d; }
+    // classification 배열에서 count가 가장 큰 라벨 1개 선택 (없으면 null)
+    private static LabelCount topLabel(List<LabelCount> list) {
+        if (list == null || list.isEmpty()) return null;
+        return list.stream()
+                   .filter(Objects::nonNull)
+                   .max(Comparator.comparingInt(LabelCount::getCount))
+                   .orElse(null);
     }
+
+    private static String nvl(String s, String d){ return (s == null || s.isBlank()) ? d : s; }
+
+    private static double parseScore(String s) {
+        try { return (s != null) ? Double.parseDouble(s) : 0d; }
+        catch (Exception e) { return 0d; }
+    }
+
     private static String fmt(String s){
         try { return String.format(Locale.US, "%.2f", Double.parseDouble(s)); }
         catch(Exception e){ return "0.00"; }
