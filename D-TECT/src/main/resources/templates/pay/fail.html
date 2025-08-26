@@ -3,27 +3,33 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>결제 실패</title>
+    <title>D-tect | 결제 실패</title>
+
+    <!-- Toss 스타일 -->
+    <link rel="icon" href="https://static.toss.im/icons/png/4x/icon-toss-logo.png"/>
+    <link rel="stylesheet" th:href="@{/css/toss/style.css}"/>
+
     <style>
-        body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Arial; margin:0; padding:24px; background:#f7f7f7; color:#111;}
-        .card{max-width:720px; margin:0 auto; background:#fff; border:1px solid #eee; border-radius:14px; padding:20px; box-shadow:0 8px 28px rgba(0,0,0,.06);}
-        .title{margin:0 0 12px; font-size:1.3rem; font-weight:800; color:#b00020;}
-        .row{margin:6px 0;}
-        .label{display:inline-block; width:120px; color:#666;}
-        .cta{margin-top:16px}
-        .btn{display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fff; cursor:pointer; text-decoration:none; color:#111;}
+        .box_section{ width:600px; margin:40px auto; }
     </style>
 </head>
 <body>
-<div class="card">
-    <h1 class="title">결제를 완료하지 못했습니다.</h1>
+<div class="box_section">
+    <img width="100" src="https://static.toss.im/lotties/error-spot-no-loop-space-apng.png" alt="fail"/>
+    <h2 class="title">결제를 실패했어요</h2>
 
-    <div class="row"><span class="label">에러코드</span><span th:text="${code} ?: '—'">—</span></div>
-    <div class="row"><span class="label">메시지</span><span th:text="${message} ?: '—'">—</span></div>
+    <div class="p-grid typography--p" style="margin-top:40px">
+        <div class="p-grid-col text--left"><b>에러메시지</b></div>
+        <div class="p-grid-col text--right" th:text="${message} ?: '—'">—</div>
+    </div>
+    <div class="p-grid typography--p" style="margin-top:10px">
+        <div class="p-grid-col text--left"><b>에러코드</b></div>
+        <div class="p-grid-col text--right" th:text="${code} ?: '—'">—</div>
+    </div>
 
-    <div class="cta" style="display:flex; gap:8px; margin-top:16px;">
-        <a class="btn" href="/mypage/user">마이페이지로</a>
-        <a class="btn" href="/">홈으로</a>
+    <div class="p-grid" style="margin-top:30px">
+        <button class="button p-grid-col5" onclick="location.href='/mypage/user'">마이페이지로</button>
+        <button class="button p-grid-col5" onclick="location.href='/'" style="background:#e8f3ff;color:#1b64da">홈으로</button>
     </div>
 </div>
 </body>
