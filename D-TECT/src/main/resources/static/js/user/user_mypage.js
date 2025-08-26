@@ -98,9 +98,8 @@ setupLogout(document.querySelectorAll('.logout-link'), {
 	allowGetFallback: true, // 필요한 경우에만!
 });
 
-
+document.getElementById('historyBtn')?.addEventListener('click', e => { e.preventDefault(); if (!userId) return; window.location.href = `/analysis/user/${userId}/history`; });
 
 // 상단/하단 버튼
-document.getElementById('historyBtn')?.addEventListener('click', e => { e.preventDefault(); if (!userId) return; window.location.href = `/analysis/user/${userId}/history`; });
 document.getElementById('reserveBtn')?.addEventListener('click', () => alert('상담 일정 예약하기로 이동'));
 document.getElementById('withdrawBtn')?.addEventListener('click', () => { if (confirm('정말로 회원을 탈퇴하시겠습니까?')) alert('탈퇴 처리'); });

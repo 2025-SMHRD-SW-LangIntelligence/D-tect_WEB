@@ -80,6 +80,16 @@ public class PageController {
     	return "user/lawyers_select";			// 기본 회원 전문가 매칭 페이지
     }
     
+    @GetMapping(value = "/userAnalysisHistoryPage")
+    public String analysisHistory() {
+    	return "user/analysis_history";			// 기본 회원 분석 이력 페이지
+    }
+    
+    @GetMapping(value = "userChatbotPage")
+    public String chatbot() {
+    	return "";								// 기본 회원 챗봇 페이지
+    }
+    
     @GetMapping(value = "/userMyinfoPage")
     public String userInfo() {
     	return "user/user_mypage";				// 일반 회원 내 정보 페이지
