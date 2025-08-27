@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app.model")
 public class ModelProperties {
-    private String baseUrl = "";          // 🔴 비워두면 스텁 모드
+    private String baseUrl;          	  // 🔴 비워두면 스텁 모드
     private String predictPath = "/predict";
     private String apiKey = "";           // 필요시 사용
     private int connectTimeoutMs = 5000;
