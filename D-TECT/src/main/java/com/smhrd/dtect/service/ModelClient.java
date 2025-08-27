@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.smhrd.dtect.config.ModelProperties;
 import com.smhrd.dtect.dto.LabelCount;
 import com.smhrd.dtect.dto.ModelRequest;
 import com.smhrd.dtect.dto.ModelResponse;
@@ -26,29 +27,35 @@ import java.util.List;
 @Slf4j
 public class ModelClient {
 
-    private final WebClient modelWebClient;
-
-    @Value("${model.endpoint.infer:/infer}")
-    private String inferPath;
+    private final WebClient modelWebClient;   // WebClientConfig 에서 생성
+    private final ModelProperties modelProps; // ✅ 주입
 
     public Mono<ModelResponse> infer(String user, String text, String score, List<LabelCount> classificationOpt) {
 
-        List<LabelCount> classification = (classificationOpt != null)
-                ? classificationOpt : Collections.emptyList();
+        // baseUrl 비어 있으면 스텁으로 동작
+        if (modelProps.getBaseUrl() == null || modelProps.getBaseUrl().isBlank()) {
+            log.warn("[ModelClient] baseUrl is blank. Returning stub response.");
+            ModelResponse stub = ModelResponse.builder()
+                    .user(user)
+                    .text(text)
+                    .score(score)
+                    .classification(classificationOpt != null ? classificationOpt : Collections.emptyList())
+                    .build();
+            return Mono.just(stub);
+        }
 
-        ModelRequest payload = ModelRequest.builder()
-                .user(user)
-                .text(text)
-                .score(score)                 // 필요 없으면 null 허용
-                .classification(classification)
-                .build();
-
-        log.debug("[ModelClient] POST {} body.user={} classCount={}", inferPath, user, classification.size());
+        List<LabelCount> classification = (classificationOpt != null) ? classificationOpt : Collections.emptyList();
+        String path = modelProps.getPredictPath(); // ✅ app.model.predict-path (기본 /predict)
 
         return modelWebClient.post()
-                .uri(inferPath)
+                .uri(path)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
+                .bodyValue(ModelRequest.builder()
+                        .user(user)
+                        .text(text)
+                        .score(score)
+                        .classification(classification)
+                        .build())
                 .retrieve()
                 .bodyToMono(ModelResponse.class);
     }

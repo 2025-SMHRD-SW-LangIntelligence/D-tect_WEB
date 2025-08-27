@@ -85,6 +85,11 @@ public class PageController {
     	return "user/analysis_history";			// 기본 회원 분석 이력 페이지
     }
     
+    @GetMapping(value = "/userAnalysisResultPage")
+    public String analysisResult() {
+    	return "user/analysis_result";
+    }
+    
     @GetMapping(value = "/userChatboardPage")
     public String chatboard() {
     	return "";								// 기본 회원 채팅창 페이지
