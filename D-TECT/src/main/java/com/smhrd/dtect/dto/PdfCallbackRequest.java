@@ -16,7 +16,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 public record PdfCallbackRequest(
     String sid,
     @NotNull Long userId,
-    String reportPath,
+    String reportUrl,
     String analRate,
     @NotNull JsonNode analResult,
     List<PdfcoResultItem> pdf

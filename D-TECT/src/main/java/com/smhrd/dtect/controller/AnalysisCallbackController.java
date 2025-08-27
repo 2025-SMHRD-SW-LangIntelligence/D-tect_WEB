@@ -1,50 +1,51 @@
 package com.smhrd.dtect.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smhrd.dtect.dto.ModelMessage;
+import com.smhrd.dtect.service.AnalysisResultService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.smhrd.dtect.dto.ModelResponse;
-import com.smhrd.dtect.service.AnalysisResultService;
+import jakarta.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * 모델서버가 결과를 push로 알려줄 때 받는 콜백 엔드포인트.
- * - 모델서버는 배열(JSON array)로 전송한다고 가정 → List<ModelResponse>로 수신
- * - 내부 저장은 ModelMessage로 일원화되므로 Service에서 변환
- */
-@RestController
-@RequestMapping("/api/analysis/callback")
-@RequiredArgsConstructor
 @Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/analysis")
 public class AnalysisCallbackController {
 
     private final AnalysisResultService analysisResultService;
+    private final ObjectMapper om = new ObjectMapper();
 
-    @Value("${model.callback.secret:}")
-    private String callbackSecret; // (선택) HMAC 검증 등에 사용
-
-    @PostMapping(value = "/model", consumes = "application/json")
-    public ResponseEntity<Void> onModelCallback(
+    /**
+     * 모델 서버 → 우리 서버
+     * - 일반 결과 배열: 누적
+     * 예: POST /api/analysis/callback?sid=ABC123&total=100
+     */
+    @PostMapping(value = "/callback", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> callback(
+            HttpServletRequest req,
             @RequestParam("sid") String sid,
-            @RequestHeader(value = "X-Model-Signature", required = false) String signature,
-            @RequestBody List<ModelResponse> results
-    ) {
-        log.info("[ModelCallback] sid={}, resultCount={}, signaturePresent={}",
-                sid, results != null ? results.size() : 0, signature != null);
+            @RequestParam(value = "userId", required = false) Long userId, // ✅ Long로 변경
+            @RequestParam(value = "total", required = false) Long total,
+            @RequestBody byte[] body
+    ) throws Exception {
+        String s = new String(body, StandardCharsets.UTF_8);
+        log.info("[Callback] sid={}, qsUserId={}, contentType={}, bodyLen={}",
+                sid, userId, req.getContentType(), body != null ? body.length : 0);
 
-        if (sid == null || sid.isBlank()) return ResponseEntity.badRequest().build();
-        if (results == null || results.isEmpty()) return ResponseEntity.ok().build();
-
-        // (선택) HMAC 검증 로직 필요 시 여기에 추가
-
-        // Service에서 ModelResponse → ModelMessage로 변환하여 누적
-        analysisResultService.appendResponses(sid, results);
-
+        List<ModelMessage> results = om.readValue(s, new TypeReference<>() {});
+        if (results != null && !results.isEmpty()) {
+            analysisResultService.appendResults(sid, results, total);
+        }
         return ResponseEntity.ok().build();
     }
+
+
 }

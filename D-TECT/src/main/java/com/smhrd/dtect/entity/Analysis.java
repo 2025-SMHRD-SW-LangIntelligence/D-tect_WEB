@@ -31,11 +31,12 @@ public class Analysis {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="anal_idx")
     private Long analIdx;
-
-    // 자료 식별자
-	@ManyToOne
-	@JoinColumn(name = "user_idx", nullable = false)
-    private User user;
+	
+	// 자료 식별자
+	// ✅ FK 컬럼명은 기존 그대로(user_idx) 유지하면서, 엔티티 타입만 Member로 전환
+    @ManyToOne
+    @JoinColumn(name = "user_idx", nullable = false)
+    private Member member;
 
     // 분석 결과
 	@Column(name = "anal_result", columnDefinition="TEXT", nullable = false)
@@ -50,9 +51,9 @@ public class Analysis {
 	@Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 	
-	// 결과 보고서 경로
-	@Column(name = "report_path",nullable = false)
-	private String reportPath;
+	// 분석 보고서 다운로드 경로(네이버 클라우드)
+    @Column(name = "report_url", nullable = false, length = 1000)
+    private String reportUrl;
 	
 	// 날짜 자동 기입 함수
 	@PrePersist

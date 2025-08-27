@@ -42,11 +42,7 @@ public class ModelInferenceController {
 
     @GetMapping(value = "/ping", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelMessage ping() {
-        return ModelMessage.builder()
-                .user("ping")
-                .text("pong")
-                .score("1.0")
-                .classification(Collections.emptyList())
-                .build();
+        // ✅ 빌더 대신 생성자로 반환 (ModelMessage에 @Builder가 없다면 이게 안전)
+        return new ModelMessage("ping", "pong", "1.0", Collections.emptyList());
     }
 }

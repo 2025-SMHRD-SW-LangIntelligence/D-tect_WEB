@@ -13,6 +13,6 @@ public interface CaseRepository extends JpaRepository<Case, Long> {
 	
 	@Modifying
     @Transactional
-    void deleteByAnalysis_User_UserIdx(Long userIdx);
+    void deleteByAnalysis_Member_MemIdx(Long memIdx);
 	
 }
