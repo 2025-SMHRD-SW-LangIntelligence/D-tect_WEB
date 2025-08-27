@@ -77,10 +77,106 @@ export function checkUsername(buttonEl, usernameEl) {
 }
 
 // === 이메일 인증 ===
-export function setupEmailVerification(btnSend, btnVerify, emailEl, codeEl, msgEl) {
+export function setupEmailVerification(
+  btnSend, btnVerify, emailEl, codeEl, msgEl,
+  opts = {}
+) {
+  const {
+    lockOnSuccess = true,          // 인증 성공 시 잠금
+    lockMode = 'readonly',         // 'readonly' | 'disabled'
+    resetBtn = null,               // "이메일 변경" 버튼(선택)
+    codeRowId = 'emailCodeRow',    // 인증코드 행 id (선택)
+  } = opts;
+
+  const codeRowEl = document.getElementById(codeRowId);
+
+  // 내부 유틸
+  const setMsg = (text, good=false) => {
+    msgEl.innerText = text || '';
+    msgEl.style.color = text ? (good ? 'green' : 'red') : '';
+  };
+
+  const ensureHiddenMirror = () => {
+    // disabled 잠금일 때 폼 전송을 위해 hidden 복제 필드 유지
+    if (lockMode !== 'disabled') return null;
+    if (!emailEl.form || !emailEl.name) return null;
+    let hid = emailEl.form.querySelector(`input[type="hidden"][name="${emailEl.name}"]`);
+    if (!hid) {
+      hid = document.createElement('input');
+      hid.type = 'hidden';
+      hid.name = emailEl.name;
+      emailEl.form.appendChild(hid);
+    }
+    hid.value = emailEl.value.trim();
+    return hid;
+  };
+
+  const lockEmail = () => {
+    if (!lockOnSuccess) return;
+    if (lockMode === 'disabled') {
+      emailEl.disabled = true;
+      ensureHiddenMirror(); // hidden 업데이트
+      emailEl.setAttribute('aria-disabled', 'true');
+    } else {
+      emailEl.readOnly = true;
+      emailEl.setAttribute('aria-readonly', 'true');
+    }
+    emailEl.classList.add('is-verified');
+    emailEl.dataset.verified = 'true';
+
+    codeEl.disabled = true;
+    btnSend.disabled = true;
+    btnVerify.disabled = true;
+  };
+
+  const unlockEmail = () => {
+    // 사용자가 이메일 변경을 원할 때 재인증을 위해 잠금 해제
+    if (lockMode === 'disabled') {
+      emailEl.disabled = false;
+      emailEl.removeAttribute('aria-disabled');
+      // hidden 미러는 남겨두되 값은 비움 (헷갈림 방지)
+      if (emailEl.form && emailEl.name) {
+        const hid = emailEl.form.querySelector(`input[type="hidden"][name="${emailEl.name}"]`);
+        if (hid) hid.value = '';
+      }
+    } else {
+      emailEl.readOnly = false;
+      emailEl.removeAttribute('aria-readonly');
+    }
+    emailEl.classList.remove('is-verified');
+    delete emailEl.dataset.verified;
+
+    codeEl.disabled = false;
+    btnSend.disabled = false;
+    btnVerify.disabled = false;
+
+    // 문구 리셋
+    setMsg('');
+    if (codeRowEl?.style) codeRowEl.style.display = 'block';
+  };
+
+  // 선택: "이메일 변경" 버튼 연결
+  if (resetBtn) {
+    const btn = typeof resetBtn === 'string' ? document.querySelector(resetBtn) : resetBtn;
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!confirm('이메일을 변경하시겠어요? 다시 인증이 필요합니다.')) return;
+        unlockEmail();
+        codeEl.value = '';
+      });
+    }
+  }
+
+  // 인증코드 발송
   btnSend.addEventListener('click', async () => {
     const email = emailEl.value.trim();
     if (!email) { alert('이메일을 입력하세요.'); return; }
+    // 이미 인증 완료되었다면 재발송 방지
+    if (emailEl.dataset.verified === 'true') {
+      alert('이미 인증이 완료된 이메일입니다. 변경하려면 "이메일 변경"을 눌러주세요.');
+      return;
+    }
     try {
       const res = await fetch('/api/members/send-code', {
         method: 'POST',
@@ -91,19 +187,18 @@ export function setupEmailVerification(btnSend, btnVerify, emailEl, codeEl, msgE
       const data = await toJsonSafe(res);
       if (data.success) {
         alert('메일 발송 완료');
-        document.getElementById('emailCodeRow')?.style && (document.getElementById('emailCodeRow').style.display = 'block');
+        if (codeRowEl?.style) codeRowEl.style.display = 'block';
         emailEl.dispatchEvent(new CustomEvent('email:codeSent', { detail: { email } }));
       } else {
-        msgEl.innerText = '인증번호 전송 실패';
-        msgEl.style.color = 'red';
+        setMsg('인증번호 전송 실패');
       }
     } catch (err) {
       console.error('[send-code]', err);
-      msgEl.innerText = '인증번호 전송 중 오류';
-      msgEl.style.color = 'red';
+      setMsg('인증번호 전송 중 오류');
     }
   });
 
+  // 인증확인
   btnVerify.addEventListener('click', async () => {
     const code = codeEl.value.trim();
     if (!code) { alert('인증번호 입력'); return; }
@@ -115,16 +210,28 @@ export function setupEmailVerification(btnSend, btnVerify, emailEl, codeEl, msgE
         credentials: 'same-origin'
       });
       const data = await toJsonSafe(res);
-      msgEl.innerText = data.success ? '✅ 이메일 인증 완료!' : '❌ 인증번호 불일치';
-      msgEl.style.color = data.success ? 'green' : 'red';
-      emailEl.dispatchEvent(new CustomEvent('email:verified', { detail: { success: !!data.success } }));
+      const ok = !!data.success;
+      setMsg(ok ? '✅ 이메일 인증 완료!' : '❌ 인증번호 불일치', ok);
+
+      if (ok) {
+        // 잠금 + hidden 미러 반영
+        lockEmail();
+        ensureHiddenMirror();
+
+        // 인증 완료 이벤트(폼에서 필요 시 활용)
+        emailEl.dispatchEvent(new CustomEvent('email:verified', {
+          detail: { success: true, email: emailEl.value.trim() }
+        }));
+      } else {
+        emailEl.dispatchEvent(new CustomEvent('email:verified', { detail: { success: false } }));
+      }
     } catch (err) {
       console.error('[verify-code]', err);
-      msgEl.innerText = '인증 확인 중 오류';
-      msgEl.style.color = 'red';
+      setMsg('인증 확인 중 오류');
     }
   });
 }
+
 
 // === 주소 검색 (카카오 우편번호) ===
 export function setupAddressSearch(buttonEl, targetEl, detailId = 'addrDetail') {
