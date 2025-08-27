@@ -87,7 +87,7 @@ public class PageController {
     
     @GetMapping(value = "/userAnalysisResultPage")
     public String analysisResult() {
-    	return "user/analysis_result";
+    	return "user/analysis_result";			// 기본 회원 분석 결과 페이지
     }
     
     @GetMapping(value = "/userChatboardPage")
@@ -97,7 +97,7 @@ public class PageController {
     
     @GetMapping(value = "/userChatbotPage")
     public String chatbot() {
-    	return "user/bot";
+    	return "user/bot";						// 기본 회원 챗봇 페이지
     }
     
     @GetMapping(value = "/userMyinfoPage")
