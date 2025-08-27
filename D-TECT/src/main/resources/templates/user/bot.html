@@ -2,18 +2,25 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>D-tect-ChatBot</title>
 <link rel="stylesheet" th:href="@{/css/user/bot.css}" />
 </head>
 <body>
-	<div class="bot-panel" data-endpoint="/api/bot/message">
-		<div id="chatLog" class="chat-log"></div>
-		<form id="botForm" class="bot-form">
+	<section class="bot-panel" data-endpoint="/api/bot/message">
+		<div class="chat-card">
+		<div class="chat-header"></div>
+		<div class="chat-body">
+		<div id="chatLog" class="chat-log" aria-live="polite"></div>
+		</div>
+	</div>
+	
+		<form id="botForm" class="chat-form" autocomplete="off">
 			<input id="userInput" class="bot-input" type="text"
 				placeholder="메시지를 입력하세요" />
-			<button id="sendBtn" class="bot-send" type="submit">Send</button>
+			<button id="sendBtn" class="chat-send" type="submit">Send</button>
 		</form>
-	</div>
+		</section>
+	
 </body>
 <script type="module" th:src="@{/js/user/bot-client.js}" defer></script>
 </html>
