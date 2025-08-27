@@ -43,6 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const log = document.getElementById('chatLog');
 
   if (!form || !input || !log) return;
+  
+  input.addEventListener('keydown', (e) => {
+     if (e.key === 'Enter' && !e.shiftKey) {
+       e.preventDefault();   // 기본 줄바꿈 막기
+       form.requestSubmit(); // 전송
+     }
+     // Shift+Enter는 기본 동작 그대로 (줄바꿈)
+   });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
