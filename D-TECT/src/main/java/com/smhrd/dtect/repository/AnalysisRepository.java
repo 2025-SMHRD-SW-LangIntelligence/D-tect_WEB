@@ -9,8 +9,14 @@ import java.util.Optional;
 
 @Repository
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
-    List<Analysis> findByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
-    Optional<Analysis> findByAnalIdxAndUser_UserIdx(Long analIdx, Long userIdx);
-    
-    void deleteByUser_UserIdx(Long userIdx);
+
+    // ✅ 목록 조회 (기존: findByUser_UserIdxOrderByCreatedAtDesc)
+    List<Analysis> findByMember_MemIdxOrderByCreatedAtDesc(Long memIdx);
+
+    // ✅ 단건 조회 (기존: findByAnalIdxAndUser_UserIdx)
+    Optional<Analysis> findByAnalIdxAndMember_MemIdx(Long analIdx, Long memIdx);
+
+    // ✅ 삭제 (기존: deleteByUser_UserIdx)
+    void deleteByMember_MemIdx(Long memIdx);
 }
+

@@ -152,6 +152,15 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
+		
+				<!-- AWS SDK v2 (NCP S3 호환) -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.28.10</version>
+		</dependency>
+		
+		
 	</dependencies>
 
 	<build>

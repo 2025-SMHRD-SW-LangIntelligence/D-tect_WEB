@@ -192,10 +192,10 @@ public class MyPageService {
         // 4) 사용자/전문가 소유 자료 정리
         userOpt.ifPresent(u -> {
             // 1) Case 먼저 제거
-            caseRepository.deleteByAnalysis_User_UserIdx(u.getUserIdx());
+            caseRepository.deleteByAnalysis_Member_MemIdx(u.getUserIdx());
 
             // 2) Analysis 제거
-            analysisRepository.deleteByUser_UserIdx(u.getUserIdx());
+            analysisRepository.deleteByMember_MemIdx(u.getUserIdx());
 
             // 3) 마지막에 User 제거
             userRepository.delete(u);

@@ -1,9 +1,12 @@
 package com.smhrd.dtect.dto;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LabelCount {
     private String label;
     private int count;

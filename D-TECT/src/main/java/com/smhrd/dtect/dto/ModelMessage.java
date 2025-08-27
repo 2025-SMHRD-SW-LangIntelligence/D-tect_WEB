@@ -1,25 +1,19 @@
 package com.smhrd.dtect.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ModelMessage {
-
-    private String user;
-    private String text;
-
-    // 점수는 문자열로 유지(상대편이 "0.92"로 내려주므로)
-    private String score;
-
-    // ★ 핵심: 항상 배열(List)로. 단일 객체로 와도 배열로 파싱하도록 허용
-    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-    private List<LabelCount> classification;
+    private String user;    // 예: "3코빅수장아미" | "system"
+    private String text;    // 예: "__FINALIZE_ONLY__"
+    private String score;   // 예: "0.90"
+    @JsonDeserialize(using = LabelCountListDeserializer.class)
+    private List<LabelCount> classification; // 객체/배열 모두 허용
 }
