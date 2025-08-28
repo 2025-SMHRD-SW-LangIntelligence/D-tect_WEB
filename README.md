@@ -108,11 +108,11 @@
     <td>이준섭(팀원)</td>
   </tr>
   <tr>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
+    <td>PM, Front-End, 모델링, 산출문서작성</td>
+    <td>Back-End, GitHub관리, 코드 통합, 산출문서작성</td>
+    <td>데이터 전처리, 모델링, 산출문서작성</td>
+    <td>Back-End, GitHub통합, WBS관리, 산출문서작성</td>
+    <td>크롤링, 모델링, 산출문서작성</td>
   <tr>
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
     <td align="center"><a href="https://github.com/wfos3241" target='_blank'>github</a></td>
@@ -121,5 +121,6 @@
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
