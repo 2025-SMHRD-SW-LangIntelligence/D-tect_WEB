@@ -4,13 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smhrd.dtect.dto.ModelMessage;
 import com.smhrd.dtect.service.AnalysisResultService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -24,30 +24,23 @@ public class AnalysisCallbackController {
     private final ObjectMapper om = new ObjectMapper();
 
     /**
-     * 모델 서버 → 우리 서버
-     * - 일반 결과 배열: 누적
-     * 예: POST /api/analysis/callback?sid=ABC123&total=100
+     * 모델 서버 → 우리 서버 콜백
+     * 예: POST /api/analysis/callback?analId=123
      */
     @PostMapping(value = "/callback", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> callback(
             HttpServletRequest req,
-            @RequestParam("sid") String sid,
-            @RequestParam(value = "userId", required = false) Long userId, // ✅ Long로 변경
-            @RequestParam(value = "total", required = false) Long total,
+            @RequestParam("analId") Long analId,
             @RequestBody byte[] body
     ) throws Exception {
         String s = new String(body, StandardCharsets.UTF_8);
-        log.info("[Callback] sid={}, qsUserId={}, contentType={}, bodyLen={}",
-                sid, userId, req.getContentType(), body != null ? body.length : 0);
+        log.info("[Callback] analId={}, contentType={}, bodyLen={}",
+                analId, req.getContentType(), body != null ? body.length : 0);
 
-        List<ModelMessage> results =
-        	    om.readValue(s, new TypeReference<List<ModelMessage>>() {});
-
+        List<ModelMessage> results = om.readValue(s, new TypeReference<List<ModelMessage>>() {});
         if (results != null && !results.isEmpty()) {
-            analysisResultService.appendResults(sid, results, total);
+            analysisResultService.saveFromCallback(analId, results);
         }
         return ResponseEntity.ok().build();
     }
-
-
 }

@@ -36,7 +36,6 @@ const fmtTime = (sec)=>{ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60
 function setStatus(kind,text){
   els.statusDot.className = `dot ${kind}`;
   els.statusText.textContent = text;
-  // 전체 내용을 툴팁으로도 노출(긴 파일명 확인 편의)
   els.statusText.title = text || '';
 }
 function log(msg){ const line = `[${new Date().toLocaleTimeString()}] ${msg}\n`; els.log.textContent += line; els.log.scrollTop = els.log.scrollHeight; }
@@ -125,7 +124,6 @@ function confirmDownloadFallback(){
   );
 }
 
-// 분석결과 페이지로 이동(진행 중이면 명시 종료)
 function gotoResults(){
   const url = els.gotoBtn?.dataset?.href || '/analysis';
   const capturing = !!(timerId || stream);
@@ -186,6 +184,38 @@ async function saveLocal(blob, fileName){
   }
 }
 
+// === 불링 감지 전용 폴더 저장 ===
+async function saveToAlertsFolder(blob, fileName){
+  if (saveStrategy !== 'folder') return; // download 모드면 스킵
+  try{
+    const sub = await dirHandle.getDirectoryHandle('D-tect_Alerts', {create:true});
+    const file = await sub.getFileHandle(fileName, {create:true});
+    const w = await file.createWritable();
+    await w.write(blob); await w.close();
+    log(`⚠️ 불링 감지 → D-tect_Alerts/${fileName} 추가 저장`);
+  }catch(e){
+    log(`Alerts 폴더 저장 실패: ${e.message}`);
+  }
+}
+
+// ===== 서버로 프레임 전송 =====
+async function sendToBackend(blob, fileName){
+  if (!analysisId) return {flagged:false, labels:[]};
+  try{
+    const fd = new FormData();
+    fd.append('file', blob, fileName);
+    fd.append('analId', String(analysisId));
+
+    const res = await fetch('/api/capture/frame', { method:'POST', body: fd });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json(); // {flagged:boolean, labels:[...]}
+    return json;
+  }catch(e){
+    log(`백엔드 전송 실패: ${e.message}`);
+    return {flagged:false, labels:[]};
+  }
+}
+
 // ===== 경고만(자동 종료 없음) =====
 const ANOMALY = {
   ENABLED: true,
@@ -239,7 +269,6 @@ function startMinimizeWatch(stream){
   lastSampleHash = null;
   mutedSince = null;
 
-  // RVFC 루프
   rvfcLoopActive = true;
   if (v.requestVideoFrameCallback){
     const loop = ()=> v.requestVideoFrameCallback((now)=>{
@@ -250,7 +279,6 @@ function startMinimizeWatch(stream){
     loop();
   }
 
-  // 픽셀 해시 보조
   const pixelTimer = setInterval(()=>{
     const gap = performance.now() - lastFrameAt;
     if (gap > ANOMALY.RVFC_FALLBACK_MS){
@@ -262,7 +290,6 @@ function startMinimizeWatch(stream){
     }
   }, ANOMALY.PIXEL_SAMPLE_MS);
 
-  // 트랙 이벤트: 경고만 로그
   const track = stream?.getVideoTracks?.()[0];
   if (track){
     track.onended = ()=> handleTrackEnded();
@@ -276,7 +303,6 @@ function startMinimizeWatch(stream){
     };
   }
 
-  // 주기적 경고 체크
   minWatchTimer = setInterval(()=>{
     const now = performance.now();
     const sinceFrame = now - lastFrameAt;
@@ -359,7 +385,6 @@ async function start(){
       log(`기존 분석 세션 재사용 #${analysisId}`);
     }
 
-    // ▶ 세션 번호/초 리셋
     captureIdx = 0;
     lastStamp  = null;
 
@@ -395,19 +420,25 @@ async function captureOnce(){
   ctx.drawImage(v,0,0,w,h);
   const blob = await new Promise(r=> els.canvas.toBlob(r,'image/png'));
 
-  // ▶ 파일명: {prefix}{YYYY-MM-DD_HH-mm-ss}[_{02}] .png
   const stamp = ts();
   if (stamp !== lastStamp){
     lastStamp = stamp;
-    captureIdx = 1;              // 같은 초의 첫 장 → 접미사 없음
+    captureIdx = 1;
   } else {
-    captureIdx += 1;             // 같은 초에 2장 이상일 때만 접미사
+    captureIdx += 1;
   }
   const suffix = (captureIdx > 1) ? `_${String(captureIdx).padStart(2,'0')}` : '';
   const name   = `${(els.prefix.value || 'capture_')}${stamp}${suffix}.png`;
 
+  // 1) 로컬/다운로드 저장
   if (saveStrategy === 'folder') await saveLocal(blob, name);
   else                           await saveDownload(blob, name);
+
+  // 2) 백엔드로 전송 → 모델 → flagged 여부 수신
+  const res = await sendToBackend(blob, name);
+  if (res?.flagged){
+    await saveToAlertsFolder(blob, name); // 3) 감지되면 Alerts 하위 폴더에 추가 저장
+  }
 }
 
 // UI/타이머/스트림만 정리(분석 finish는 호출 안 함)

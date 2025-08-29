@@ -2,11 +2,18 @@ package com.smhrd.dtect.service;
 
 import com.smhrd.dtect.dto.*;
 import com.smhrd.dtect.entity.AnalRate;
+import com.smhrd.dtect.entity.Analysis;
+import com.smhrd.dtect.entity.Case;
+import com.smhrd.dtect.entity.FieldName;
+import com.smhrd.dtect.repository.AnalysisRepository;
+import com.smhrd.dtect.repository.CaseRepository;
 import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
@@ -14,9 +21,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AnalysisResultService {
 
     private final PdfWebhookClient pdfWebhookClient;
+    private final AnalysisRepository analysisRepository;
+    private final CaseRepository caseRepository;
+
 
     @Value("${app.analysis.session-ttl-minutes:30}")
     private long ttlMinutes;
@@ -46,19 +57,81 @@ public class AnalysisResultService {
         return (st != null) ? st.ownerUserId : null;
     }
 
-    public long appendResults(String sid, List<ModelMessage> results, Long total) {
-        if (sid == null || sid.isBlank()) throw new IllegalArgumentException("sid 누락");
-        SessionState st = sessions.computeIfAbsent(sid, k -> new SessionState());
-        if (results != null) {
-            for (ModelMessage r : results) {
-                String fp = fingerprint(r);
-                if (st.fingerprints.add(fp)) st.items.add(r);
+
+    // 모델링!!
+    @Transactional
+    public void appendResults(Long analId, List<ModelMessage> results, Long total) {
+        Analysis analysis = analysisRepository.findById(analId)
+                .orElseThrow(() -> new IllegalArgumentException("Analysis not found: " + analId));
+
+        List<Case> toSave = new ArrayList<>();
+        for (ModelMessage m : results) {
+            if (m.getClassification() == null) continue;
+
+            for (LabelCount lc : m.getClassification()) {
+                if (lc == null || lc.getCount() <= 0) continue;
+                try {
+                    FieldName fn = FieldName.valueOf(lc.getLabel().toUpperCase());
+                    Case c = new Case();
+                    c.setAnalysis(analysis);
+                    c.setCaseType(fn);           // 중복 허용: 요구사항 그대로 저장
+                    toSave.add(c);
+                } catch (IllegalArgumentException ignore) {
+                    // FieldName에 없는 라벨은 무시
+                }
             }
         }
-        if (total != null) st.total = total;
-        st.processed = st.items.size();
-        st.lastUpdated = System.currentTimeMillis();
-        return st.processed;
+        if (!toSave.isEmpty()) {
+            caseRepository.saveAll(toSave);
+            log.info("Saved {} CASE(s) for analId={}", toSave.size(), analId);
+        }
+    }
+
+    // 모델링!!!
+
+    @Transactional
+    public void saveFromCallback(Long analId, List<ModelMessage> results) {
+        Analysis analysis = analysisRepository.findById(analId)
+                .orElseThrow(() -> new IllegalArgumentException("Analysis not found: " + analId));
+
+        List<Case> toSave = new ArrayList<>();
+        for (ModelMessage m : results) {
+            if (m.getClassification() == null) continue;
+            for (LabelCount lc : m.getClassification()) {
+                if (lc.getCount() <= 0) continue;
+                try {
+                    FieldName fn = FieldName.valueOf(lc.getLabel().toUpperCase());
+                    Case c = new Case();
+                    c.setAnalysis(analysis);
+                    c.setCaseType(fn);
+                    toSave.add(c);
+                } catch (IllegalArgumentException e) {
+                }
+            }
+        }
+        if (!toSave.isEmpty()) {
+            caseRepository.saveAll(toSave);
+        }
+    }
+
+    private FieldName pickTopLabel(ModelMessage m) {
+        if (m.getClassification() == null || m.getClassification().isEmpty()) {
+            return null;
+        }
+        LabelCount best = m.getClassification().stream()
+                .max(Comparator.comparingInt(lc -> lc.getCount()))
+                .orElse(null);
+        if (best == null) return null;
+
+        String raw = (best.getLabel() == null) ? "" : best.getLabel().trim().toUpperCase();
+
+        try {
+            return FieldName.valueOf(raw);
+        } catch (IllegalArgumentException iae) {
+            // 라벨이 enum에 없으면 스킵 (FieldName에 UNKNOWN이 있다면 그걸 쓰는 방식도 가능)
+            log.warn("Unknown label from model: '{}'", raw);
+            return null;
+        }
     }
 
     public boolean finalizeNow(String sid) {
@@ -108,4 +181,5 @@ public class AnalysisResultService {
     private static List<ModelMessage> copyOf(List<ModelMessage> list){
         synchronized (list) { return List.copyOf(list); }
     }
+
 }

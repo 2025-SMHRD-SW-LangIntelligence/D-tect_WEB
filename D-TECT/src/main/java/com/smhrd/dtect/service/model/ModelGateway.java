@@ -4,5 +4,6 @@ import com.smhrd.dtect.dto.ModelMessage;
 import java.util.List;
 
 public interface ModelGateway {
-    List<ModelMessage> predict(byte[] imageBytes, String filename) throws Exception;
+
+    List<ModelMessage> predict(byte[] imageBytes, String filename, Long analId) throws Exception;
 }
