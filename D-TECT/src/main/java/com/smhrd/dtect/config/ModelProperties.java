@@ -4,13 +4,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app.model")
 public class ModelProperties {
-    private String baseUrl;          	  // 🔴 비워두면 스텁 모드
+    private String baseUrl;            // http://127.0.0.1:8001
     private String predictPath = "/predict";
-    private String apiKey = "";           // 필요시 사용
+    private String apiKey = "";
     private int connectTimeoutMs = 5000;
     private int readTimeoutMs = 60000;
 
-    // getters & setters
     public String getBaseUrl() { return baseUrl; }
     public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
     public String getPredictPath() { return predictPath; }
