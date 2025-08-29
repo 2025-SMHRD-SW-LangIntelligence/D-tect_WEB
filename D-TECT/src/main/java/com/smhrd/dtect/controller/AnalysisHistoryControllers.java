@@ -1,0 +1,56 @@
+package com.smhrd.dtect.controller;
+
+import com.smhrd.dtect.dto.AnalysisSummaryDto;
+import com.smhrd.dtect.service.AnalysisService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.List;
+
+@RequiredArgsConstructor
+public class AnalysisHistoryControllers {
+
+    @Controller
+    @RequestMapping("/analysis")
+    @RequiredArgsConstructor
+    public static class AnalysisHistoryPageController {
+        private final AnalysisService analysisService;
+
+        // 히스토리 페이지(SSR)
+        @GetMapping("/user/{username}/history")
+        public String historyPage(@PathVariable String username, Model model) {
+            model.addAttribute("username", username);
+            return "user/analysis_history";
+        }
+    }
+
+    @RestController
+    @RequestMapping("/api/analysis")
+    @RequiredArgsConstructor
+    public static class AnalysisHistoryApiController {
+        private final AnalysisService analysisService;
+
+        // 히스토리 API(JSON)
+        @GetMapping("/user/{username}/history")
+        public List<AnalysisSummaryDto> historyApi(@PathVariable String username) {
+            return analysisService.listForUsername(username);
+        }
+
+        // 미리보기/다운로드(302 redirect)
+        @GetMapping("/{analId}/preview")
+        public ResponseEntity<Void> preview(@PathVariable Long analId) {
+            String url = analysisService.getReportUrl(analId);
+            return ResponseEntity.status(302).location(URI.create(url)).build();
+        }
+
+        @GetMapping("/{analId}/download")
+        public ResponseEntity<Void> download(@PathVariable Long analId) {
+            String url = analysisService.getReportUrl(analId);
+            return ResponseEntity.status(302).location(URI.create(url)).build();
+        }
+    }
+}

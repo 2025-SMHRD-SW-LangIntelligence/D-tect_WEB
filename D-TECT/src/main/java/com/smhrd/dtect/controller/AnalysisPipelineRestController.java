@@ -2,7 +2,7 @@ package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.dto.*;
 import com.smhrd.dtect.entity.AnalRate;
-import com.smhrd.dtect.service.AnalysisGrader;
+import com.smhrd.dtect.entity.FieldName;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -29,9 +31,10 @@ public class AnalysisPipelineRestController {
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<AnalysisStartResponse> start(
-            @RequestParam("userId") Long userId,  // Long (DB의 user_idx)
+            @RequestParam("userId") Long userId,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
+        // ✨ beginSession 내부에서 tb_analysis 레코드 생성 + started_at 저장
         String sid = analysisResultService.beginSession(userId, files);
         return ResponseEntity.ok(new AnalysisStartResponse(sid));
     }
@@ -43,24 +46,27 @@ public class AnalysisPipelineRestController {
 
     @PostMapping(value = "/finalize", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AnalysisFinalizeResponse> finalizeAnalysis(@RequestParam("sid") String sid) {
-        Long userId = analysisResultService.getUserIdForSid(sid);
-        if (userId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown sid");
+    	String username = analysisResultService.getUsernameForSid(sid);
+        if (username == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown sid");
 
-        List<ModelMessage> items = analysisResultService.getResult(sid);
-        AnalRate rate = AnalysisGrader.grade(items);
-        boolean ok = pdfWebhookClient.dispatchJson(userId, sid, items, rate, null, null);
+        // ✨ 유형별 횟수만 꺼냄
+        var counts = analysisResultService.getTypeCounts(sid); // {VIOLENCE=30, SEXUAL=10, ...}
 
-        return ResponseEntity.ok(new AnalysisFinalizeResponse(
-                sid, (items != null ? items.size() : 0), rate, ok));
-    }
+        // ✨ 등급은 횟수 기반으로만 산정(내부 로직에서 임계값/가중치 적용)
+        var rate   = analysisResultService.gradeByCounts(counts);
 
+        // ✨ 종료 처리(ended_at 저장) + n8n 웹훅 전송(“횟수만”)
+        analysisResultService.markEnded(sid);
+        boolean ok = pdfWebhookClient.dispatchCounts(
+                username,
+                sid,
+                counts,
+                rate,
+                analysisResultService.getStartedAt(sid),
+                analysisResultService.getEndedAt(sid)
+        );
 
-    private static String firstNonBlank(String... arr) {
-        if (arr == null) return null;
-        for (String s : arr) if (!isBlank(s)) return s;
-        return null;
-    }
-    private static boolean isBlank(String s) {
-        return s == null || s.isBlank();
+        int total = counts.values().stream().mapToInt(Integer::intValue).sum();
+        return ResponseEntity.ok(new AnalysisFinalizeResponse(sid, total, rate, ok));
     }
 }

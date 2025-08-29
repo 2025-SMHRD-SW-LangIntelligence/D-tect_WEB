@@ -25,4 +25,10 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "mem_idx", nullable = false)
     private Member member;
+    
+    // 관리자만 보유하고 있는 포인트
+    // 사용자가 청구서 결제시, 그 금액의 일정 %를 관리자에게 적립시킬 예정
+    // 대충 수수료느낌?
+    @Column(nullable = true)
+    private Long point;
 }
