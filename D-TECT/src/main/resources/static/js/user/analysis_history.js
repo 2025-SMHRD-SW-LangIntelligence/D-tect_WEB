@@ -92,27 +92,42 @@ viewer.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal__backdrop')) closeViewer();
 });
 
-// 서버에서 목록 불러오기
-async function load() {
-    const userId = Number(document.body.dataset.userId || 0);
-    if (!userId) {
-        console.warn('userId missing in data-user-id');
-        DATA = [];
-        return render();
-    }
-    try {
-        const res = await fetch(`/analysis/api/user/${userId}/history`, {
-            headers: { 'Accept': 'application/json' }
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        DATA = await res.json(); // [{analIdx,fileName,createdAt,analRate,previewUrl,downloadUrl}, ...]
-    } catch (e) {
-        console.error('목록 로드 실패:', e);
-        DATA = [];
-    }
-    page = 1;
-    render();
+const root = document.getElementById('history-root');
+
+function getMemIdx() {
+  const ds = (root && root.dataset) || {};
+  let key = (ds.memIdx || '').trim();
+  if (!key) {
+    // URL이 /analysis/user/id/{memIdx}/history 형태라면 여기서 추출
+    const m = location.pathname.match(/\/analysis\/user\/id\/(\d+)\/history/);
+    if (m) key = m[1];
+  }
+  return key;
 }
+
+async function load() {
+  const memIdx = getMemIdx();
+  if (!memIdx) {
+    console.warn('memIdx missing (data-mem-idx 필요)');
+    DATA = [];
+    return render();
+  }
+  try {
+    const res = await fetch(`/analysis/api/user/id/{memIdx}/history`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    DATA = await res.json();
+  } catch (e) {
+    console.error('목록 로드 실패:', e);
+    DATA = [];
+  }
+  page = 1;
+  render();
+}
+
+load();
+
 
 // 초기 로드
 load();

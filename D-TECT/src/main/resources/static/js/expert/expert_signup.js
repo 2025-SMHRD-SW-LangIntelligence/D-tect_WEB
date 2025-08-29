@@ -40,7 +40,12 @@ setupPhoneValidation(phoneEl);
 passwordEl.addEventListener('input', () => validatePasswords(passwordEl, password2El, pwdMsg, true));
 password2El.addEventListener('input', () => validatePasswords(passwordEl, password2El, pwdMsg, true));
 
-setupAddressSearch(addrBtn, officeAddressEl, 'addr2');
+setupAddressSearch(addrBtn, officeAddressEl, addrDetailEl, {
+  enforceApiOnly: true,          // 주소 본문은 API로만
+  lockMode: 'readonly',          // 제출값 유지 + 수동 입력 차단
+  resetBtn: '#addrChangeBtn',    // 주소 변경 시 재검색 유도
+  meta: { zonecode: '#zonecode' } // 필요시 추가: sido/sigungu/bname/buildingName
+});
 
 // step1 초안(약관/비번 등) 로드
 const draft = loadDraft('signup:step1');

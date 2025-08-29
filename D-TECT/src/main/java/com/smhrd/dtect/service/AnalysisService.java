@@ -21,12 +21,14 @@ public class AnalysisService {
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
-
+    
     // ✅ username으로 목록 조회
     public List<AnalysisSummaryDto> listForUsername(String username) {
         Member m = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("member not found: " + username));
-        return analysisRepository.findByMember_MemIdxOrderByCreatedAtDesc(m.getMemIdx()).stream()
+        return analysisRepository
+                .findByUser_Member_MemIdxOrderByCreatedAtDesc(m.getMemIdx())
+                .stream()
                 .map(this::toDto)
                 .toList();
     }

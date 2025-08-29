@@ -16,7 +16,21 @@ import java.util.List;
 @RequestMapping("/analysis")
 public class AnalysisController {
 
-    private final AnalysisService analysisService;
+	private final AnalysisService analysisService;
+
+    // 페이지: memIdx로 진입
+	@GetMapping("/analysis/user/id/{memIdx}/history")
+	public String historyPageById(@PathVariable Long memIdx, Model model) {
+	    model.addAttribute("memIdx", memIdx);
+	    return "user/analysis_history";
+	}
+
+//    // API: memIdx로 목록
+//    @GetMapping("/api/user/id/{memIdx}/history")
+//    @ResponseBody
+//    public List<AnalysisSummaryDto> historyApiById(@PathVariable Long memIdx) {
+//        return analysisService.listForMemberId(memIdx);
+//    }
 
     // 페이지 진입 시 username을 넘기도록 변경 (프론트도 data-user-name 속성 사용)
     @GetMapping("/user/{username}/history")

@@ -40,7 +40,9 @@ public class AnalysisCallbackController {
         log.info("[Callback] sid={}, qsUserId={}, contentType={}, bodyLen={}",
                 sid, userId, req.getContentType(), body != null ? body.length : 0);
 
-        List<ModelMessage> results = om.readValue(s, new TypeReference<>() {});
+        List<ModelMessage> results =
+        	    om.readValue(s, new TypeReference<List<ModelMessage>>() {});
+
         if (results != null && !results.isEmpty()) {
             analysisResultService.appendResults(sid, results, total);
         }

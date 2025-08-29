@@ -233,23 +233,147 @@ export function setupEmailVerification(
 }
 
 
-// === 주소 검색 (카카오 우편번호) ===
-export function setupAddressSearch(buttonEl, targetEl, detailId = 'addrDetail') {
-  buttonEl.addEventListener('click', () => {
+// === 주소 검색 (카카오 우편번호, API로만 입력 강제 가능) ===
+export function setupAddressSearch(buttonEl, targetEl, detailId = 'addrDetail', opts = {}) {
+  const getEl = (x) => (typeof x === 'string' ? document.querySelector(x) : x);
+
+  const btn      = getEl(buttonEl);
+  const addrEl   = getEl(targetEl);
+  const detailEl = typeof detailId === 'string' ? document.getElementById(detailId) : getEl(detailId);
+
+  if (!btn || !addrEl) return;
+
+  const {
+    enforceApiOnly = true,           // true면 주소 본문은 카카오 API로만 입력
+    lockMode       = 'readonly',     // 'readonly' | 'disabled' (disabled면 hidden 미러 생성)
+    resetBtn       = null,           // "주소 변경" 버튼 선택자/엘리먼트(선택)
+    meta = {},                       // 주소 메타를 채울 필드 매핑 (선택)
+    // 예: meta: { zonecode:'#zonecode', sido:'#addrSido', sigungu:'#addrSigungu', bname:'#addrBname', buildingName:'#addrBldg' }
+  } = opts;
+
+  // --- 내부 유틸 ---
+  const setMeta = (key, val) => {
+    const sel = meta[key];
+    if (!sel) return;
+    const el = getEl(sel);
+    if (el) { el.value = val || ''; el.setAttribute('value', el.value); }
+  };
+
+  const ensureHiddenMirror = () => {
+    if (lockMode !== 'disabled') return null;
+    if (!addrEl.form || !addrEl.name) return null;
+    let hid = addrEl.form.querySelector(`input[type="hidden"][name="${addrEl.name}"]`);
+    if (!hid) {
+      hid = document.createElement('input');
+      hid.type = 'hidden';
+      hid.name = addrEl.name;
+      addrEl.form.appendChild(hid);
+    }
+    hid.value = addrEl.value.trim();
+    return hid;
+  };
+
+  const applyLock = () => {
+    if (!enforceApiOnly) return;
+    if (lockMode === 'disabled') {
+      addrEl.disabled = true;
+      addrEl.setAttribute('aria-disabled', 'true');
+      ensureHiddenMirror();
+    } else {
+      addrEl.readOnly = true;
+      addrEl.setAttribute('aria-readonly', 'true');
+      // 사용자가 필드에 키보드/붙여넣기 시도해도 막기
+      const block = (e) => e.preventDefault();
+      addrEl.addEventListener('keydown', block);
+      addrEl.addEventListener('paste', block);
+      // 필드를 클릭해도 검색창 뜨게(UX)
+      addrEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        openPostcode();
+      });
+    }
+    addrEl.classList.add('is-verified'); // 스타일용(선택)
+  };
+
+  const clearAddress = () => {
+    addrEl.value = '';
+    delete addrEl.dataset.byPostcode;
+    delete addrEl.dataset.zonecode;
+    delete addrEl.dataset.type;
+    delete addrEl.dataset.sido;
+    delete addrEl.dataset.sigungu;
+    delete addrEl.dataset.bname;
+    delete addrEl.dataset.buildingName;
+
+    // 메타필드 초기화
+    setMeta('zonecode',''); setMeta('sido',''); setMeta('sigungu','');
+    setMeta('bname',''); setMeta('buildingName','');
+
+    if (lockMode === 'disabled') {
+      const hid = ensureHiddenMirror(); if (hid) hid.value = '';
+    }
+  };
+
+  const openPostcode = () => {
     if (!window.daum || !window.daum.Postcode) {
       alert('주소 검색 모듈을 불러오지 못했습니다.');
       return;
     }
     new daum.Postcode({
       oncomplete: function(data) {
-        const addr = data.userSelectedType==='R' ? data.roadAddress : data.jibunAddress;
-        targetEl.value = addr;
-        const detail = document.getElementById(detailId);
-        if (detail) detail.focus();
+        const addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+
+        addrEl.value = addr || '';
+        addrEl.dataset.byPostcode   = 'true';
+        addrEl.dataset.zonecode     = data.zonecode || '';
+        addrEl.dataset.type         = data.userSelectedType || '';
+        addrEl.dataset.sido         = data.sido || '';
+        addrEl.dataset.sigungu      = data.sigungu || '';
+        addrEl.dataset.bname        = data.bname || '';
+        addrEl.dataset.buildingName = data.buildingName || '';
+
+        // 메타 필드에 동기화
+        setMeta('zonecode', data.zonecode);
+        setMeta('sido', data.sido);
+        setMeta('sigungu', data.sigungu);
+        setMeta('bname', data.bname);
+        setMeta('buildingName', data.buildingName);
+
+        ensureHiddenMirror();
+
+        // 상세주소로 포커스 이동
+        if (detailEl) detailEl.focus();
+
+        // 외부에서 활용 가능
+        addrEl.dispatchEvent(new CustomEvent('address:selected', {
+          bubbles: true,
+          detail: { addr, data }
+        }));
       }
     }).open();
-  });
+  };
+
+  // 버튼으로 열기
+  btn.addEventListener('click', (e) => { e.preventDefault(); openPostcode(); });
+
+  // "주소 변경" 버튼(선택)
+  if (resetBtn) {
+    const r = getEl(resetBtn);
+    if (r) {
+      r.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!confirm('주소를 변경하시겠습니까? 다시 검색해 주세요.')) return;
+        clearAddress();
+        // 잠금은 유지(수동 입력 방지), 검색창 바로 띄우기(선택)
+        openPostcode();
+      });
+    }
+  }
+
+  // 초기 잠금 적용
+  applyLock();
 }
+
 
 /* =========================
  *  프로필 수정 모달 (공통)
