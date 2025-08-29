@@ -3,13 +3,14 @@
 
 function getEndpoint() {
   const panel = document.querySelector('.bot-panel');
-  return panel?.dataset?.endpoint || '/api/bot/message';
+  return panel?.dataset?.endpoint || 'http://127.0.0.1:8000/api/bot/message';
 }
 
 export async function sendToBot(text, context = {}) {
   const body = {
     sessionId: sessionStorage.getItem('botSession') ?? crypto.randomUUID(),
-    text,
+    message:text,
+	history: [],
     context: { page: location.pathname, ...context }
   };
   // 세션ID를 한 번 정해두면 재사용
