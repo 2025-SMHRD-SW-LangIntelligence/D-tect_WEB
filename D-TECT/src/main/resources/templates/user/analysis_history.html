@@ -8,7 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/user/analysis_history.css}" />
 </head>
 
-<body class="history-page" th:attr="data-user-id=${userId}">
+<body class="history-page" th:attr="data-mem-idx=${memIdx}">
 <div class="brand-strip"></div>
 
 <header class="topbar">
@@ -21,7 +21,7 @@
     </div>
 </header>
 
-<main class="container">
+<main class="container" id="history-root" th:attr="data-mem-idx=${memIdx}">
     <div class="list-head list-grid" aria-hidden="true">
         <div class="col col--dot"></div>
         <div class="col">파일명</div>
@@ -53,6 +53,6 @@
     <div class="modal__backdrop"></div>
 </div>
 
-<script defer th:src="@{/js/analysis_history.js}"></script>
+<script defer th:src="@{/js/user/analysis_history.js}"></script>
 </body>
 </html>

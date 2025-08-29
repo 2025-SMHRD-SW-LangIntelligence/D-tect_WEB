@@ -36,7 +36,12 @@ document.getElementById('logoLink')?.addEventListener('click',(e)=>{e.preventDef
 setupPhoneValidation(phoneEl);
 pwEl.addEventListener('input',  ()=>validatePasswords(pwEl, pw2El, pwdMsg, true));
 pw2El.addEventListener('input', ()=>validatePasswords(pwEl, pw2El, pwdMsg, true));
-setupAddressSearch(addrBtn, addrEl, 'addr2');
+setupAddressSearch(addrBtn, addrEl, addr2El, {
+  enforceApiOnly: true,          // 주소 본문은 API로만
+  lockMode: 'readonly',          // 제출값 유지 + 수동 입력 차단
+  resetBtn: '#addrChangeBtn',    // 주소 변경 시 재검색 유도
+  meta: { zonecode: '#zonecode' } // 필요시 추가: sido/sigungu/bname/buildingName
+});
 
 // step1 약관 복원
 const draft = loadDraft('signup:step1');

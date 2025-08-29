@@ -10,13 +10,13 @@ import java.util.Optional;
 @Repository
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
-    // ✅ 목록 조회 (기존: findByUser_UserIdxOrderByCreatedAtDesc)
-    List<Analysis> findByMember_MemIdxOrderByCreatedAtDesc(Long memIdx);
+	// 내가(memIdx) 만든 분석들 최신순
+    List<Analysis> findByUser_Member_MemIdxOrderByCreatedAtDesc(Long memIdx);
 
-    // ✅ 단건 조회 (기존: findByAnalIdxAndUser_UserIdx)
-    Optional<Analysis> findByAnalIdxAndMember_MemIdx(Long analIdx, Long memIdx);
+    // 단건 조회: 분석 id + 해당 user(user_idx)
+    Optional<Analysis> findByAnalIdxAndUser_UserIdx(Long analIdx, Long userIdx);
 
-    // ✅ 삭제 (기존: deleteByUser_UserIdx)
-    void deleteByMember_MemIdx(Long memIdx);
+    // 내가(memIdx) 만든 분석 전체 삭제
+    void deleteByUser_Member_MemIdx(Long memIdx);
 }
 

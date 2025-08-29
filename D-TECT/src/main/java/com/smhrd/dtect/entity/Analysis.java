@@ -34,15 +34,15 @@ public class Analysis {
 	
 	// 자료 식별자
 	// ✅ FK 컬럼명은 기존 그대로(user_idx) 유지하면서, 엔티티 타입만 Member로 전환
-    @ManyToOne
-    @JoinColumn(name = "user_idx", nullable = false)
-    private Member member;
+	@ManyToOne
+	@JoinColumn(name = "user_idx", nullable = false)
+	private User user;
 
     // 분석 결과
 	@Column(name = "anal_result", columnDefinition="TEXT", nullable = false)
     private String analResult;
 
-    // 분석 등급
+    // 분석 등급	
 	@Column(name = "anal_rate", nullable = false)
 	@Enumerated(EnumType.STRING)
     private AnalRate analRate;

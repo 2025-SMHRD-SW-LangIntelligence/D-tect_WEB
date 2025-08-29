@@ -121,7 +121,7 @@ public class PdfIngestService {
         }
 
         Analysis a = new Analysis();
-        a.setMember(member);
+//        a.setMember(member);
         a.setAnalRate(rate != null ? rate : AnalRate.NORMAL);
         a.setAnalResult(coalesce(analResult, "자동 생성된 분석 보고서"));
         a.setReportUrl(reportUrl);

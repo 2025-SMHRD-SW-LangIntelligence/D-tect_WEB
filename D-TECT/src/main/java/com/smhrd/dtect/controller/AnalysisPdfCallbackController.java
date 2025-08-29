@@ -5,8 +5,10 @@ import com.smhrd.dtect.dto.PdfCallbackResponse;
 import com.smhrd.dtect.entity.AnalRate;
 import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.entity.Member;
+import com.smhrd.dtect.entity.User;
 import com.smhrd.dtect.repository.AnalysisRepository;
 import com.smhrd.dtect.repository.MemberRepository;
+import com.smhrd.dtect.repository.UserRepository;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.support.AnalRateSafe;
 import jakarta.transaction.Transactional;
@@ -29,66 +31,48 @@ public class AnalysisPdfCallbackController {
 
     private final AnalysisRepository analysisRepository;
     private final MemberRepository memberRepository;
+    private final UserRepository userRepository;
     private final AnalysisResultService analysisResultService;
 
-    @PostMapping(
-        value = "/pdf-callback",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    @Transactional
-    public ResponseEntity<PdfCallbackResponse> pdfReady(@RequestBody JsonNode root) {
+    @PostMapping(value = "/pdf-callback", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+@Transactional
+public ResponseEntity<PdfCallbackResponse> pdfReady(@RequestBody JsonNode root) {
+   JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
+   String sid = text(node, "sid");
 
-        JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
+//   // 1) userId(user_idx) 우선, 없으면 sid로 복원
+//   Long userId = longOrNull(node, "userId");
+//   if (userId == null) userId = longOrNull(node, "uId"); // 허용(선택)
+//   if (userId == null && sid != null) userId = analysisResultService.getUserIdForSid(sid);
+//   if (userId == null) return unauthorized("cannot resolve userId");
+//
+//   // 2) User 조회 (user_idx)
+//   User user = userRepository.findById(userId).orElse(null);
+//   if (user == null) return notFound("user not found: " + userId);
 
-        String sid = text(node, "sid");
+   // 3) 등급/결과/URL 파싱 (기존 그대로)
+   String analRateStr = firstNonBlank(text(node, "analRate"), text(node, "anal_rate"));
+   AnalRate rate = AnalRateSafe.fromNullable(analRateStr);
+   JsonNode analResultNode = node.has("analResult") ? node.get("analResult")
+           : node.has("anal_result") ? node.get("anal_result") : null;
+   String analResultJson = (analResultNode == null) ? "null" : analResultNode.toString();
 
-        // 1) userId(Long) 우선, 없거나 문자열/잘못된 값이면 sid로 세션에서 복원
-        Long userId = longOrNull(node, "userId");
-        if (userId == null && sid != null) userId = analysisResultService.getUserIdForSid(sid);
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new PdfCallbackResponse(null, "unauthorized: cannot resolve userId"));
-        }
+   String reportUrl = firstNonBlank(text(node, "reportUrl"), text(node, "report_path"),
+                                    text(node, "reportPath"), firstPdfUrl(node));
+//   if (isBlank(reportUrl)) return badReq("missing reportUrl (or pdf[0].url)");
 
-        // 2) Member 조회
-        Member member = memberRepository.findById(userId).orElse(null);
-        if (member == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new PdfCallbackResponse(null, "member not found: " + userId));
-        }
+   // 4) 저장 (★ Analysis.user 로 세팅)
+   Analysis a = new Analysis();
+//   a.setUser(user);
+   a.setAnalResult(analResultJson);
+   a.setAnalRate(rate);
+   a.setReportUrl(reportUrl);
+   a.setCreatedAt(Timestamp.from(Instant.now()));
 
-        // 3) 등급/결과
-        String analRateStr = firstNonBlank(text(node, "analRate"), text(node, "anal_rate"));
-        AnalRate rate = AnalRateSafe.fromNullable(analRateStr);
-
-        JsonNode analResultNode = node.has("analResult") ? node.get("analResult")
-                : node.has("anal_result") ? node.get("anal_result") : null;
-        String analResultJson = (analResultNode == null) ? "null" : analResultNode.toString();
-
-        // 4) reportUrl
-        String reportUrl = firstNonBlank(
-                text(node, "reportUrl"),
-                text(node, "report_path"),
-                text(node, "reportPath"),
-                firstPdfUrl(node)
-        );
-        if (isBlank(reportUrl)) {
-            return ResponseEntity.badRequest()
-                    .body(new PdfCallbackResponse(null, "missing reportUrl (or pdf[0].url)"));
-        }
-
-        // 5) 저장
-        Analysis a = new Analysis();
-        a.setMember(member);              // user_idx(FK)
-        a.setAnalResult(analResultJson);
-        a.setAnalRate(rate);
-        a.setReportUrl(reportUrl);
-        a.setCreatedAt(Timestamp.from(Instant.now()));
-
-        Analysis saved = analysisRepository.save(a);
-        return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
-    }
+   Analysis saved = analysisRepository.save(a);
+   return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
+}
 
     // ===== helpers =====
 
