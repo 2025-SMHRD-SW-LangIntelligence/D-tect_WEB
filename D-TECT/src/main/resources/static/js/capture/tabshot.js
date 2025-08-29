@@ -6,7 +6,6 @@ const els = {
   stopBtn    : document.getElementById('stopBtn'),
   intervalSec: document.getElementById('intervalSec'),
   intervalNum: document.getElementById('intervalNum'),
-  // 아래 두 UI는 있어도 되고 없어도 됩니다(이번 설계에선 기본 폴더 저장이 우선)
   saveMode   : document.getElementById('saveMode'),
   useFs      : document.getElementById('useFs'),
 
@@ -23,20 +22,91 @@ const els = {
 // ===== 상태 =====
 let stream = null, timerId = null, dirHandle = null, busy = false;
 let elapsedTimer = null, elapsedSec = 0, captureIdx = 0;
-let selecting = false; // 대상 선택 중 재진입 방지
+let selecting = false;
 
 // 저장 전략: 'folder' | 'download'
 let saveStrategy = 'folder';
 
+// ====== 분석(Analysis) 연동 상태 ======
+let analysisId = null;
+
 // ===== 유틸 =====
 const clamp = (n,min,max)=> Math.min(Math.max(n,min),max);
 const fmtTime = (sec)=>{ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; const mm=String(m).padStart(2,'0'), ss=String(s).padStart(2,'0'); return h>0?`${String(h).padStart(2,'0')}:${mm}:${ss}`:`${mm}:${ss}`; };
-function setStatus(kind,text){ els.statusDot.className = `dot ${kind}`; els.statusText.textContent = text; }
+function setStatus(kind,text){
+  els.statusDot.className = `dot ${kind}`;
+  els.statusText.textContent = text;
+  // 전체 내용을 툴팁으로도 노출(긴 파일명 확인 편의)
+  els.statusText.title = text || '';
+}
 function log(msg){ const line = `[${new Date().toLocaleTimeString()}] ${msg}\n`; els.log.textContent += line; els.log.scrollTop = els.log.scrollHeight; }
-function ts(){ const d=new Date(); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}-${String(d.getMilliseconds()).padStart(3,'0')}`; }
 
-function ensureElapsed(){ if (document.getElementById('elapsed')) return; const s=document.createElement('span'); s.id='elapsed'; s.className='elapsed'; s.textContent='00:00'; els.statusWrap.appendChild(s); }
-function hideElapsed(){ const s=document.getElementById('elapsed'); if (s) s.remove(); }
+// ▶ 파일명용 타임스탬프(초 단위, 밀리초 없음)
+function ts(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_` +
+      `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+}
+
+function ensureElapsed(){
+  if (document.getElementById('elapsed')) return;
+  const s=document.createElement('span');
+  s.id='elapsed'; s.className='elapsed'; s.textContent='00:00';
+  els.statusWrap.appendChild(s);
+}
+function hideElapsed(){
+  const s=document.getElementById('elapsed'); if (s) s.remove();
+}
+
+function currentUserId(){
+  const v = document.querySelector('meta[name="user-id"]')?.content;
+  return v ? parseInt(v, 10) : null;
+}
+
+// ===== 서버 통신(Analysis 시작/종료) =====
+async function notifyStart(){
+  try{
+    const uid = currentUserId();
+    if (!uid){ log('userId 메타가 없습니다. 분석 생성 생략'); return; }
+    const res = await fetch('/api/analysis/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: uid })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    analysisId = json.analId;
+    log(`분석 생성됨 #${analysisId} (startedAt=${json.startedAt})`);
+  }catch(e){
+    log(`분석 생성 실패: ${e.message}`);
+  }
+}
+
+async function notifyFinish(){
+  if (!analysisId) return;
+  try{
+    const res = await fetch(`/api/analysis/${analysisId}/finish`, { method: 'POST' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    log(`분석 종료됨 #${json.analId} (finishedAt=${json.finishedAt || 'null'})`);
+  }catch(e){
+    log(`분석 종료 실패: ${e.message}`);
+  } finally {
+    analysisId = null;
+  }
+}
+
+// ===== 페이지 이탈시 finish 보장(sendBeacon) =====
+function finishBeacon(){
+  if (!analysisId) return;
+  try{
+    const url = `/api/analysis/${analysisId}/finish`;
+    navigator.sendBeacon(url, new Blob([], {type:'text/plain'}));
+  }catch(e){}
+}
+window.addEventListener('pagehide', finishBeacon, {capture:true});
+window.addEventListener('beforeunload', finishBeacon);
 
 // ===== 폴더 권한/전략 =====
 async function verifyDirPermission(handle){
@@ -49,16 +119,15 @@ async function verifyDirPermission(handle){
 
 function confirmDownloadFallback(){
   return window.confirm(
-    '이 환경에서는 PC 폴더에 직접 저장할 수 없습니다.\n' +
-    '대신 브라우저 다운로드 방식으로 저장할까요?\n\n' +
-    '확인: 다운로드로 진행 / 취소: 캡처 취소'
+      '이 환경에서는 PC 폴더에 직접 저장할 수 없습니다.\n' +
+      '대신 브라우저 다운로드 방식으로 저장할까요?\n\n' +
+      '확인: 다운로드로 진행 / 취소: 캡처 취소'
   );
 }
 
-// 분석결과 페이지로 이동
+// 분석결과 페이지로 이동(진행 중이면 명시 종료)
 function gotoResults(){
   const url = els.gotoBtn?.dataset?.href || '/analysis';
-  // 캡처 진행 중이면 경고 후 중지
   const capturing = !!(timerId || stream);
   if (capturing){
     const ok = window.confirm('캡처가 진행 중입니다. 이동하면 중지됩니다. 이동할까요?');
@@ -97,7 +166,7 @@ async function saveDownload(blob, fileName){
   const a = document.createElement('a'); a.href=url; a.download=fileName; a.style.display='none';
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },0);
-  setStatus('ok', `${fileName} 다운로드 시작`);
+  setStatus('ok', `${fileName} 저장(다운로드)`);
 }
 
 async function saveLocal(blob, fileName){
@@ -117,31 +186,23 @@ async function saveLocal(blob, fileName){
   }
 }
 
-async function uploadToServer(blob, fileName){
-  const fd = new FormData(); fd.append('file', new File([blob], fileName, {type:'image/png'}));
-  const res = await fetch('/api/upload', {method:'POST', body: fd});
-  if (!res.ok){ setStatus('err', `서버 업로드 실패(${res.status})`); return; }
-  const json = await res.json().catch(()=>({}));
-  if (json && json.ok){ setStatus('ok', `서버 저장 완료: ${json.path || fileName}`); }
-  else setStatus('err', '서버 응답 오류');
-}
+// ===== 경고만(자동 종료 없음) =====
+const ANOMALY = {
+  ENABLED: true,
+  STALL_MS: 6000,
+  HARD_STALL_MS: 15000,
+  MUTE_GRACE_MS: 7000,
+  PIXEL_SAMPLE_MS: 1000,
+  RVFC_FALLBACK_MS: 4000
+};
+const LOG_VERBOSE_MUTE = false;
 
-// ===== 최소화/가림 추정 =====
+// ===== 최소화/가림 추정 + 스톨 감지(경고만) =====
 let minWatchTimer = null;
-let rvfcActive = false;
 let rvfcLoopActive = false;
 let lastFrameAt = 0;
 let minimizedLikely = false;
-let stallHits = 0, resumeHits = 0;
-let lastPF = -1, lastMT = -1;
 let mutedSince = null;
-let muteTimer = null;
-
-const GAP_THRESH_MS  = 60000;
-const STALL_CONSEC   = 2;
-const RESUME_CONSEC  = 2;
-const MUTE_DEBOUNCE_MS = 5000;
-const SAMPLE_EVERY_MS  = 2000;
 
 const sampleCanvas = document.createElement('canvas');
 sampleCanvas.width = 48; sampleCanvas.height = 27;
@@ -161,59 +222,81 @@ function updateMinState(flag){
   if (flag === minimizedLikely) return;
   minimizedLikely = !!flag;
   let b = document.getElementById('minBadge');
-  if (!b){ b = document.createElement('span'); b.id='minBadge'; b.className='badge'; b.style.marginLeft='8px'; els.statusWrap.appendChild(b); }
-  if (flag){ b.textContent='최소화/가림 추정'; b.style.background='#fff5f5'; b.style.color='#b91c1c'; }
-  else { b.textContent='정상 프레임'; b.style.background='#f7faff'; b.style.color='#556685'; }
+  if (!b){
+    b = document.createElement('span');
+    b.id='minBadge'; b.className='badge'; b.style.marginLeft='8px';
+    els.statusWrap.appendChild(b);
+  }
+  if (flag){ b.textContent='프레임 지연/가림 추정'; b.style.background='#fff5f5'; b.style.color='#b91c1c'; }
+  else     { b.textContent='정상 프레임';     b.style.background='#f7faff'; b.style.color='#556685'; }
 }
 
 function startMinimizeWatch(stream){
   stopMinimizeWatch();
   const v = els.video;
   lastFrameAt = performance.now();
-  stallHits = 0; resumeHits = 0; minimizedLikely = false; updateMinState(false);
-  lastPF = -1; lastMT = -1; lastSampleHash = null;
+  minimizedLikely = false; updateMinState(false);
+  lastSampleHash = null;
+  mutedSince = null;
 
+  // RVFC 루프
+  rvfcLoopActive = true;
   if (v.requestVideoFrameCallback){
-    rvfcActive = true; rvfcLoopActive = true;
-    const loop = ()=> v.requestVideoFrameCallback((now, meta)=>{
-      const pf = (meta && typeof meta.presentedFrames === 'number') ? meta.presentedFrames : -1;
-      const mt = (meta && typeof meta.mediaTime === 'number') ? meta.mediaTime : -1;
-      if ((pf !== -1 && pf !== lastPF) || (mt !== -1 && mt !== lastMT)){ lastFrameAt = now; lastPF = pf; lastMT = mt; }
+    const loop = ()=> v.requestVideoFrameCallback((now)=>{
+      lastFrameAt = now;
+      updateMinState(false);
       if (rvfcLoopActive) loop();
     });
     loop();
-  } else {
-    rvfcActive = false;
   }
 
+  // 픽셀 해시 보조
   const pixelTimer = setInterval(()=>{
-    if (!rvfcActive || performance.now() - lastFrameAt > SAMPLE_EVERY_MS*1.5){
+    const gap = performance.now() - lastFrameAt;
+    if (gap > ANOMALY.RVFC_FALLBACK_MS){
       const h = hashFrame(v);
       if (h !== null){
         if (lastSampleHash !== null && h !== lastSampleHash){ lastFrameAt = performance.now(); }
         lastSampleHash = h;
       }
     }
-  }, SAMPLE_EVERY_MS);
+  }, ANOMALY.PIXEL_SAMPLE_MS);
 
+  // 트랙 이벤트: 경고만 로그
   const track = stream?.getVideoTracks?.()[0];
   if (track){
-    track.onmute = ()=>{
-      mutedSince = performance.now();
-      clearTimeout(muteTimer);
-      muteTimer = setTimeout(()=>{ stallHits = Math.max(stallHits, STALL_CONSEC); }, MUTE_DEBOUNCE_MS);
+    track.onended = ()=> handleTrackEnded();
+    track.onmute  = ()=>{
+      if (LOG_VERBOSE_MUTE) log('트랙 mute 감지(일시적일 수 있음)');
+      if (!mutedSince) mutedSince = performance.now();
     };
-    track.onunmute = ()=>{ mutedSince = null; clearTimeout(muteTimer); resumeHits = Math.max(resumeHits, RESUME_CONSEC); };
+    track.onunmute = ()=>{
+      if (LOG_VERBOSE_MUTE) log('트랙 unmute');
+      mutedSince = null;
+    };
   }
 
+  // 주기적 경고 체크
   minWatchTimer = setInterval(()=>{
-    const gap = performance.now() - lastFrameAt;
-    if (gap > GAP_THRESH_MS){
-      stallHits++; resumeHits = 0;
-      if (!minimizedLikely && stallHits >= STALL_CONSEC) updateMinState(true);
+    const now = performance.now();
+    const sinceFrame = now - lastFrameAt;
+
+    if (sinceFrame > ANOMALY.HARD_STALL_MS){
+      setStatus('warn', '프레임 중단 추정');
+      log('[경고] 프레임 완전 중단(HARD_STALL)');
+      return;
+    }
+
+    const softStall = sinceFrame > ANOMALY.STALL_MS;
+    if (softStall){
+      updateMinState(true);
+      const mutedLong = mutedSince && (now - mutedSince) > ANOMALY.MUTE_GRACE_MS;
+      if (mutedLong){
+        setStatus('warn', 'mute+프레임 스톨 지속');
+        log('[경고] mute+프레임 스톨 지속');
+      }
     } else {
-      resumeHits++; stallHits = 0;
-      if (minimizedLikely && resumeHits >= RESUME_CONSEC) updateMinState(false);
+      updateMinState(false);
     }
   }, 1000);
 
@@ -224,9 +307,15 @@ function stopMinimizeWatch(){
   if (minWatchTimer) clearInterval(minWatchTimer);
   if (startMinimizeWatch._pixelTimer) clearInterval(startMinimizeWatch._pixelTimer);
   rvfcLoopActive = false;
-  clearTimeout(muteTimer); muteTimer = null; mutedSince = null;
-  minWatchTimer = null; rvfcActive = false; stallHits = 0; resumeHits = 0;
+  minWatchTimer = null;
+  mutedSince = null;
   updateMinState(false);
+}
+
+// 공유 중지 시: UI만 정리(세션 유지)
+async function handleTrackEnded(){
+  log('공유가 중지되었습니다. (세션 유지, 재시작 가능)');
+  await cleanupWithoutFinish('공유 중지됨');
 }
 
 // ===== 캡처 로직 =====
@@ -250,6 +339,8 @@ async function initStream(newStream){
   startMinimizeWatch(stream);
 }
 
+let lastStamp = null; // 같은 초 판별용
+
 async function start(){
   if (busy) return; busy = true;
   try{
@@ -261,6 +352,16 @@ async function start(){
       if (!s){ busy=false; return; }
       await initStream(s);
     }
+
+    if (!analysisId){
+      await notifyStart();
+    } else {
+      log(`기존 분석 세션 재사용 #${analysisId}`);
+    }
+
+    // ▶ 세션 번호/초 리셋
+    captureIdx = 0;
+    lastStamp  = null;
 
     ensureElapsed(); elapsedSec=0; document.getElementById('elapsed').textContent='00:00';
     if (elapsedTimer) clearInterval(elapsedTimer);
@@ -280,9 +381,6 @@ async function start(){
 
     setStatus('ok', `캡처 중 (${saveStrategy === 'folder' ? '폴더 저장' : '다운로드'})`);
     log(`캡처 시작 (주기 ${sec}초, 전략=${saveStrategy})`);
-
-    const [track] = stream.getVideoTracks();
-    track.onended = ()=>{ log('공유가 중지되어 캡처 종료'); stop('공유 종료'); };
   }catch(e){
     log(`캡처 시작 오류: ${e.message}`);
     setStatus('err','오류');
@@ -296,14 +394,24 @@ async function captureOnce(){
   const ctx=els.canvas.getContext('2d', {willReadFrequently:true});
   ctx.drawImage(v,0,0,w,h);
   const blob = await new Promise(r=> els.canvas.toBlob(r,'image/png'));
-  const name = `${(els.prefix.value||'capture_')}${ts()}_${(++captureIdx)}.png`;
+
+  // ▶ 파일명: {prefix}{YYYY-MM-DD_HH-mm-ss}[_{02}] .png
+  const stamp = ts();
+  if (stamp !== lastStamp){
+    lastStamp = stamp;
+    captureIdx = 1;              // 같은 초의 첫 장 → 접미사 없음
+  } else {
+    captureIdx += 1;             // 같은 초에 2장 이상일 때만 접미사
+  }
+  const suffix = (captureIdx > 1) ? `_${String(captureIdx).padStart(2,'0')}` : '';
+  const name   = `${(els.prefix.value || 'capture_')}${stamp}${suffix}.png`;
 
   if (saveStrategy === 'folder') await saveLocal(blob, name);
-  else if (saveStrategy === 'download') await saveDownload(blob, name);
-  else await saveDownload(blob, name);
+  else                           await saveDownload(blob, name);
 }
 
-function stop(msg){
+// UI/타이머/스트림만 정리(분석 finish는 호출 안 함)
+async function cleanupWithoutFinish(msg){
   if (timerId){ clearInterval(timerId); timerId=null; }
   if (elapsedTimer){ clearInterval(elapsedTimer); elapsedTimer=null; }
   hideElapsed();
@@ -318,7 +426,14 @@ function stop(msg){
   els.prefix.disabled=false;
   els.reselectBtn.disabled=false;
 
-  setStatus('idle', msg||'중지됨'); log('캡처 중지');
+  setStatus('idle', msg||'중지됨');
+  log('캡처 중지');
+}
+
+// 사용자 종료 버튼/의도적 이동에서만 finished_at 기록
+async function stop(msg){
+  await cleanupWithoutFinish(msg);
+  await notifyFinish();
 }
 
 async function reselect(){
@@ -345,9 +460,9 @@ els.intervalSec.addEventListener('input', e=>{ const v=clamp(parseInt(e.target.v
 els.intervalNum.addEventListener('keydown', e=>{ const ok=['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End']; if (ok.includes(e.key)) return; if (e.ctrlKey||e.metaKey) return; if (!/^[0-9]$/.test(e.key)) e.preventDefault(); });
 els.intervalNum.addEventListener('beforeinput', e=>{ if (e.inputType.startsWith('delete')) return; const d=e.data; if (d && /\D/.test(d)) e.preventDefault(); });
 els.intervalNum.addEventListener('paste', e=>{ const t=(e.clipboardData||window.clipboardData).getData('text')||''; const only=t.replace(/\D+/g,''); if (only!==t){ e.preventDefault(); if (only) document.execCommand('insertText',false,only); } });
-els.intervalNum.addEventListener('input', e=>{ let v=e.target.value; if (/\D/.test(v)){ v=v.replace(/\D+/g,''); e.target.value=v; } if (v==='') return; if (/^0+$/.test(v)){ e.target.value='1'; applyInterval(1); return; } const num=parseInt(v,10); if (num>60){ e.target.value='60'; applyInterval(60); return; } els.intervalSec.value=String(num); if (timerId){ clearInterval(timerId); timerId=setInterval(captureOnce, num*1000); log(`주기 변경: ${num}초`);} });
+els.intervalNum.addEventListener('input', e=>{ let v=e.target.value; if (/\D/.test(v)){ v=v.replace(/\D+/g,''); e.target.value=v; } if (v==='') return; if (/^0+$/.test(v)){ e.target.value='1'; applyInterval(1); return; } const num=parseInt(v,10); if (num>60){ e.target.value='60'; applyInterval(60); return; } els.intervalSec.value=String(num); if (timerId){ clearInterval(timerId); timerId=setInterval(captureOnce, num*1000); log(`주기 변경: ${num}`);} });
 
-// 버튼 타입 보정(폼 submit 방지)
+// 버튼 타입 보정
 function ensureButtonsClickable(){
   try{
     els.reselectBtn?.setAttribute('type','button');
@@ -358,7 +473,7 @@ function ensureButtonsClickable(){
   }catch{}
 }
 
-// ===== 이벤트 바인딩 (여기서 오류 나면 전부 멈춥니다!)
+// ===== 이벤트 바인딩
 if (els.gotoBtn) els.gotoBtn.addEventListener('click', gotoResults);
 els.reselectBtn.addEventListener('click', reselect);
 els.resetBtn.addEventListener('click', ()=>{ stop('리셋'); els.log.textContent=''; setStatus('idle','대기'); updateMinState?.(false); });
