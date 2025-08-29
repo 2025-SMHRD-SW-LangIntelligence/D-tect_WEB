@@ -1,11 +1,14 @@
 package com.smhrd.dtect.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.smhrd.dtect.config.StorageProperties;
 import com.smhrd.dtect.dto.PdfCallbackResponse;
 import com.smhrd.dtect.entity.AnalRate;
 import com.smhrd.dtect.entity.Analysis;
+import com.smhrd.dtect.entity.Member;
 import com.smhrd.dtect.entity.User;
 import com.smhrd.dtect.repository.AnalysisRepository;
+import com.smhrd.dtect.repository.MemberRepository;
 import com.smhrd.dtect.repository.UserRepository;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.storage.ReportStorageWriter;
@@ -28,114 +31,206 @@ import java.util.Optional;
 @RequestMapping("/api/analysis")
 public class AnalysisReportCallbackController {
 
-    private final AnalysisRepository analysisRepository;
-    private final UserRepository userRepository;
-    private final AnalysisResultService analysisResultService;
-    private final ReportStorageWriter writer; // NCP 업로더 래퍼
-    private final com.smhrd.dtect.config.StorageProperties storageProps;
+	private final AnalysisRepository analysisRepository;
+	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
+	private final AnalysisResultService analysisResultService;
+	private final ReportStorageWriter writer; // NCP/Local 업로더
+	private final StorageProperties storageProps;
 
-    /** (A) JSON 케이스: { sid, userId, analRate, analResult, reportUrl | pdf[0].url } */
-    @PostMapping(value = "/pdf-callback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @Transactional
-    public ResponseEntity<PdfCallbackResponse> pdfReadyJson(@RequestBody JsonNode root) {
-        JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
+	/*
+	 * ========================= (A) JSON: URL로 전달 =========================
+	 */
+	@PostMapping(value = "/pdf-callback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Transactional
+	public ResponseEntity<PdfCallbackResponse> pdfReady(@RequestBody JsonNode root) {
+		JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
 
-        String sid = text(node, "sid");
-        Long userId = longOrNull(node, "userId");
-        if (userId == null && sid != null) userId = analysisResultService.getUserIdForSid(sid);
-        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new PdfCallbackResponse(null, "cannot resolve userId"));
+		String sid = text(node, "sid");
+		String username = text(node, "username");
+		String analRateStr = firstNonBlank(text(node, "analRate"), text(node, "anal_rate"));
+		AnalRate rate = AnalRateSafe.fromNullable(analRateStr);
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new PdfCallbackResponse(null, "user not found: " + userId));
+		JsonNode analResultNode = node.has("analResult") ? node.get("analResult")
+				: node.has("anal_result") ? node.get("anal_result") : null;
+		String analResultJson = (analResultNode == null) ? "" : analResultNode.toString();
 
-        String analRateStr = firstNonBlank(text(node, "analRate"), text(node, "anal_rate"));
-        AnalRate rate = AnalRateSafe.fromNullable(analRateStr);
+		String reportUrl = firstNonBlank(text(node, "reportUrl"), firstPdfUrl(node));
+		if (isBlank(reportUrl)) {
+			return badReq("missing reportUrl (or results.pdf[0].url)");
+		}
 
-        JsonNode analResultNode = node.has("analResult") ? node.get("analResult")
-                : node.has("anal_result") ? node.get("anal_result") : null;
-        String analResultJson = (analResultNode == null) ? "" : analResultNode.toString();
+		// ✅ username 또는 sid로 사용자 해석
+		User user = resolveUser(username, sid);
 
-        String reportUrl = firstNonBlank(text(node, "reportUrl"), text(node, "report_path"), text(node, "reportPath"), firstPdfUrl(node));
-        if (isBlank(reportUrl)) return ResponseEntity.badRequest().body(new PdfCallbackResponse(null, "missing reportUrl (or pdf[0].url)"));
+		// ✅ 세션의 시작/종료 시각 반영
+		Instant started = analysisResultService.getStartedAt(sid);
+		Instant ended = analysisResultService.getEndedAt(sid);
 
-        Analysis a = new Analysis();
-        a.setUser(user);
-        a.setAnalResult(analResultJson);
-        a.setAnalRate(rate);
-        a.setReportUrl(reportUrl);
-        a.setCreatedAt(Timestamp.from(Instant.now()));
+		Analysis a = new Analysis();
+		a.setUser(user);
+		a.setAnalRate(rate != null ? rate : AnalRate.NORMAL);
+		a.setAnalResult(analResultJson);
+		a.setReportUrl(reportUrl);
+		a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
+		a.setFinishedAt(ended != null ? Timestamp.from(ended) : null);
 
-        Analysis saved = analysisRepository.save(a);
-        return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
-    }
+		Analysis saved = analysisRepository.save(a);
+		return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
+	}
 
-    /** (B) Multipart 케이스: 바이너리 PDF 업로드 */
-    @PostMapping(value = "/pdf-callback", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @Transactional
-    public ResponseEntity<PdfCallbackResponse> pdfReadyMultipart(
-            @RequestParam(required = false) String sid,
-            @RequestParam(required = false) Long userId,
-            @RequestParam(required = false, defaultValue = "NORMAL") String analRate,
-            @RequestParam(required = false) String analResult,
-            @RequestPart("file") MultipartFile file
-    ) throws Exception {
+	/*
+	 * ========================= (B) Multipart: 파일 직접 전달 =========================
+	 */
+	@PostMapping(value = "/pdf-callback", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Transactional
+	public ResponseEntity<PdfCallbackResponse> pdfReadyMultipart(@RequestParam(required = false) String sid,
+			@RequestParam(required = false) String username,
+			@RequestParam(required = false, name = "userId") String userIdStr, // 레거시 호환
+			@RequestParam(required = false, defaultValue = "NORMAL") String analRate,
+			@RequestParam(required = false) String analResult, @RequestPart("file") MultipartFile file)
+			throws Exception {
 
-        if (userId == null && sid != null) userId = analysisResultService.getUserIdForSid(sid);
-        if (userId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new PdfCallbackResponse(null, "userId missing"));
+		// ✅ username / userId(문자) / sid 로 사용자 해석
+		User user = resolveUserCompat(username, userIdStr, sid);
 
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new PdfCallbackResponse(null, "user not found: " + userId));
+		// 업로드
+		String contentType = Optional.ofNullable(file.getContentType()).orElse("application/pdf");
+		String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("report.pdf");
+		String owner = !isBlank(sid) ? sid : (!isBlank(username) ? username : String.valueOf(user.getUserIdx()));
 
-        String contentType = Optional.ofNullable(file.getContentType()).orElse("application/pdf");
-        String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("report.pdf");
-        String owner = (sid == null || sid.isBlank()) ? String.valueOf(userId) : sid;
+		String key = writer.uploadAutoName(owner, originalName, file.getBytes(), contentType);
+		String reportUrl = buildPublicUrl(key);
+		if (isBlank(reportUrl))
+			return badReq("failed to build reportUrl from object key");
 
-        String key = writer.uploadAutoName(owner, originalName, file.getBytes(), contentType);
-        String reportUrl = buildPublicUrl(key);
-        if (isBlank(reportUrl)) return ResponseEntity.badRequest().body(new PdfCallbackResponse(null, "failed to build reportUrl"));
+		// 세션 시각 반영
+		Instant started = analysisResultService.getStartedAt(sid);
+		Instant ended = analysisResultService.getEndedAt(sid);
 
-        Analysis a = new Analysis();
-        a.setUser(user);
-        a.setAnalRate(AnalRateSafe.fromNullable(analRate));
-        a.setAnalResult(Optional.ofNullable(analResult).orElse(""));
-        a.setReportUrl(reportUrl);
-        a.setCreatedAt(Timestamp.from(Instant.now()));
+		Analysis a = new Analysis();
+		a.setUser(user);
+		a.setAnalRate(AnalRateSafe.fromNullable(analRate));
+		a.setAnalResult(Optional.ofNullable(analResult).orElse(""));
+		a.setReportUrl(reportUrl);
+		a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
+		a.setFinishedAt(ended != null ? Timestamp.from(ended) : null);
 
-        Analysis saved = analysisRepository.save(a);
-        return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
-    }
+		Analysis saved = analysisRepository.save(a);
+		return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
+	}
 
-    // ===== helpers =====
+	/*
+	 * ========================= helpers =========================
+	 */
 
-    private String buildPublicUrl(String objectKey) {
-        if (objectKey == null || objectKey.isBlank()) return null;
-        String provider = String.valueOf(storageProps.getProvider()).toLowerCase(Locale.ROOT);
-        if ("ncp".equals(provider)) {
-            String base = trimRightSlash(storageProps.getPublicBaseUrl());
-            return (base != null) ? base + "/" + objectKey : null;
-        }
-        if ("local".equals(provider)) return "/uploads/" + objectKey;
-        return null;
-    }
+	/** username → Member → User, fallback: sid → userId */
+	/** username → Member → User, fallback: sid → userId */
+	private User resolveUser(String username, String sid) {
+		String id = sanitize(username);
 
-    private static String trimRightSlash(String s) { return (s == null || s.isBlank()) ? null : s.replaceAll("/+$", ""); }
-    private static boolean isBlank(String s) { return s == null || s.isBlank(); }
-    private static String text(JsonNode n, String key) { if (n == null || key == null) return null; JsonNode v = n.get(key); return (v == null || v.isNull()) ? null : (v.isTextual() ? v.asText() : v.toString()); }
-    private static Long longOrNull(JsonNode n, String key) {
-        if (n == null) return null; JsonNode v = n.get(key); if (v == null || v.isNull()) return null;
-        try { if (v.isNumber()) return v.longValue(); if (v.isTextual()) return Long.parseLong(v.asText().trim()); } catch (Exception ignore) {}
-        return null;
-    }
-    private static String firstNonBlank(String... arr) { if (arr == null) return null; for (String s : arr) if (!isBlank(s)) return s; return null; }
-    /** results.pdf[0].url 추출 */
-    private static String firstPdfUrl(JsonNode n) {
-        if (n == null) return null;
-        JsonNode pdf = n.get("pdf");
-        if (pdf != null && pdf.isArray() && pdf.size() > 0) {
-            JsonNode first = pdf.get(0);
-            String url = first != null ? text(first, "url") : null;
-            if (!isBlank(url)) return url;
-        }
-        return null;
-    }
+		if (!isBlank(id)) {
+			// 1) 정확/느슨/유연 순으로 조회
+			Member m = memberRepository.findByUsername(id).or(() -> memberRepository.findByUsernameIgnoreCaseTrim(id))
+					.or(() -> memberRepository.findByAnyLoginId(id))
+					.orElseThrow(() -> new IllegalArgumentException("member not found: " + id));
+
+			// 2) Member → User 매핑 (없으면 명확 메시지)
+			return userRepository.findByMemberId(m.getMemIdx()).orElseThrow(() -> new IllegalArgumentException(
+					"no tb_user row for member username=" + m.getUsername() + " (mem_idx=" + m.getMemIdx() + ")"));
+		}
+
+		// username이 없으면 sid로 복원
+		if (!isBlank(sid)) {
+			Long uid = analysisResultService.getUserIdForSid(sid);
+			if (uid != null) {
+				return userRepository.findById(uid)
+						.orElseThrow(() -> new IllegalArgumentException("user not found: " + uid));
+			}
+		}
+		throw new IllegalArgumentException("username or sid is required");
+	}
+
+	/** 레거시(userIdStr) 포함 */
+	private User resolveUserCompat(String username, String userIdStr, String sid) {
+		if (!isBlank(username))
+			return resolveUser(username, sid);
+
+		if (!isBlank(userIdStr)) {
+			try {
+				Long uid = Long.valueOf(userIdStr);
+				return userRepository.findById(uid)
+						.orElseThrow(() -> new IllegalArgumentException("user not found: " + uid));
+			} catch (NumberFormatException nfe) {
+				// userId 필드에 username이 들어온 레거시 케이스
+				return resolveUser(userIdStr, sid);
+			}
+		}
+		return resolveUser(null, sid);
+	}
+
+	private static String sanitize(String s) {
+		return s == null ? null : s.trim();
+	}
+
+	private String buildPublicUrl(String objectKey) {
+		if (objectKey == null || objectKey.isBlank())
+			return null;
+		String provider = String.valueOf(storageProps.getProvider()).toLowerCase(Locale.ROOT);
+		if ("ncp".equals(provider)) {
+			String base = trimRightSlash(storageProps.getPublicBaseUrl());
+			return (base != null) ? base + "/" + objectKey : null;
+		}
+		if ("local".equals(provider))
+			return "/uploads/" + objectKey;
+		return null;
+	}
+
+	// --- tiny utils ---
+	private static boolean isBlank(String s) {
+		return s == null || s.isBlank();
+	}
+
+	private static String trimRightSlash(String s) {
+		return isBlank(s) ? null : s.replaceAll("/+$", "");
+	}
+
+	private static String text(JsonNode n, String key) {
+		if (n == null || key == null)
+			return null;
+		JsonNode v = n.get(key);
+		return (v == null || v.isNull()) ? null : (v.isTextual() ? v.asText() : v.toString());
+	}
+
+	private static String firstNonBlank(String... arr) {
+		if (arr == null)
+			return null;
+		for (String s : arr)
+			if (!isBlank(s))
+				return s;
+		return null;
+	}
+
+	/** results.pdf[0].url 추출 */
+	private static String firstPdfUrl(JsonNode n) {
+		if (n == null)
+			return null;
+		JsonNode pdf = n.get("pdf");
+		if (pdf != null && pdf.isArray() && pdf.size() > 0) {
+			JsonNode first = pdf.get(0);
+			String url = first != null ? text(first, "url") : null;
+			if (!isBlank(url))
+				return url;
+		}
+		return null;
+	}
+
+	// 일관된 에러 응답
+	private ResponseEntity<PdfCallbackResponse> badReq(String m) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PdfCallbackResponse(null, m));
+	}
+
+	private ResponseEntity<PdfCallbackResponse> notFound(String m) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new PdfCallbackResponse(null, m));
+	}
 }

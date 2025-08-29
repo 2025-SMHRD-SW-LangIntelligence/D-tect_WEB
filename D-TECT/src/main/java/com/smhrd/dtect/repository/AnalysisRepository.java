@@ -18,5 +18,8 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
     // 내가(memIdx) 만든 분석 전체 삭제
     void deleteByUser_Member_MemIdx(Long memIdx);
+    
+    // user_idx 로 최신순
+    List<Analysis> findByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
 }
 

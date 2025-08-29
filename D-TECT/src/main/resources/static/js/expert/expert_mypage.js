@@ -248,6 +248,20 @@ async function loadData(){
 }
 loadData();
 
+window.addEventListener('pointerdown', (e) => {
+  // .tag-wrap 를 자식으로 가진 바깥 라벨(그룹 라벨) 안쪽인가?
+  const outerLabel = e.target.closest('label.field');
+  if (!outerLabel) return;
+  if (!outerLabel.querySelector('.tag-wrap')) return;
+
+  // 칩(label.tag)이나 실제 input을 누른 건 허용
+  if (e.target.closest('.tag-wrap label.tag, .tag-wrap input')) return;
+
+  // 나머지 빈 공간 클릭은 라벨 기본동작(첫 체크박스 토글) 차단
+  e.preventDefault();
+  e.stopPropagation();
+}, true); // ← 캡처링이 포인트
+
 // // ===== 로그아웃 (필요 시) =====
 // document.getElementById('logoutBtn')?.addEventListener('click', ()=> location.href='/logout');
 // 로그아웃

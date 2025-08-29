@@ -80,9 +80,11 @@ public class PageController {
     	return "user/lawyers_select";			// 기본 회원 전문가 매칭 페이지
     }
     
-    @GetMapping(value = "/userAnalysisHistoryPage")
-    public String analysisHistory() {
-    	return "user/analysis_history";			// 기본 회원 분석 이력 페이지
+    // SSR 페이지: /analysis/user-id/{userId}/history
+    @GetMapping("/analysis/user-id/{userId}/history")
+    public String historyPage(@PathVariable Long userId, Model model) {
+        model.addAttribute("userId", userId);
+        return "user/analysis_history";			// 기본 회원 분석 이력 페이지
     }
     
     @GetMapping(value = "/userAnalysisResultPage")
