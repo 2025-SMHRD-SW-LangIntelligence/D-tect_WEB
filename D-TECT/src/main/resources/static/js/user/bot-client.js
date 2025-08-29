@@ -44,10 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form || !input || !log) return;
   
+  let isSending = false;
+  
   input.addEventListener('keydown', (e) => {
      if (e.key === 'Enter' && !e.shiftKey) {
        e.preventDefault();   // 기본 줄바꿈 막기
-       form.requestSubmit(); // 전송
+	   if(!isSending){
+		isSending = true;		
+        form.requestSubmit(); // 전송
+		setTimeout(()=> {isSending = false}, 100);// 잠시 락 걸기
+	   }
      }
      // Shift+Enter는 기본 동작 그대로 (줄바꿈)
    });
@@ -59,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     appendMessage(log, 'me', text);
     input.value = '';
+	input.focus();
+	
     try {
       const { reply } = await sendToBot(text);
       appendMessage(log, 'bot', reply ?? '(응답 없음)');
