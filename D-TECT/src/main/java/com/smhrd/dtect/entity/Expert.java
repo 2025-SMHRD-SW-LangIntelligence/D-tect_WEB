@@ -35,7 +35,8 @@ public class Expert {
     private String certificationFile;
 
     // 사용자가 결제시, 돈의 흐름을 보여주기 위한 컬럼
-    private long point;
+    @Column(nullable = true)
+    private Long point;
     
     // 자료 인코딩
     @Lob
