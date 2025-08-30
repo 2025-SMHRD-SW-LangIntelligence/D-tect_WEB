@@ -89,7 +89,13 @@
 ## 서비스 흐름도
 
 ## ER다이어그램
-
+<table>
+  <tr>
+    <td>
+      <img width="1509" height="791" alt="Image" src="https://github.com/user-attachments/assets/ecb8a69e-82dd-4a85-8c83-339e235a62ba" />
+    </td>
+  </tr>
+</table>
 ## 화면 구성
 
 ## 팀원 역할
@@ -122,6 +128,7 @@
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
