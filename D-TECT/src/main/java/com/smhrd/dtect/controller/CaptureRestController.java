@@ -1,13 +1,12 @@
 package com.smhrd.dtect.controller;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.smhrd.dtect.entity.AnalRate;
 import com.smhrd.dtect.entity.FieldName;
@@ -20,22 +19,62 @@ import lombok.RequiredArgsConstructor;
 @RestController
 public class CaptureRestController {
 
-	private final AnalysisResultService analysisResultService;
-	
-    @PostMapping("/start")
-    public ResponseEntity<StartResp> start(@RequestParam("userId") Long userId) {
-        String sid = analysisResultService.beginSession(userId, null);
-        return ResponseEntity.ok(new StartResp(sid, analysisResultService.getStartedAt(sid)));
+    private final AnalysisResultService analysisResultService;
+
+    // ---------- START: 폼/쿼리 ----------
+    @PostMapping(path = "/start")
+    public ResponseEntity<StartResp> startForm(
+            @RequestParam("userId") Long userId,
+            @RequestParam(value = "analId", required = false) Long analId
+    ) {
+        return ResponseEntity.ok(startCommon(userId, analId));
     }
 
-    @PostMapping("/stop")
-    public ResponseEntity<StopResp> stop(@RequestParam("sid") String sid) {
-        analysisResultService.markEnded(sid);
-        var counts = analysisResultService.getTypeCounts(sid);
-        var rate   = analysisResultService.gradeByCounts(counts);
-        boolean dispatched = analysisResultService.finalizeNow(sid); // n8n으로 페이로드 전송(username 포함)
-        return ResponseEntity.ok(new StopResp(sid, dispatched, rate, counts));
+    // ---------- START: JSON ----------
+    @PostMapping(path = "/start", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StartResp> startJson(@RequestBody StartReq req) {
+        if (req == null || req.userId() == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
+        return ResponseEntity.ok(startCommon(req.userId(), req.analId()));
     }
+
+    private StartResp startCommon(Long userId, Long analId) {
+        // AnalysisResultService.beginSession(userId, analId) 시그니처와 싱크 맞춤
+        String sid = analysisResultService.beginSession(userId, analId);
+        Instant startedAt = analysisResultService.getStartedAt(sid);
+        return new StartResp(sid, startedAt);
+    }
+
+    // ---------- STOP: 폼/쿼리 ----------
+    @PostMapping(path = "/stop")
+    public ResponseEntity<StopResp> stopForm(@RequestParam("sid") String sid) {
+        return ResponseEntity.ok(stopCommon(sid));
+    }
+
+    // ---------- STOP: JSON ----------
+    @PostMapping(path = "/stop", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StopResp> stopJson(@RequestBody StopReq req) {
+        if (req == null || req.sid() == null || req.sid().isBlank()) {
+            throw new IllegalArgumentException("sid is required");
+        }
+        return ResponseEntity.ok(stopCommon(req.sid()));
+    }
+
+    private StopResp stopCommon(String sid) {
+        analysisResultService.markEnded(sid);
+
+        // 원본 맵은 불변일 수 있으니 직렬화 안전하게 LinkedHashMap으로 복사
+        Map<FieldName, Integer> counts = new LinkedHashMap<>(analysisResultService.getTypeCounts(sid));
+        AnalRate rate = analysisResultService.gradeByCounts(counts);
+
+        boolean dispatched = analysisResultService.finalizeNow(sid); // n8n에 username/횟수 전송
+        return new StopResp(sid, dispatched, rate, counts);
+    }
+
+    // ----- DTOs -----
+    public record StartReq(Long userId, Long analId) {}
+    public record StopReq(String sid) {}
 
     public record StartResp(String sid, Instant startedAt) {}
     public record StopResp(String sid, boolean dispatched, AnalRate analRate,

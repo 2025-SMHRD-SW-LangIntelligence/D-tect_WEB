@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
-	// 내가(memIdx) 만든 분석들 최신순
+    // 내가(memIdx) 만든 분석들 최신순
     List<Analysis> findByUser_Member_MemIdxOrderByCreatedAtDesc(Long memIdx);
 
     // 단건 조회: 분석 id + 해당 user(user_idx)
@@ -18,11 +18,15 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
     // 내가(memIdx) 만든 분석 전체 삭제
     void deleteByUser_Member_MemIdx(Long memIdx);
-    
-    // user_idx 로 최신순
-    List<Analysis> findByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
-    
-    // 6진 분류 (가장 많은 횟수의 타입 [내림차순]) 
-    Optional<Analysis> findTopByUser_AnalIdxOrderByCreatedAtDesc(Long analIdx);
-}
 
+    // user_idx 로 전체 최신순 목록
+    List<Analysis> findByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
+
+    // 🔁 여기 수정 (의도에 맞게 한 가지 택1)
+    Optional<Analysis> findTopByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
+    // 또는
+    // Optional<Analysis> findTopByUser_Member_MemIdxOrderByCreatedAtDesc(Long memIdx);
+    // 또는
+    // @Query("select a from Analysis a where a.user.userIdx = :userId order by a.createdAt desc")
+    // Optional<Analysis> findLatestByUserId(@Param("userId") Long userId);
+}

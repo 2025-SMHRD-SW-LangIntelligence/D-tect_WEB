@@ -24,7 +24,7 @@ public class Case {
     // 유형 식별자
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="code_idx")
+    @Column(name="case_idx")
     private Long caseIdx;
 
     // 분석 식별자

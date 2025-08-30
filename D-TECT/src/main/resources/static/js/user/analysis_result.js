@@ -1,10 +1,8 @@
-/* D-tect 분석 결과 페이지 스크립트 (analId 기준 & 최댓값=100 정규화) */
+/* D-tect 분석 결과 페이지 (analId 기준 & 최댓값=100 정규화) */
 (() => {
   const $ = (sel, root = document) => root.querySelector(sel);
 
-  // ---------------------------
-  // analId 해석 (우선순위: URL ?analId → SSR window.__analId → sessionStorage)
-  // ---------------------------
+  // ---- analId 해석: URL → SSR → sessionStorage ----
   function getAnalId() {
     try {
       const urlId = new URLSearchParams(location.search).get('analId');
@@ -15,10 +13,7 @@
     return saved || null;
   }
 
-  // ---------------------------
-  // 데이터 로딩: /api/analysis/{analId}/summary → {labels:[], values:[]}
-  // (실패 시 localStorage 캐시 → 샘플)
-  // ---------------------------
+  // ---- /api/analysis/{analId}/summary → {labels, values} ----
   async function loadAnalysisData(analId) {
     if (analId) {
       try {
@@ -29,14 +24,12 @@
         if (res.ok) {
           const json = await res.json();
           if (json && Array.isArray(json.labels) && Array.isArray(json.values)) {
-            // 캐시 (최근 결과)
             try { localStorage.setItem('analysis:last', JSON.stringify(json)); } catch {}
             return json;
           }
         }
       } catch {}
     }
-
     // 캐시 폴백
     try {
       const cached = localStorage.getItem('analysis:last');
@@ -45,7 +38,6 @@
         if (parsed && Array.isArray(parsed.labels) && Array.isArray(parsed.values)) return parsed;
       }
     } catch {}
-
     // 샘플 폴백
     return {
       title: '샘플 결과',
@@ -54,9 +46,7 @@
     };
   }
 
-  // ---------------------------
-  // 정규화: 최댓값을 100으로 스케일
-  // ---------------------------
+  // ---- 최댓값=100 정규화 ----
   function normalizeTo100(values) {
     const nums = values.map(v => Number(v) || 0);
     const max = Math.max(0, ...nums);
@@ -64,19 +54,14 @@
     return nums.map(v => Math.round((v / max) * 100));
   }
 
-  // ---------------------------
-  // 차트 렌더 (Chart.js Radar)
-  // ---------------------------
+  // ---- 차트 ----
   let radarChart = null;
   function renderRadar({ labels, values, normalized }) {
     const canvas = $('#radar');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    if (radarChart) {
-      radarChart.destroy();
-      radarChart = null;
-    }
+    if (radarChart) { radarChart.destroy(); radarChart = null; }
 
     radarChart = new Chart(ctx, {
       type: 'radar',
@@ -102,7 +87,6 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              // 툴팁에 "정규화값% (원시 n건)" 같이 표기
               label: (ctx) => {
                 const i = ctx.dataIndex;
                 const norm = normalized[i] ?? 0;
@@ -126,9 +110,7 @@
     });
   }
 
-  // ---------------------------
-  // PDF 저장 (선택)
-  // ---------------------------
+  // ---- PDF 저장 ----
   async function downloadPDF(analId, labels, values, normalized) {
     const { jsPDF } = window.jspdf || {};
     if (!jsPDF) return alert('PDF 생성 모듈을 불러올 수 없습니다.');
@@ -148,7 +130,6 @@
 
     pdf.addImage(img, 'PNG', margin, 80, imgW, imgH);
 
-    // 원시/정규화 표기
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12);
     let y = 100 + imgH + 16;
@@ -166,28 +147,35 @@
     pdf.save(name);
   }
 
-  // ---------------------------
-  // Bootstrap
-  // ---------------------------
+  // ---- Bootstrap ----
   (async () => {
     const analId = getAnalId();
 
-    // UI에 표시할 수 있으면 표기
-    const analIdEl = $('#analIdText');
-    if (analIdEl && analId) analIdEl.textContent = `#${analId}`;
+    // analId를 URL에 고정(있을 때만)
+    if (analId) {
+      try {
+        const u = new URL(location.href);
+        if (!u.searchParams.get('analId')) {
+          u.searchParams.set('analId', String(analId));
+          history.replaceState(null, '', u.toString());
+        }
+      } catch {}
+      try { sessionStorage.setItem('analysisAnalId', String(analId)); } catch {}
+    }
 
     const data = await loadAnalysisData(analId);
     const labels = data.labels ?? [];
     const values = data.values ?? [];
     const normalized = normalizeTo100(values);
 
-    // 타이틀 텍스트 업데이트(있을 경우)
     const titleEl = $('#resultTitle');
     if (titleEl) titleEl.textContent = data.title || '분석 결과';
 
+    const analIdEl = $('#analIdText');
+    if (analIdEl && analId) analIdEl.textContent = `#${analId}`;
+
     renderRadar({ labels, values, normalized });
 
-    // PDF 버튼 연결(있을 때만)
     const pdfBtn = $('#btnPdf');
     if (pdfBtn) {
       pdfBtn.addEventListener('click', () => downloadPDF(analId, labels, values, normalized));
