@@ -27,32 +27,30 @@ public class AnalysisResultService {
 
     /** 세션별 상태(유형별 횟수만 누적) */
     static class SessionState {
-        Long ownerUserId;                           // user_idx
-        final EnumMap<FieldName,Integer> counts = new EnumMap<>(FieldName.class); // 누적 카운트
-        volatile long received = 0;                 // 선택: 입력 총량(필요시)
-        volatile Long total = null;                 // 선택: 전체 예상량
-        volatile Instant startedAt = null;          // 캡처 시작 버튼 시각
-        volatile Instant endedAt   = null;          // 캡처 종료 버튼 시각
+        Long ownerUserId;
+        Long analId;                 // ✅ 추가: 이 세션이 연결된 분석번호
+        final EnumMap<FieldName,Integer> counts = new EnumMap<>(FieldName.class);
+        volatile long received = 0;
+        volatile Long total = null;
+        volatile Instant startedAt = null;
+        volatile Instant endedAt   = null;
         volatile long lastUpdated = System.currentTimeMillis();
     }
 
-    private final Map<String, SessionState> sessions = new ConcurrentHashMap<>();
-
-    /** 세션 시작: startedAt 저장 + sid 발급
-     *  (files는 현재 미사용: 시그니처 유지만) */
-    public String beginSession(Long userId, List<MultipartFile> files) {
+    // ✅ analId를 함께 저장하는 시작 API
+    public String beginSession(Long userId, Long analId) {
         String sid = UUID.randomUUID().toString().replace("-", "");
         SessionState st = new SessionState();
         st.ownerUserId = userId;
+        st.analId = analId;
         st.startedAt = Instant.now();
-        st.lastUpdated = System.currentTimeMillis();
         sessions.put(sid, st);
         return sid;
     }
 
-    public Long getUserIdForSid(String sid) {
+    public Long getAnalIdForSid(String sid) {
         SessionState st = sessions.get(sid);
-        return (st != null) ? st.ownerUserId : null;
+        return (st != null) ? st.analId : null;
     }
 
     /** 모델 콜백에서 “유형만” 누적 */
@@ -103,14 +101,12 @@ public class AnalysisResultService {
 
         // 유형 가중치(예시): 운영 데이터로 튜닝하세요
         Map<FieldName,Integer> W = Map.of(
-            FieldName.VIOLENCE,   2,
-            FieldName.DEFAMATION, 2,
-            FieldName.STALKING,   3,
-            FieldName.SEXUAL,     3,
-            FieldName.LEAK,       2,
-            FieldName.BULLYING,   2,
-            FieldName.CHANTAGE,   3,
-            FieldName.EXTORTION,  3
+            FieldName.VIOLENCE,   1,
+            FieldName.DEFAMATION, 1,
+            FieldName.SEXUAL,     1,
+            FieldName.BULLYING,   1,
+            FieldName.CHANTAGE,   1,
+            FieldName.EXTORTION,  1
         );
 
         int weighted = 0;
@@ -120,8 +116,8 @@ public class AnalysisResultService {
         }
 
         // 임계값(예시)
-        if (weighted >= 60) return AnalRate.DANGER;
-        if (weighted >= 20) return AnalRate.WARNING;
+        if (weighted >= 30) return AnalRate.DANGER;
+        if (weighted >= 15) return AnalRate.WARNING;
         return AnalRate.NORMAL;
     }
 
@@ -172,4 +168,6 @@ public class AnalysisResultService {
         if (userId == null) return null;
         return userRepository.findMemberUsernameByUserId(userId).orElse(null);
     }
+    
+    
 }

@@ -44,39 +44,51 @@ public class AnalysisReportCallbackController {
 	@PostMapping(value = "/pdf-callback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Transactional
 	public ResponseEntity<PdfCallbackResponse> pdfReady(@RequestBody JsonNode root) {
-		JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
+	    JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
 
-		String sid = text(node, "sid");
-		String username = text(node, "username");
-		String analRateStr = firstNonBlank(text(node, "analRate"), text(node, "anal_rate"));
-		AnalRate rate = AnalRateSafe.fromNullable(analRateStr);
+	    String sid        = text(node, "sid");
+	    String username   = text(node, "username");
+	    String analRateStr= firstNonBlank(text(node, "analRate"), text(node, "anal_rate"));
+	    AnalRate rate     = AnalRateSafe.fromNullable(analRateStr);
 
-		JsonNode analResultNode = node.has("analResult") ? node.get("analResult")
-				: node.has("anal_result") ? node.get("anal_result") : null;
-		String analResultJson = (analResultNode == null) ? "" : analResultNode.toString();
+	    JsonNode analResultNode = node.has("analResult") ? node.get("analResult")
+	            : node.has("anal_result") ? node.get("anal_result") : null;
+	    String analResultJson = (analResultNode == null) ? "" : analResultNode.toString();
 
-		String reportUrl = firstNonBlank(text(node, "reportUrl"), firstPdfUrl(node));
-		if (isBlank(reportUrl)) {
-			return badReq("missing reportUrl (or results.pdf[0].url)");
-		}
+	    String reportUrl = firstNonBlank(text(node, "reportUrl"), firstPdfUrl(node));
+	    if (isBlank(reportUrl)) return badReq("missing reportUrl");
 
-		// ✅ username 또는 sid로 사용자 해석
-		User user = resolveUser(username, sid);
+	    // ✅ sid로 analId 찾기 → 있으면 UPDATE, 없으면 기존 로직대로 생성
+	    Long analId = analysisResultService.getAnalIdForSid(sid);
 
-		// ✅ 세션의 시작/종료 시각 반영
-		Instant started = analysisResultService.getStartedAt(sid);
-		Instant ended = analysisResultService.getEndedAt(sid);
+	    Analysis a;
+	    if (analId != null) {
+	        a = analysisRepository.findById(analId)
+	                .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analId));
+	    } else {
+	        // username 기반으로 생성 fallback
+	        var member = memberRepository.findByUsername(username)
+	                .orElseThrow(() -> new IllegalArgumentException("member not found: " + username));
+	        var user = userRepository.findByMemberId(member.getMemIdx())
+	                .orElseThrow(() -> new IllegalArgumentException("no tb_user row for member: " + username));
 
-		Analysis a = new Analysis();
-		a.setUser(user);
-		a.setAnalRate(rate != null ? rate : AnalRate.NORMAL);
-		a.setAnalResult(analResultJson);
-		a.setReportUrl(reportUrl);
-		a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
-		a.setFinishedAt(ended != null ? Timestamp.from(ended) : null);
+	        a = new Analysis();
+	        a.setUser(user);
+	        a.setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+	    }
 
-		Analysis saved = analysisRepository.save(a);
-		return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
+	    // 세션 시간
+	    var started = analysisResultService.getStartedAt(sid);
+	    var ended   = analysisResultService.getEndedAt(sid);
+
+	    a.setAnalRate(rate != null ? rate : AnalRate.NORMAL);
+	    a.setAnalResult(analResultJson);
+	    a.setReportUrl(reportUrl);
+	    if (started != null) a.setCreatedAt(java.sql.Timestamp.from(started));
+	    if (ended   != null) a.setFinishedAt(java.sql.Timestamp.from(ended));
+
+	    var saved = analysisRepository.save(a);
+	    return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
 	}
 
 	/*
@@ -124,7 +136,6 @@ public class AnalysisReportCallbackController {
 	 * ========================= helpers =========================
 	 */
 
-	/** username → Member → User, fallback: sid → userId */
 	/** username → Member → User, fallback: sid → userId */
 	private User resolveUser(String username, String sid) {
 		String id = sanitize(username);

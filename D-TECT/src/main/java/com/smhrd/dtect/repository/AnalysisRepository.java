@@ -21,5 +21,8 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
     
     // user_idx 로 최신순
     List<Analysis> findByUser_UserIdxOrderByCreatedAtDesc(Long userIdx);
+    
+    // 6진 분류 (가장 많은 횟수의 타입 [내림차순]) 
+    Optional<Analysis> findTopByUser_AnalIdxOrderByCreatedAtDesc(Long analIdx);
 }
 

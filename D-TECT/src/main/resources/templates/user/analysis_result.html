@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 
-<body th:attr="data-user-id=${userId != null ? userId : 0}">
+<body>
     <!-- 헤더 -->
     <header class="topbar">
         <div class="left">
@@ -24,7 +24,7 @@
     </header>
 
     <!-- 본문 -->
-    <main class="container">
+    <main class="container" id="result-root" data-user-id="<!--th:utext='${userId}'-->">
 
         <!-- 결과 카드(차트) -->
         <section class="card result-card">
