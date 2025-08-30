@@ -1,9 +1,6 @@
-// CSRF 비활성화 상태라 헤더는 Content-Type만 있으면 충분
-// 필요하면 공통 유틸을 import 가능: import { getCsrfHeaders } from '/js/public/common.js';
-
 function getEndpoint() {
   const panel = document.querySelector('.bot-panel');
-  return panel?.dataset?.endpoint || 'http://127.0.0.1:8000/api/bot/message';
+  return panel?.dataset?.endpoint || 'http://127.0.0.1:8002/api/bot/message';
 }
 
 export async function sendToBot(text, context = {}) {
