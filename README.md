@@ -96,6 +96,7 @@
     </td>
   </tr>
 </table>
+
 ## 화면 구성
 
 ## 팀원 역할
@@ -128,6 +129,7 @@
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
