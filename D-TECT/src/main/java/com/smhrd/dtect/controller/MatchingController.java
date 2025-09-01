@@ -160,12 +160,10 @@ public class MatchingController {
     private static final List<ConsultType> CONSULT_TYPES = List.of(
             new ConsultType("VIOLENCE",  "폭력"),
             new ConsultType("DEFAMATION","명예훼손"),
-            new ConsultType("STALKING",  "스토킹"),
             new ConsultType("SEXUAL",    "성범죄"),
-            new ConsultType("LEAK",      "정보유출"),
             new ConsultType("BULLYING",  "따돌림/집단괴롭힘"),
             new ConsultType("CHANTAGE",  "협박/갈취"),
-            new ConsultType("EXTORTION", "공갈/갈취")
+            new ConsultType("EXTORTION", "공갈/강요")
     );
 
     @Data

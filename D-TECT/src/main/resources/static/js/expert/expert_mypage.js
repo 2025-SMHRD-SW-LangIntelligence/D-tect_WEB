@@ -19,8 +19,8 @@ initProfileEditPopup('#editToggleBtn', {
 
 // ===== 라벨/유틸 =====
 const REASON_LABELS = {
-  VIOLENCE:"폭력", DEFAMATION:"명예훼손", STALKING:"스토킹", SEXUAL:"성범죄",
-  LEAK:"정보유출", BULLYING:"따돌림·집단괴롭힘", CHANTAGE:"협박·갈취", EXTORTION:"공갈·갈취",
+  VIOLENCE:"폭력", DEFAMATION:"명예훼손", SEXUAL:"성범죄",
+  BULLYING:"따돌림·집단괴롭힘", CHANTAGE:"협박·갈취", EXTORTION:"공갈·갈취",
 };
 const mapReason = v => (v && REASON_LABELS[String(v).trim().toUpperCase()]) || v || "—";
 

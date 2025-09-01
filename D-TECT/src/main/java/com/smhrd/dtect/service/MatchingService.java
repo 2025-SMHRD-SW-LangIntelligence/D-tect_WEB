@@ -33,7 +33,7 @@ public class MatchingService {
     private final UserRepository userRepository;
 
     private static final java.util.Set<String> ALLOWED_REASONS = Set.of(
-            "VIOLENCE","DEFAMATION","STALKING","SEXUAL","LEAK","BULLYING","CHANTAGE","EXTORTION"
+            "VIOLENCE","DEFAMATION","SEXUAL","BULLYING","CHANTAGE","EXTORTION"
     );
 
     @Value("${app.aes.secret}")
