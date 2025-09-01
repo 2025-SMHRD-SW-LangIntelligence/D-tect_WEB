@@ -330,6 +330,7 @@ public class AnalysisResultService {
         SessionState st = sessions.get(sid);
         if (st == null) return false;
 
+        
         Map<FieldName,Integer> counts = getTypeCounts(sid);
         AnalRate rate = gradeByCounts(counts);
         String username = Optional.ofNullable(getUsernameForSid(sid)).orElse("");
