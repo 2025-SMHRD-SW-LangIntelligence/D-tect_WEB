@@ -309,7 +309,7 @@ public class AnalysisResultService {
         String callbackUrl = buildCallbackUrl(analId); // 설정 기반 (없어도 됨)
 
         return pdfWebhookClient.dispatchCountsWithAnalId(
-            analId, username, null, counts, rate, started, ended, callbackUrl
+        	    analId, username, null, counts, rate, started, ended
         );
     }
 
@@ -336,7 +336,7 @@ public class AnalysisResultService {
         String username = Optional.ofNullable(getUsernameForSid(sid)).orElse("");
 
         boolean ok = pdfWebhookClient.dispatchCountsWithAnalId(
-                st.analId, username, null, sid, counts, rate, st.startedAt, st.endedAt
+        	    st.analId, username, sid, counts, rate, st.startedAt, st.endedAt
         );
 
         // DB 누적 반영…
