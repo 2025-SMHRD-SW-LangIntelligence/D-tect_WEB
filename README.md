@@ -45,7 +45,7 @@
     <td>사용 프레임워크</td>
     <td>
       <img src = "https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white">
-      <img src="https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=Spring Security&logoColor=white"/>
+      <img src = "https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=Spring Security&logoColor=white"/>
     </td>
   </tr>
   <tr>
@@ -77,6 +77,7 @@
     <td>
       <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=Figma&logoColor=white"/>
       <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+      <img src="https://img.shields.io/badge/n8n-ea4b71?style=for-the-badge&logo=n8n&logoColor=white">
     </td>
   </tr>
 </table>
@@ -88,6 +89,8 @@
 ## 서비스 흐름도
 
 ## ER다이어그램
+
+https://www.erdcloud.com/d/ztCxFsoGhH5GD8aL5
 
 ## 화면 구성
 
@@ -108,11 +111,11 @@
     <td>이준섭(팀원)</td>
   </tr>
   <tr>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
-    <td>역할</td>
+    <td>PM, Front-End, 모델링, 산출문서작성</td>
+    <td>Back-End, GitHub관리, 산출문서작성</td>
+    <td>데이터 전처리, 모델링, 산출문서작성</td>
+    <td>Back-End, GitHub통합, WBS관리, 산출문서작성</td>
+    <td>크롤링, 모델링, 산출문서작성</td>
   <tr>
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
     <td align="center"><a href="https://github.com/wfos3241" target='_blank'>github</a></td>
@@ -121,5 +124,14 @@
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
+
+
+
+
+
+
+
+
 
 

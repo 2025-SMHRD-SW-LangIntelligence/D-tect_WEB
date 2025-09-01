@@ -2,6 +2,9 @@ package com.smhrd.dtect.controller;
 
 import java.util.ArrayList;
 
+import com.smhrd.dtect.security.CustomUser;
+import com.smhrd.dtect.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +17,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class PageController {
 	
     private final AdminService adminService;
+    private final UserService userService;
 
-    public PageController(AdminService adminService) {
+    public PageController(AdminService adminService, UserService userService) {
         this.adminService = adminService;
+        this.userService = userService;
     }
 	
     /* 공용 페이지 */
@@ -64,10 +69,21 @@ public class PageController {
     public String user() {
     	return "user/analysis";     			// 기본 회원 메인 페이지 
     }
-    
+
     @GetMapping(value = "/capturePage")
-    public String capture() {
-    	return "capture/capture";				// 데이터 수집(캡쳐) 페이지
+    public String capture(@AuthenticationPrincipal CustomUser principal,
+                          Model model) {
+        if (principal == null || principal.getMember() == null) {
+            // 로그인 상태 아니면 로그인 페이지로
+            return "redirect:/loginPage";
+        }
+        Long memIdx = principal.getMember().getMemIdx();
+        Long userId = userService.findUserIdByMemIdx(memIdx);
+        if (userId == null) {
+            return "redirect:/userMainPage";
+        }
+        model.addAttribute("userId", userId);
+        return "capture/capture";
     }
     
     @GetMapping(value = "/userSchedulePage")

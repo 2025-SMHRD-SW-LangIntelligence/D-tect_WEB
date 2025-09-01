@@ -337,3 +337,37 @@ body.lawyers-page {
 
 .card__banner{ height: 30px; } /* 배너 높이 고정 */
 .card__body{ min-height: 0; }  /* 내용이 길 때 오버플로우 방지 */
+
+
+/* 검색 버튼 가로 고정 */
+.btn-search,
+.chip-search,
+#searchBtn,                 /* 실제 id/클래스에 맞춰 하나만 남겨도 됩니다 */
+.filter .seg .btn-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 핵심 */
+  width: auto !important;        /* 정사각/고정폭 해제 */
+  min-width: 64px;               /* 글자 두 글자 이상 안정폭 */
+  padding: 6px 12px !important;  /* 좌우 여백 */
+  white-space: nowrap !important;/* 줄바꿈 방지 */
+  writing-mode: horizontal-tb !important; /* 수평 글자 방향 보장 */
+  line-height: 1;                /* 세로 중앙정렬 안정화 */
+}
+
+/* 만약 모든 필터 칩/세그먼트 버튼에 동일 적용하고 싶다면 */
+.filter .seg .btn,
+.filter .chip {
+  width: auto;                   /* 고정폭 해제 */
+  min-width: 56px;
+  white-space: nowrap;
+  padding: 6px 12px;
+}
+
+/* 혹시 원형 아이콘 전용 규칙이 검색 버튼에까지 적용되어 있다면 해제 */
+.btn-search {
+  border-radius: 999px;          /* 둥근 모양 유지 */
+  transform: none !important;
+}

@@ -33,28 +33,27 @@ public class Analysis {
     private Long analIdx;
 	
 	// 자료 식별자
-	// ✅ FK 컬럼명은 기존 그대로(user_idx) 유지하면서, 엔티티 타입만 Member로 전환
 	@ManyToOne
 	@JoinColumn(name = "user_idx", nullable = false)
 	private User user;
 
     // 분석 결과
-	@Column(name = "anal_result", columnDefinition="TEXT", nullable = false)
+	@Column(name = "anal_result", columnDefinition="TEXT")
     private String analResult;
 
     // 분석 등급	
-	@Column(name = "anal_rate", nullable = false)
+	@Column(name = "anal_rate")
 	@Enumerated(EnumType.STRING)
     private AnalRate analRate;
 
     // 분석 날짜
-	@Column(name = "created_at", nullable = false)
+	@Column(name = "created_at")
     private Timestamp createdAt;
 	
 	// 분석 보고서 다운로드 경로(네이버 클라우드)
-    @Column(name = "report_url", nullable = false, length = 1000)
+    @Column(name = "report_url", length = 1000)
     private String reportUrl;
-	
+
     // 캡쳐 종료 시
     @Column(name = "finished_at", nullable = true)
 	private Timestamp finishedAt;

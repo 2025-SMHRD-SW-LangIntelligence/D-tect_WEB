@@ -15,6 +15,7 @@ import com.smhrd.dtect.storage.ReportStorageWriter;
 import com.smhrd.dtect.support.AnalRateSafe;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @Validated
@@ -39,16 +41,29 @@ public class AnalysisReportCallbackController {
     private final StorageProperties storageProps;
 
     /* =========================
-       (A) JSON: URL만 전달
+       (A) JSON: URL만 전달 (analId 우선)
        ========================= */
     @PostMapping(
-        value = "/pdf-callback",
+        value = {"/pdf-callback", "/{analId}/pdf-callback"},
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @Transactional
-    public ResponseEntity<PdfCallbackResponse> pdfReady(@RequestBody JsonNode root) {
+    public ResponseEntity<PdfCallbackResponse> pdfReady(
+            @PathVariable(value = "analId", required = false) Long analIdPath,
+            @RequestParam(value = "analId", required = false) Long analIdParam,
+            @RequestBody JsonNode root
+    ) {
         JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
+
+        // ---- analId 추출 (path > query > body 순) ----
+        Long analIdBody = coalesce(
+                readLong(node, "analId"),
+                readLong(node, "analysisId"),
+                readLong(node, "anal_idx"),
+                readLong(node, "id")
+        );
+        Long analId = coalesce(analIdPath, analIdParam, analIdBody);
 
         String sid         = text(node, "sid");
         String usernameIn  = text(node, "username");
@@ -62,51 +77,58 @@ public class AnalysisReportCallbackController {
         String reportUrl = firstNonBlank(text(node, "reportUrl"), firstPdfUrl(node));
         if (isBlank(reportUrl)) return badReq("missing reportUrl (or results.pdf[0].url)");
 
-        // sid → analId 있으면 기존 레코드 업데이트, 없으면 생성
-        Long analId = analysisResultService.getAnalIdForSid(sid);
         Analysis a;
+
         if (analId != null) {
+            // ✅ analId가 있으면 반드시 그 레코드를 업데이트 (없으면 에러로 처리)
             a = analysisRepository.findById(analId)
                     .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analId));
         } else {
-            // username이 없으면 sid에서 복원 시도
-            String username = !isBlank(usernameIn) ? usernameIn : analysisResultService.getUsernameForSid(sid);
-            if (isBlank(username)) return badReq("username missing and cannot be resolved from sid");
+            // analId가 없으면 sid로 매핑 시도 → 없으면 새로 생성
+            Long analIdFromSid = analysisResultService.getAnalIdForSid(sid);
+            if (analIdFromSid != null) {
+                a = analysisRepository.findById(analIdFromSid)
+                        .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analIdFromSid));
+            } else {
+                // 마지막 수단: username 기반 신규 생성
+                String username = !isBlank(usernameIn) ? usernameIn : analysisResultService.getUsernameForSid(sid);
+                if (isBlank(username)) return badReq("username missing and cannot be resolved from sid");
 
-            User user = resolveUserByUsernameOnly(username); // MemberRepository의 현 메서드셋에 맞춘 해석
-            a = new Analysis();
-            a.setUser(user);
-            // 세션 시작시각 있으면 주입, 없으면 now
-            Instant started = analysisResultService.getStartedAt(sid);
-            a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
+                User user = resolveUserByUsernameOnly(username);
+                a = new Analysis();
+                a.setUser(user);
+                Instant started = analysisResultService.getStartedAt(sid);
+                a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
+            }
         }
 
-        // 세션 시간 반영(기존 createdAt은 유지; 시작시각만 비어있을 때 세팅)
+        // 세션 시간 반영
         Instant started = analysisResultService.getStartedAt(sid);
         Instant ended   = analysisResultService.getEndedAt(sid);
 
         a.setAnalRate(rate != null ? rate : AnalRate.NORMAL);
         a.setAnalResult(analResultJson);
         a.setReportUrl(reportUrl);
-        if (a.getCreatedAt() == null && started != null) {
-            a.setCreatedAt(Timestamp.from(started));
-        }
+        if (a.getCreatedAt() == null && started != null) a.setCreatedAt(Timestamp.from(started));
         if (ended != null) a.setFinishedAt(Timestamp.from(ended));
 
         Analysis saved = analysisRepository.save(a);
+        log.info("[pdf-callback(JSON)] analId={} url={}", saved.getAnalIdx(), reportUrl);
         return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
     }
 
     /* =========================
-       (B) Multipart: 파일 직접 전달
+       (B) Multipart: 파일 직접 전달 (analId 우선)
        ========================= */
     @PostMapping(
-        value = "/pdf-callback",
+        value = {"/pdf-callback", "/{analId}/pdf-callback"},
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @Transactional
     public ResponseEntity<PdfCallbackResponse> pdfReadyMultipart(
+            @PathVariable(value = "analId", required = false) Long analIdPath,
+            @RequestParam(value = "analId", required = false) Long analIdParam,
             @RequestParam(required = false) String sid,
             @RequestParam(required = false) String username,
             @RequestParam(required = false, name = "userId") String userIdStr, // 레거시 호환
@@ -115,30 +137,33 @@ public class AnalysisReportCallbackController {
             @RequestPart("file") MultipartFile file
     ) throws Exception {
 
-        // 업로드
+        Long analId = coalesce(analIdPath, analIdParam);
+
         String contentType  = Optional.ofNullable(file.getContentType()).orElse("application/pdf");
         String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("report.pdf");
 
-        // sid -> analId 가 있으면 기존 업데이트, 없으면 생성
-        Long analId = analysisResultService.getAnalIdForSid(sid);
         Analysis a;
-
         if (analId != null) {
+            // ✅ analId가 있으면 반드시 그 레코드 업데이트
             a = analysisRepository.findById(analId)
                     .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analId));
         } else {
-            // username → User (없으면 userIdStr 레거시 → 숫자 or username로 해석)
-            User user = resolveUserCompat(username, userIdStr, sid);
-            a = new Analysis();
-            a.setUser(user);
-            Instant started = analysisResultService.getStartedAt(sid);
-            a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
+            Long analIdFromSid = analysisResultService.getAnalIdForSid(sid);
+            if (analIdFromSid != null) {
+                a = analysisRepository.findById(analIdFromSid)
+                        .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analIdFromSid));
+            } else {
+                User user = resolveUserCompat(username, userIdStr, sid);
+                a = new Analysis();
+                a.setUser(user);
+                Instant started = analysisResultService.getStartedAt(sid);
+                a.setCreatedAt(started != null ? Timestamp.from(started) : Timestamp.from(Instant.now()));
+            }
         }
 
         String owner = !isBlank(sid)
                 ? sid
-                : (!isBlank(username) ? username
-                : String.valueOf(a.getUser().getUserIdx()));
+                : (!isBlank(username) ? username : String.valueOf(a.getUser().getUserIdx()));
 
         String key = writer.uploadAutoName(owner, originalName, file.getBytes(), contentType);
         String reportUrl = buildPublicUrl(key);
@@ -152,9 +177,10 @@ public class AnalysisReportCallbackController {
         if (ended != null) a.setFinishedAt(Timestamp.from(ended));
 
         Analysis saved = analysisRepository.save(a);
+        log.info("[pdf-callback(MP)] analId={} url={}", saved.getAnalIdx(), reportUrl);
         return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
     }
-
+    
     /* =========================
                  helpers
        ========================= */
@@ -252,4 +278,18 @@ public class AnalysisReportCallbackController {
     private ResponseEntity<PdfCallbackResponse> badReq(String m){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PdfCallbackResponse(null, m));
     }
+    
+ // --- 신규 유틸 ---
+    private static Long readLong(JsonNode n, String key) {
+        if (n == null || key == null) return null;
+        JsonNode v = n.get(key);
+        if (v == null || v.isNull()) return null;
+        if (v.isIntegralNumber()) return v.longValue();
+        if (v.isTextual()) {
+            try { return Long.valueOf(v.asText().trim()); } catch (Exception ignore) { return null; }
+        }
+        return null;
+    }
+    @SafeVarargs private static <T> T coalesce(T... vals) { for (T v : vals) if (v != null) return v; return null; }
+    
 }

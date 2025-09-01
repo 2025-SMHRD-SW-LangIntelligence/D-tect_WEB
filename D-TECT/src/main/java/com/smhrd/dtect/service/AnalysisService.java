@@ -3,11 +3,15 @@ package com.smhrd.dtect.service;
 import com.smhrd.dtect.dto.AnalysisSummaryDto;
 import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.entity.Member;
+import com.smhrd.dtect.entity.User;
 import com.smhrd.dtect.repository.AnalysisRepository;
 import com.smhrd.dtect.repository.MemberRepository;
+import com.smhrd.dtect.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -18,6 +22,7 @@ public class AnalysisService {
 
     private final AnalysisRepository analysisRepository;
     private final MemberRepository memberRepository;
+    private final UserRepository userRepository;
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
@@ -66,5 +71,28 @@ public class AnalysisService {
                 .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
         String date = DATE_FMT.format(a.getCreatedAt().toInstant());
         return "[" + date + "] 결과보고서.pdf";
+    }
+
+
+    // 캡처
+    // 캡처 시작
+    @Transactional
+    public Analysis startByUserId(Long userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("user not found: " + userId));
+
+        Analysis a = new Analysis();
+        a.setUser(u);
+        a.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        return analysisRepository.save(a);
+    }
+
+    // 캡처 종료
+    @Transactional
+    public Analysis finish(Long analId) {
+        Analysis a = analysisRepository.findById(analId)
+                .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
+        a.setFinishedAt(new Timestamp(System.currentTimeMillis()));
+        return a;
     }
 }

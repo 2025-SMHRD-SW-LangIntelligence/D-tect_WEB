@@ -33,7 +33,7 @@ public class Expert {
     // 변호사 인증 파일
     @Column(name = "certification_file")
     private String certificationFile;
-    
+
     // 사용자가 결제시, 돈의 흐름을 보여주기 위한 컬럼
     @Column(nullable = true)
     private Long point;

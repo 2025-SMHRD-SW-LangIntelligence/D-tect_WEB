@@ -29,4 +29,6 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
     // 또는
     // @Query("select a from Analysis a where a.user.userIdx = :userId order by a.createdAt desc")
     // Optional<Analysis> findLatestByUserId(@Param("userId") Long userId);
+    
+    List<Analysis> findTop100ByReportUrlIsNullAndFinishedAtIsNotNullOrderByFinishedAtAsc();
 }
