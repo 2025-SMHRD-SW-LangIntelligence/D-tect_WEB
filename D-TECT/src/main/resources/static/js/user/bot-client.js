@@ -1,14 +1,22 @@
 function getEndpoint() {
   const panel = document.querySelector('.bot-panel');
-  if (panel?.dataset?.endpoint) return panel.dataset.endpoint;
+  let base =
+      panel?.dataset?.endpoint?.trim() ||
+      document.querySelector('meta[name="bot-base"]')?.content?.trim() ||
+      '';
 
-  // 로컬 개발 환경
+  if (base) {
+    if (/\/message$/.test(base)) return base;
+    return base.replace(/\/+$/, '') + '/message';
+  }
+
+  // 2) 로컬 개발 환경
   const host = location.hostname;
   const isLocal = host === 'localhost' || host === '127.0.0.1';
   if (isLocal) return 'http://127.0.0.1:8002/api/bot/message';
 
-  // 3) 배포(도메인) 환경에서
-  return '/chat/api/bot/message';
+  // 3) 배포(nginx)
+  return '/api/bot/message';
 }
 
 export async function sendToBot(text, context = {}) {
@@ -19,7 +27,7 @@ export async function sendToBot(text, context = {}) {
     history: [],
     context: { page: location.pathname, ...context }
   };
-  // 세션ID를 한 번 정해두면 재사용
+
   sessionStorage.setItem('botSession', session);
 
   const res = await fetch(getEndpoint(), {
@@ -53,11 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSending = false;
   let isComposing = false;
 
-  // ✅ 한글 조합 상태 추적
+  // 한글 조합 상태 추적
   input.addEventListener('compositionstart', () => { isComposing = true; });
   input.addEventListener('compositionend', () => { isComposing = false; });
 
-  // ✅ Enter 전송 / Shift+Enter 줄바꿈
+  // Enter 전송 / Shift+Enter 줄바꿈
   input.addEventListener('keydown', (e) => {
     // 조합 중이면 전송 금지 (mac/Safari 한글 마지막 글자 이슈 방지)
     if (isComposing || e.isComposing || e.keyCode === 229) return;
