@@ -309,7 +309,7 @@ public class AnalysisResultService {
         String callbackUrl = buildCallbackUrl(analId); // 설정 기반 (없어도 됨)
 
         return pdfWebhookClient.dispatchCountsWithAnalId(
-        	    analId, username, null, counts, rate, started, ended
+        	    analId, username, callbackUrl, counts, rate, started, ended
         );
     }
 
