@@ -6,7 +6,11 @@ import json
 
 # 이 코드는 사용 안했습니다
 # 기존 방식에서 실시간 분석으로 바꿨기때문,,,
-API_ENDPOINT = "http://127.0.0.1:8001/analyze_images"
+# 도커용 URL
+API_ENDPOINT = "http://0.0.0.1:8001/analyze_images"
+
+# 로컬용 URL
+# API_ENDPOINT = "http://127.0.0.1:8001/analyze_images"
 
 
 
