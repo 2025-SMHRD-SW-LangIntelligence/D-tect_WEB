@@ -1,6 +1,7 @@
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.entity.Analysis;
+import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.AnalysisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.time.ZoneId;
 public class AnalysisCommandController {
 
     private final AnalysisService analysisService;
+    private final AnalysisResultService analysisResultService;
 
     // 캡처 시작
     @PostMapping("/start")
@@ -32,14 +34,16 @@ public class AnalysisCommandController {
     @PostMapping("/{analId}/finish")
     public ResponseEntity<FinishRes> finish(@PathVariable Long analId) {
         Analysis a = analysisService.finish(analId);
+     // === 추가: 웹훅 호출 ===
+        boolean dispatched = analysisResultService.finalizeByAnalId(analId);
         String finished = (a.getFinishedAt() == null) ? null
                 : a.getFinishedAt().toInstant().atZone(ZoneId.systemDefault()).toString();
-        return ResponseEntity.ok(new FinishRes(a.getAnalIdx(), finished));
+        return ResponseEntity.ok(new FinishRes(a.getAnalIdx(), finished, dispatched));
     }
 
     // DTO
     public record StartReq(Long userId) {}
     public record StartRes(Long analId, String startedAt) {}
-    public record FinishRes(Long analId, String finishedAt) {}
+    public record FinishRes(Long analId, String finishedAt, boolean dispatched) {}
 }
 
