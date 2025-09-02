@@ -55,9 +55,7 @@ public class ExpertService {
         return switch (n) {
             case VIOLENCE   -> "폭력";
             case DEFAMATION -> "명예훼손";
-            case STALKING   -> "스토킹";
             case SEXUAL     -> "성희롱·성폭력";
-            case LEAK       -> "정보유출";
             case BULLYING   -> "따돌림/집단괴롭힘";
             case CHANTAGE   -> "협박";
             case EXTORTION  -> "갈취";

@@ -1,17 +1,26 @@
 function getEndpoint() {
   const panel = document.querySelector('.bot-panel');
-  return panel?.dataset?.endpoint || 'http://127.0.0.1:8002/api/bot/message';
+  if (panel?.dataset?.endpoint) return panel.dataset.endpoint;
+
+  // 로컬 개발 환경
+  const host = location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  if (isLocal) return 'http://127.0.0.1:8002/api/bot/message';
+
+  // 3) 배포(도메인) 환경에서
+  return '/chat/api/bot/message';
 }
 
 export async function sendToBot(text, context = {}) {
+  const session = sessionStorage.getItem('botSession') ?? crypto.randomUUID();
   const body = {
-    sessionId: sessionStorage.getItem('botSession') ?? crypto.randomUUID(),
-    message:text,
-	history: [],
+    sessionId: session,
+    message: text,
+    history: [],
     context: { page: location.pathname, ...context }
   };
   // 세션ID를 한 번 정해두면 재사용
-  sessionStorage.setItem('botSession', body.sessionId);
+  sessionStorage.setItem('botSession', session);
 
   const res = await fetch(getEndpoint(), {
     method: 'POST',
@@ -92,4 +101,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
