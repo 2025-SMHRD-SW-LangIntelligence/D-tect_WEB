@@ -80,6 +80,8 @@ public class AnalysisPipelineRestController {
             // 저장된 누적치로 n8n 웹훅 전송 (PDF 생성 트리거)
             dispatched = analysisResultService.finalizeByAnalId(analId);
             reportUrl = analysisRepository.findById(analId).map(Analysis::getReportUrl).orElse(null);
+            log.info("[finish] finalizeByAnalId 호출 analId={}", analId);
+            dispatched = analysisResultService.finalizeByAnalId(analId);
         } catch (Exception e) {
             log.error("[finish] dispatch error analId={}", analId, e);
             dispatched = false; // ★ 반드시 세팅
