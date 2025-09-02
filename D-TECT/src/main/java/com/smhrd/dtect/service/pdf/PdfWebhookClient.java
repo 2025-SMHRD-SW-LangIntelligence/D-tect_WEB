@@ -56,7 +56,7 @@ public class PdfWebhookClient {
 
      log.info("[PdfWebhook] → POST {} | analId={} sid={} sum={} callbackUrl={}",
              url, analId, sid, sum, callbackUrl);
-
+     log.info("[PdfWebhook] Request body: {}", body);
      Boolean ok = webClient.post()
              .uri(url)
              .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +78,7 @@ public class PdfWebhookClient {
                  return reactor.core.publisher.Mono.just(false);
              })
              .block();
-
+     
      return Boolean.TRUE.equals(ok);
  }
 
