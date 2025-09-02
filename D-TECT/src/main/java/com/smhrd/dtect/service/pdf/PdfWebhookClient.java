@@ -32,11 +32,12 @@ public class PdfWebhookClient {
          Instant startedAt,
          Instant endedAt
  ) {
-     final String url = pdfProps.getWebhookUrl();
-     if (url == null || url.isBlank()) {
-         log.error("[PdfWebhook] webhookUrl NOT configured (app.pdf.webhook-url). Skip dispatch. analId={} sid={}", analId, sid);
-         return false; // ★ 반드시 false
-     }
+	 final String url = pdfProps.getWebhookUrl();
+	 log.info("[PdfWebhook] resolved webhookUrl={}", url);
+	 if (url == null || url.isBlank()) {
+	     log.error("[PdfWebhook] webhookUrl NOT configured (app.pdf.webhook-url). Skip dispatch. analId={} sid={}", analId, sid);
+	     return false;
+	 }
 
      final String callbackUrl = buildCallbackUrl(analId);
      final Map<String,Integer> counts = toStringKeyMap(typeCounts);
