@@ -4,11 +4,14 @@ import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.AnalysisService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneId;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
@@ -33,9 +36,14 @@ public class AnalysisCommandController {
     // 캡처 종료
     @PostMapping("/{analId}/finish")
     public ResponseEntity<FinishRes> finish(@PathVariable Long analId) {
+        log.info("[Finish] start analId={}", analId);
+
         Analysis a = analysisService.finish(analId);
-     // === 추가: 웹훅 호출 ===
+
+        log.info("[Finish] before finalizeByAnalId analId={}", analId);
         boolean dispatched = analysisResultService.finalizeByAnalId(analId);
+        log.info("[Finish] after finalizeByAnalId analId={} dispatched={}", analId, dispatched);
+
         String finished = (a.getFinishedAt() == null) ? null
                 : a.getFinishedAt().toInstant().atZone(ZoneId.systemDefault()).toString();
         return ResponseEntity.ok(new FinishRes(a.getAnalIdx(), finished, dispatched));
