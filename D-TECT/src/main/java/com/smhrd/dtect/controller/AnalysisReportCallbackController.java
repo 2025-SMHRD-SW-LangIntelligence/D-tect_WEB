@@ -178,6 +178,7 @@ public class AnalysisReportCallbackController {
 
         Analysis saved = analysisRepository.save(a);
         log.info("[pdf-callback(MP)] analId={} url={}", saved.getAnalIdx(), reportUrl);
+        log.info("Saving Analysis: analId={} reportUrl={}", a.getAnalIdx(), reportUrl);
         return ResponseEntity.ok(new PdfCallbackResponse(saved.getAnalIdx(), "OK"));
     }
     
