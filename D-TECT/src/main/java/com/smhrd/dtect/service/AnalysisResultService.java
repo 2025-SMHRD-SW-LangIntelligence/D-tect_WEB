@@ -306,10 +306,11 @@ public class AnalysisResultService {
         Instant started = a.getCreatedAt()!=null ? a.getCreatedAt().toInstant() : null;
         Instant ended   = a.getFinishedAt()!=null ? a.getFinishedAt().toInstant(): null;
 
-        String callbackUrl = buildCallbackUrl(analId); // 설정 기반 (없어도 됨)
+        // ✅ sid를 복원 (analId → sid 매핑 활용)
+        String sid = getSidForAnalId(analId);
 
         return pdfWebhookClient.dispatchCountsWithAnalId(
-        	    analId, username, callbackUrl, counts, rate, started, ended
+                analId, username, sid, counts, rate, started, ended
         );
     }
 

@@ -4,6 +4,8 @@ package com.smhrd.dtect.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
 @Component
 @ConfigurationProperties(prefix = "app.pdf")
 public class PdfProperties {
@@ -31,4 +33,10 @@ public class PdfProperties {
     public void setConnectTimeoutMs(int connectTimeoutMs) { this.connectTimeoutMs = connectTimeoutMs; }
     public int getReadTimeoutMs() { return readTimeoutMs; }
     public void setReadTimeoutMs(int readTimeoutMs) { this.readTimeoutMs = readTimeoutMs; }
+    
+    @PostConstruct
+    public void debugInit() {
+        System.out.println("### PdfProperties.webhookUrl=" + webhookUrl);
+    }
+    
 }
