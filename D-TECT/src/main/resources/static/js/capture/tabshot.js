@@ -178,6 +178,7 @@
 
   // --- (교체) 결과 페이지 이동: 종료→리포트 다운로드→이동 ---
   // (교체) 결과 이동 로직 일부
+  // --- (교체) 결과 페이지 이동: 종료→PDF 디스패치→SSE 구독→이동 ---
   async function gotoResults(){
     const base = els.gotoBtn?.dataset?.href || '/userAnalysisResultPage';
     const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
@@ -203,22 +204,35 @@
       await cleanupWithoutFinish('페이지 이동'); // 스트림/타이머만 정리
     }
 
-    // 종료 통지 + n8n 트리거
-	let reportUrl = null;
-	  if (id){
-	    const fin = await notifyFinish(); // dispatched 플래그만 믿지 말고 항상 폴링
-	    setStatus('idle', '리포트 생성 중… (최대 60초)');
-	    reportUrl = await pollReportUrl(id, { tries: 60, intervalMs: 1000 });
+    if (id){
+      // 1) finish 호출 (종료 기록만, dispatch 없음)
+      await notifyFinish();
 
-	    if (reportUrl){
-	      log(`리포트 다운로드 시작: ${reportUrl}`);
-	      downloadByUrl(reportUrl);
-	    } else {
-	      log('리포트 URL을 얻지 못했습니다. 결과 페이지에서 다시 시도할 수 있습니다.');
-	    }
-	  }
-	  location.href = url;
-	}
+      // 2) PDF 디스패치 시작
+      try {
+        await fetch(`/api/analysis/${id}/dispatch`, { method: "POST" });
+        setStatus('idle', '리포트 생성 중…');
+        log(`PDF 워크플로우 디스패치 시작 #${id}`);
+      } catch(e) {
+        log(`PDF 디스패치 실패: ${e.message}`);
+      }
+
+      // 3) SSE 구독
+      const evtSource = new EventSource(`/api/analysis/${id}/events`);
+      evtSource.addEventListener("status", (e) => {
+        const data = JSON.parse(e.data);
+        if (data.state === "ready") {
+          log(`리포트 준비 완료: ${data.reportUrl}`);
+          downloadByUrl(data.reportUrl);
+          evtSource.close();
+        }
+      });
+    }
+
+    // 4) 결과 페이지 이동
+    location.href = url;
+  }
+
 
   // 기본 = 폴더 저장. 불가하면 모달 동의 시 download, 아니면 취소
   async function ensureStorageStrategy(){

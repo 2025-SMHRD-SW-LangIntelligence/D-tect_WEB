@@ -74,25 +74,12 @@ public class AnalysisPipelineRestController {
         a.setFinishedAt(java.sql.Timestamp.from(now));
         analysisRepository.save(a);
 
-        boolean dispatched;
-        String reportUrl = null;
-        try {
-            // 저장된 누적치로 n8n 웹훅 전송 (PDF 생성 트리거)
-            dispatched = analysisResultService.finalizeByAnalId(analId);
-            reportUrl = analysisRepository.findById(analId).map(Analysis::getReportUrl).orElse(null);
-            log.info("[finish] finalizeByAnalId 호출 analId={}", analId);
-            dispatched = analysisResultService.finalizeByAnalId(analId);
-        } catch (Exception e) {
-            log.error("[finish] dispatch error analId={}", analId, e);
-            dispatched = false; // ★ 반드시 세팅
-        }
-
-        // ★ Map.of 는 null value 불가 → HashMap 사용
-        Map<String, Object> body = new java.util.HashMap<>();
+        // ✅ 이제는 웹훅 전송 X
+        Map<String, Object> body = new HashMap<>();
         body.put("analId", analId);
         body.put("finishedAt", now.toString());
-        body.put("dispatched", dispatched); // ★ 항상 포함
-        body.put("reportUrl", reportUrl);   // null 허용(폴링용)
+        body.put("dispatched", false); // 무조건 false
+        body.put("reportUrl", a.getReportUrl()); // null 일 수 있음
 
         return ResponseEntity.ok(body);
     }
