@@ -23,11 +23,7 @@ public class AnalysisCallbackController {
     private final AnalysisResultService analysisResultService;
     private final ObjectMapper om = new ObjectMapper();
 
-    /**
-     * 모델 서버 → 우리 서버 콜백
-     * 예: POST /api/analysis/callback?analId=123
-     */
-    @PostMapping(value = "/callback", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/callback-model", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> callback(
             HttpServletRequest req,
             @RequestParam("analId") Long analId,
@@ -39,7 +35,7 @@ public class AnalysisCallbackController {
 
         List<ModelMessage> results = om.readValue(s, new TypeReference<List<ModelMessage>>() {});
         if (results != null && !results.isEmpty()) {
-            analysisResultService.saveFromCallback(analId, results);
+            analysisResultService.saveFromCallbackMessages(analId, results);
         }
         return ResponseEntity.ok().build();
     }

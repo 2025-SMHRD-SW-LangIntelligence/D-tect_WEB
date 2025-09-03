@@ -1,4 +1,3 @@
-// src/main/java/com/smhrd/dtect/controller/UserRestController.java
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.SignupRequestDTO;
@@ -18,7 +17,6 @@ public class UserRestController {
 
     private final UserService userService;
 
-    // 회원가입 (일반 + 전문가) : FormData(data: JSON, certificationFile: File)
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> signup(
             @RequestPart("data") SignupRequestDTO req,

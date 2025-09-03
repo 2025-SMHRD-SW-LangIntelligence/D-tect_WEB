@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title></title>
 
-    <!-- ✅ 경로 규칙 -->
     <link rel="stylesheet" th:href="@{/css/expert/expert_schedule.css}" />
 </head>
 
@@ -17,7 +16,7 @@
     <!-- 상단바 -->
     <header class="topbar">
         <div class="left">
-            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" />
+            <img th:src="@{/images/logo.png}" alt="D-tect" class="logo" href = "/userMainPage"/>
             <nav class="month-nav">
                 <button class="nav-btn" id="prevMonth" aria-label="이전 달">&#9664;</button>
                 <h1 id="monthLabel" class="month-label" aria-live="polite">2025-08</h1>
@@ -54,7 +53,6 @@
         </div>
     </footer>
 
-    <!-- ✅ 경로 규칙 -->
     <script defer th:src="@{/js/expert/expert_schedule.js}"></script>
 </body>
 

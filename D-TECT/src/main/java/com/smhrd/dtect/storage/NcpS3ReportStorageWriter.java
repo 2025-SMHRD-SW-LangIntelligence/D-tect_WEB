@@ -10,67 +10,93 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.net.URI;
+import java.nio.file.FileSystems;
+import java.time.Duration;
+import java.time.LocalDate;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "app.storage", name = "provider", havingValue = "ncp")
-@Slf4j
+@ConditionalOnProperty(name = "app.storage.provider", havingValue = "ncp")
 public class NcpS3ReportStorageWriter implements ReportStorageWriter {
 
     private final StorageProperties props;
 
     private S3Client s3() {
-        validateProps();
         return S3Client.builder()
-                .region(Region.of(props.getRegion())) // e.g. "kr-standard"
-                .endpointOverride(URI.create(props.getEndpoint())) // e.g. https://kr.object.ncloudstorage.com
+                .endpointOverride(URI.create(props.getEndpoint()))
+                .region(Region.of(props.getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey())
                 ))
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(true) // NCP는 path-style 권장
-                        .build())
+                .build();
+    }
+
+    private S3Presigner presigner() {
+        return S3Presigner.builder()
+                .endpointOverride(URI.create(props.getEndpoint()))
+                .region(Region.of(props.getRegion()))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(props.getAccessKey(), props.getSecretKey())
+                ))
                 .build();
     }
 
     @Override
-    public String upload(String objectName, byte[] bytes, String contentType) throws Exception {
+    public String upload(String objectName, byte[] bytes, String contentType) {
         if (objectName == null || objectName.isBlank()) {
             throw new IllegalArgumentException("objectName must not be blank");
         }
-        if (bytes == null) {
-            throw new IllegalArgumentException("bytes must not be null");
-        }
-
+        String key = objectName.replace(FileSystems.getDefault().getSeparator(), "/");
         try (S3Client s3 = s3()) {
             PutObjectRequest req = PutObjectRequest.builder()
                     .bucket(props.getBucket())
-                    .key(objectName)
-                    .contentType(contentType != null ? contentType : "application/octet-stream")
+                    .key(key)
+                    .contentType(contentType != null ? contentType : "application/pdf")
+                    .acl(ObjectCannedACL.PRIVATE) // 🔹 presigned URL로만 접근 가능
                     .build();
+
             s3.putObject(req, RequestBody.fromBytes(bytes));
-            log.info("[NCP] uploaded bucket={} key={} size={}B", props.getBucket(), objectName, bytes.length);
+            log.info("[NCP] uploaded bucket={} key={} size={}B contentType={}",
+                    props.getBucket(), key, bytes.length, contentType);
+
+        } catch (Exception e) {
+            log.error("[NCP] upload failed bucket={} key={} → {}", props.getBucket(), key, e.getMessage(), e);
+            throw new RuntimeException("NCP upload failed: " + e.getMessage(), e);
         }
-        // DB에는 "키"만 저장 (공개 URL 필요 시 props.publicBaseUrl + "/" + objectName 사용)
-        return objectName;
+        return key;
     }
 
-    private void validateProps() {
-        if (isBlank(props.getEndpoint())
-                || isBlank(props.getRegion())
-                || isBlank(props.getAccessKey())
-                || isBlank(props.getSecretKey())
-                || isBlank(props.getBucket())) {
-            throw new IllegalStateException("NCP storage properties are missing. " +
-                    "required=endpoint,region,accessKey,secretKey,bucket");
-        }
+    @Override
+    public String uploadAutoName(String owner, String originalName, byte[] bytes, String contentType) {
+        String datePath = LocalDate.now().toString();
+        String baseName = (owner != null ? owner : "anon") + "-" +
+                (originalName != null ? originalName : "report.pdf");
+        String key = "reports/" + datePath + "/" + baseName;
+        return upload(key, bytes, contentType);
     }
 
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
+    /** 🔹 presigned URL 생성 (7일 유효) */
+    public String generatePresignedUrl(String objectKey) {
+        try (S3Presigner presigner = presigner()) {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(props.getBucket())
+                    .key(objectKey)
+                    .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofDays(7)) // 🔹 7일 유효
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            return presigner.presignGetObject(presignRequest).url().toString();
+        }
     }
 }

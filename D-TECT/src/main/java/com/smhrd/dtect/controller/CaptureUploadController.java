@@ -1,19 +1,22 @@
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.config.ModelProperties;
-import com.smhrd.dtect.dto.FrameAnalyzeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -21,37 +24,101 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CaptureUploadController {
 
-    private final WebClient modelWebClient;
+    private final @Qualifier("modelWebClient") WebClient modelWebClient;
     private final ModelProperties props;
+
+    @Value("${model.predict-path:}")
+    private String predictPathOverride;
 
     @PostMapping(value = "/frame", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> frame(
             @RequestParam("analId") Long analId,
             @RequestParam("file") MultipartFile file
-    ) throws Exception {
-        byte[] bytes = file.getBytes();
-        String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "frame.png";
+    ) {
+        if (analId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "analId is required"));
+        }
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "file is required"));
+        }
+
+        final String filename = (file.getOriginalFilename() != null && !file.getOriginalFilename().isBlank())
+                ? file.getOriginalFilename()
+                : "frame.png";
+        final MediaType partContentType = parseOrDefault(file.getContentType(), MediaType.APPLICATION_OCTET_STREAM);
+
+        ByteArrayResource resource;
+        try {
+            resource = new NamedByteArrayResource(file.getBytes(), filename);
+        } catch (Exception e) {
+            log.warn("Failed to read uploaded file: {}", e.toString());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "failed to read file bytes"));
+        }
 
         MultipartBodyBuilder mb = new MultipartBodyBuilder();
-        mb.part("file", bytes)
-                .filename(filename)
-                .contentType(MediaType.IMAGE_PNG);
+        mb.part("file", resource).filename(filename).contentType(partContentType);
 
-        // 모델 서버로 프록시 (flagged/labels json 기대)
-        Map<String, Object> resp = modelWebClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path(props.getPredictPath())
-                        .queryParam("analId", analId)
-                        .build())
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .bodyValue(mb.build())
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
+        final String predictPath = (predictPathOverride != null && !predictPathOverride.isBlank())
+                ? predictPathOverride
+                : Objects.requireNonNullElse(props.getPredictPath(), "/predict");
+
+        Map<String, Object> resp;
+        try {
+            resp = modelWebClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path(predictPath)
+                            .queryParam("analId", analId)
+                            .build())
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(mb.build())
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
+
+        } catch (WebClientResponseException wcre) {
+            log.warn("Model server error: status={}, body={}", wcre.getRawStatusCode(), wcre.getResponseBodyAsString());
+            resp = null;
+        } catch (Exception e) {
+            log.warn("Model server call failed: {}", e.toString());
+            resp = null;
+        }
 
         if (resp == null) {
             resp = Map.of("flagged", false, "labels", List.of());
+        } else {
+            resp = ensureKeys(resp, "flagged", false, "labels", List.of());
         }
+
         return ResponseEntity.ok(resp);
+    }
+
+    private static MediaType parseOrDefault(String ct, MediaType def) {
+        try {
+            return (ct == null || ct.isBlank()) ? def : MediaType.parseMediaType(ct);
+        } catch (Exception ignored) {
+            return def;
+        }
+    }
+
+    private static Map<String, Object> ensureKeys(Map<String, Object> src,
+                                                  String k1, Object v1Default,
+                                                  String k2, Object v2Default) {
+        Object v1 = src.getOrDefault(k1, v1Default);
+        Object v2 = src.getOrDefault(k2, v2Default);
+        return Map.of(k1, v1, k2, v2);
+    }
+
+    // 파일 이름 보존용도
+    private static class NamedByteArrayResource extends ByteArrayResource {
+        private final String filename;
+        public NamedByteArrayResource(byte[] byteArray, String filename) {
+            super(byteArray);
+            this.filename = filename;
+        }
+        @Override public String getFilename() { return filename; }
     }
 }
