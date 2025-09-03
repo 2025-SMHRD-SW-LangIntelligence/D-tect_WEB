@@ -1,7 +1,12 @@
 package com.smhrd.dtect.controller;
 
-import com.smhrd.dtect.dto.*;
+import com.smhrd.dtect.dto.AnalysisFinalizeResponse;
+import com.smhrd.dtect.dto.AnalysisStartResponse;
+import com.smhrd.dtect.dto.AnalysisStatusDto;
+import com.smhrd.dtect.dto.ModelMessage;
 import com.smhrd.dtect.entity.AnalRate;
+import com.smhrd.dtect.entity.Analysis;
+import com.smhrd.dtect.repository.AnalysisRepository;
 import com.smhrd.dtect.service.AnalysisGrader;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.pdf.PdfWebhookClient;
@@ -12,7 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -22,19 +30,25 @@ public class AnalysisPipelineRestController {
 
     private final AnalysisResultService analysisResultService;
     private final PdfWebhookClient pdfWebhookClient;
+    private final AnalysisRepository analysisRepository;
 
     @PostMapping(
-        value = "/start",
-        consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE
+            value = "/start",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<AnalysisStartResponse> start(
-            @RequestParam("userId") Long userId,  // Long (DB의 user_idx)
+            @RequestParam("userId") Long userId,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
         String sid = analysisResultService.beginSession(userId, files);
-        return ResponseEntity.ok(new AnalysisStartResponse(sid));
+
+        Long analId = analysisResultService.getAnalIdForSid(sid);
+        Instant startedAt = analysisResultService.getStartedAt(sid);
+
+        return ResponseEntity.ok(new AnalysisStartResponse(sid, analId, startedAt));
     }
+
 
     @GetMapping(value = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AnalysisStatusDto> status(@RequestParam("sid") String sid) {
@@ -54,13 +68,36 @@ public class AnalysisPipelineRestController {
                 sid, (items != null ? items.size() : 0), rate, ok));
     }
 
+    @PostMapping(value = "/{analId}/finish", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> finishByAnalId(@PathVariable Long analId) {
+        Analysis a = analysisRepository.findById(analId)
+                .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
 
-    private static String firstNonBlank(String... arr) {
-        if (arr == null) return null;
-        for (String s : arr) if (!isBlank(s)) return s;
-        return null;
+        Instant now = Instant.now();
+        a.setFinishedAt(java.sql.Timestamp.from(now));
+        analysisRepository.save(a);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("analId", analId);
+        body.put("finishedAt", now.toString());
+        body.put("dispatched", false);
+        body.put("reportUrl", a.getReportUrl());
+
+        return ResponseEntity.ok(body);
     }
-    private static boolean isBlank(String s) {
-        return s == null || s.isBlank();
+
+    @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> report(@PathVariable Long analId) {
+        return analysisRepository.findById(analId)
+                .map(a -> {
+                    Map<String, Object> out = new HashMap<>();
+                    out.put("reportUrl", a.getReportUrl());
+                    return ResponseEntity.ok(out);
+                })
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of("message", "analysis not found: " + analId))
+                );
     }
+
 }

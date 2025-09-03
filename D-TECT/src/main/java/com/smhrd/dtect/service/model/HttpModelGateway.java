@@ -3,6 +3,7 @@ package com.smhrd.dtect.service.model;
 import com.smhrd.dtect.config.ModelProperties;
 import com.smhrd.dtect.dto.ModelMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -15,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HttpModelGateway implements ModelGateway {
 
-    private final WebClient modelWebClient;
+    private final @Qualifier("modelWebClient") WebClient modelWebClient;
     private final ModelProperties props;
 
     @Override

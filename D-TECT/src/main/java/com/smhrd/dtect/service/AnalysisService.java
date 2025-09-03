@@ -27,24 +27,34 @@ public class AnalysisService {
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
     
-    // ✅ username으로 목록 조회
+    // username으로 목록 조회
     public List<AnalysisSummaryDto> listForUsername(String username) {
         Member m = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("member not found: " + username));
         return analysisRepository
-                .findByUser_Member_MemIdxOrderByCreatedAtDesc(m.getMemIdx())
-                .stream()
-                .map(this::toDto)
-                .toList();
+        		        .findByUser_Member_MemIdxOrderByCreatedAtDesc(m.getMemIdx())
+        		        .stream()
+        		        .filter(a -> a.getReportUrl() != null && !a.getReportUrl().isBlank())
+        		        .map(this::toDto)
+        		        .toList();
+    }
+
+    public List<AnalysisSummaryDto> listForUserId(Long userIdx) {
+        return analysisRepository
+            .findByUser_UserIdxOrderByCreatedAtDesc(userIdx)
+            .stream()
+            .filter(a -> a.getReportUrl() != null && !a.getReportUrl().isBlank())
+            .map(this::toDto)
+            .toList();
     }
 
     private AnalysisSummaryDto toDto(Analysis a) {
         String date = DATE_FMT.format(a.getCreatedAt().toInstant());
-        String fileName = "[" + date + "] 결과보고서.pdf";
-        String previewUrl  = "/analysis/" + a.getAnalIdx() + "/preview";
-        String downloadUrl = "/analysis/" + a.getAnalIdx() + "/download";
+        String fileName   = "[" + date + "] 결과보고서.pdf";
+        String previewUrl = "/api/analysis/" + a.getAnalIdx() + "/preview";
+        String downloadUrl= "/api/analysis/" + a.getAnalIdx() + "/download";
         return new AnalysisSummaryDto(
-                a.getAnalIdx(), fileName, a.getCreatedAt(), a.getAnalRate(), previewUrl, downloadUrl
+            a.getAnalIdx(), fileName, a.getCreatedAt(), a.getAnalRate(), previewUrl, downloadUrl
         );
     }
 

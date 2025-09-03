@@ -1,10 +1,3 @@
-// static/js/public/common.js
-
-/* =========================
- *  공통 유틸 (export)
- * ========================= */
-
-// === CSRF ===
 export function getCsrfHeaders() {
   const header = document.querySelector('meta[name="_csrf_header"]')?.content;
   const token  = document.querySelector('meta[name="_csrf"]')?.content;
@@ -155,7 +148,7 @@ export function setupEmailVerification(
     if (codeRowEl?.style) codeRowEl.style.display = 'block';
   };
 
-  // 선택: "이메일 변경" 버튼 연결
+  // "이메일 변경" 버튼 연결
   if (resetBtn) {
     const btn = typeof resetBtn === 'string' ? document.querySelector(resetBtn) : resetBtn;
     if (btn) {
@@ -574,10 +567,10 @@ export function initProfileEditPopup(trigger, options = {}) {
                 <button type="button" id="addrSearchBtn" class="btn">주소검색</button>
               </div>
             </label>
-            <label class="field"><span class="label">전문분야</span>
+            <div class="field"><span class="label">전문분야</span>
               <div id="specialtyGroup" class="check-group" role="group" aria-label="전문분야 선택"></div>
               <small class="help">여러 개 선택 가능합니다.</small>
-            </label>
+            </div>
           `}
           <hr/>
           <label class="field"><span class="label">현재 비밀번호 <span class="req">*</span></span>
