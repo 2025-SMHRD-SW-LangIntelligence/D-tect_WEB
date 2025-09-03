@@ -8,33 +8,26 @@
   <link rel="stylesheet" th:href="@{/css/user/analysis_result.css}" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 
 <body>
-    <!-- 헤더 -->
-    <header class="topbar">
-        <div class="left">
-        
-            <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
-            <h1 class="page-title">분석 결과</h1>
-        </div>
-    </header>
+  <!-- 헤더 -->
+  <header class="topbar">
+    <div class="left">
+      <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
+      <h1 class="page-title">분석 결과</h1>
+    </div>
+  </header>
 
-
-    <!-- 본문 -->
-    <main class="container" id="result-root" data-user-id="<!--th:utext='${userId}'-->">
+  <!-- 본문 -->
+  <main class="container" id="result-root" data-user-id="<!--th:utext='${userId}'-->">
 
     <!-- 결과 카드(차트) -->
     <section class="card result-card">
       <div class="chart-head">모델 분석 결과</div>
-
-      <!-- 🔸 높이를 가진 래퍼로 감싸기 -->
       <div class="chart-box">
-        <!-- width/height 속성 제거 (CSS로 사이즈 제어) -->
         <canvas id="radar" aria-label="욕설 카테고리 레이더 차트"></canvas>
       </div>
-
       <div class="legend">
         <span class="key red"></span> 검출 비율(%) &nbsp;|&nbsp;
         <span class="key gray"></span> 기준축
@@ -48,10 +41,11 @@
         <span class="tile-caption">AI 상담하기</span>
       </a>
 
-      <button type="button" class="tile tile-btn" id="btnPdf" aria-label="PDF 다운로드">
+      <button type="button" class="tile tile-btn hidden" id="btnPdf" aria-label="PDF 다운로드">
         <img th:src="@{/images/PDFimage.jfif}" alt="PDF 다운로드">
-        <span class="tile-caption">PDF 다운로드</span>
+        <span class="tile-caption">PDF 다운로드 (7일 이내)</span>
       </button>
+      <p class="pdf-expiry-msg">⚠️ 보고서는 발급일로부터 7일 동안만 다운로드할 수 있습니다.</p>
 
       <a class="tile" id="btnConsult" th:if="${userId != null}" th:href="@{/matching/select(userId=${userId})}" aria-label="전문가와 상담하기">
         <img th:src="@{/images/lawyer.png}" alt="전문가와 상담하기">

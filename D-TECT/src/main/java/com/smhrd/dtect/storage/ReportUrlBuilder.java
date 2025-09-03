@@ -14,6 +14,7 @@ public class ReportUrlBuilder {
     public String toPublicUrl(String objectKey) {
         if (objectKey == null || objectKey.isBlank()) return null;
         String provider = String.valueOf(props.getProvider()).toLowerCase();
+
         if ("ncp".equals(provider)) {
             String base = trimRightSlash(props.getPublicBaseUrl());
             return (base != null) ? base + "/" + objectKey : null;

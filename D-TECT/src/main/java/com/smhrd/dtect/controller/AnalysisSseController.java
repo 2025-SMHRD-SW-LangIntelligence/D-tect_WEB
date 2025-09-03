@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,20 +19,22 @@ public class AnalysisSseController {
 
     @GetMapping("/{analId}/events")
     public SseEmitter subscribe(@PathVariable Long analId) {
-        SseEmitter emitter = new SseEmitter(90_000L);
+        SseEmitter emitter = new SseEmitter(60_000L); // 60초 타임아웃
         emitters.put(analId, emitter);
 
         emitter.onCompletion(() -> emitters.remove(analId));
         emitter.onTimeout(() -> emitters.remove(analId));
 
         try {
-            emitter.send(SseEmitter.event().name("status").data(Map.of("state", "waiting")));
-        } catch (Exception ignored) {}
+            emitter.send(SseEmitter.event()
+                    .name("status")
+                    .data(Map.of("state", "waiting")));
+        } catch (IOException ignored) {}
 
         return emitter;
     }
 
-    /** 콜백에서 reportUrl 저장 후 알림 */
+    /** PDF 업로드 완료 → 클라이언트에 즉시 알림 */
     public void notifyReady(Long analId, String reportUrl) {
         SseEmitter emitter = emitters.get(analId);
         if (emitter != null) {

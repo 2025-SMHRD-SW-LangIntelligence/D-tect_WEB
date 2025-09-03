@@ -28,19 +28,17 @@ public class AnalysisReportCallbackController {
     private final AnalysisRepository analysisRepository;
     private final ObjectMapper objectMapper;
     private final ReportUrlBuilder reportUrlBuilder;
+    private final AnalysisSseController analysisSseController; // 🔹 SSE 알림 주입
 
     /**
      * n8n → PDF 완료 콜백 수신
-     * - FormData로 PDF 바이트/엔티티 JSON을 같이 받는다.
-     * - 파일은 n8n 워크플로우에서 이미 클라우드 저장 완료 상태.
-     * - 우리는 reportUrl만 받아와서 DB에 기록.
      */
     @PostMapping("/{analId}/pdf-callback")
     @Transactional
     public ResponseEntity<PdfCallbackResponse> pdfCallback(
             @PathVariable("analId") Long analId,
-            @RequestPart(value = "file", required = false) MultipartFile file, // 선택적 (n8n에서 넘겨줄 수 있음)
-            @RequestPart(value = "payload", required = false) String payloadJson // n8n에서 넘겨준 엔티티/메타정보
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "payload", required = false) String payloadJson
     ) {
         try {
             Analysis a = analysisRepository.findById(analId)
@@ -48,7 +46,7 @@ public class AnalysisReportCallbackController {
 
             String reportUrl = null;
 
-            // 1) payloadJson 안에 reportUrl이 있으면 우선 사용
+            // 1) payloadJson 안에 reportUrl 있으면 우선 사용
             if (payloadJson != null && !payloadJson.isBlank()) {
                 try {
                     JsonNode node = objectMapper.readTree(payloadJson);
@@ -60,9 +58,8 @@ public class AnalysisReportCallbackController {
                 }
             }
 
-            // 2) 파일만 왔고 reportUrl이 없다면, 업로드 규칙에 따라 직접 조립
+            // 2) 파일만 왔고 reportUrl이 없으면 → 직접 URL 조립
             if (reportUrl == null && file != null) {
-                // objectKey 규칙 예: reports/2025/09/{analId}-report.pdf
                 String objectKey = String.format("reports/%s/%d-report.pdf",
                         Instant.now().toString().substring(0, 7), analId);
                 reportUrl = reportUrlBuilder.toPublicUrl(objectKey);
@@ -82,6 +79,10 @@ public class AnalysisReportCallbackController {
             analysisRepository.save(a);
 
             log.info("[PdfCallback] 분석#{} → reportUrl={} 저장 완료", analId, reportUrl);
+
+            // 4) SSE 알림 전송 (프론트가 실시간으로 버튼 활성화 가능)
+            analysisSseController.notifyReady(analId, reportUrl);
+
             return ResponseEntity.ok(new PdfCallbackResponse(analId, "OK"));
 
         } catch (Exception e) {
