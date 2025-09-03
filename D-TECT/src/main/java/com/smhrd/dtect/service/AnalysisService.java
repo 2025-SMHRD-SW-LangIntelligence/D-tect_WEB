@@ -80,7 +80,7 @@ public class AnalysisService {
     public Analysis finish(Long analId) {
         Analysis a = analysisRepository.findById(analId)
                 .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
-        a.setFinished_at(new Timestamp(System.currentTimeMillis()));
+        a.setFinishedAt(new Timestamp(System.currentTimeMillis()));
         return a;
     }
 }

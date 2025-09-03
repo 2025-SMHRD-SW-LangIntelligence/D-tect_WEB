@@ -32,8 +32,8 @@ public class AnalysisCommandController {
     @PostMapping("/{analId}/finish")
     public ResponseEntity<FinishRes> finish(@PathVariable Long analId) {
         Analysis a = analysisService.finish(analId);
-        String finished = (a.getFinished_at() == null) ? null
-                : a.getFinished_at().toInstant().atZone(ZoneId.systemDefault()).toString();
+        String finished = (a.getFinishedAt() == null) ? null
+                : a.getFinishedAt().toInstant().atZone(ZoneId.systemDefault()).toString();
         return ResponseEntity.ok(new FinishRes(a.getAnalIdx(), finished));
     }
 

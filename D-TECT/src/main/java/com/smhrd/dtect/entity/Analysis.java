@@ -55,7 +55,7 @@ public class Analysis {
     private String reportUrl;
 
 	@Column
-	private Timestamp finished_at;
+	private Timestamp finishedAt;
 
 	// 캡처 종료 시
 	
