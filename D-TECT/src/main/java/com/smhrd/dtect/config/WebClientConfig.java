@@ -1,36 +1,34 @@
 package com.smhrd.dtect.config;
 
-import io.netty.channel.ChannelOption;
-import java.time.Duration;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
+import io.netty.channel.ChannelOption;
 
-@Configuration(proxyBeanMethods = false)
+import java.time.Duration;
+
+@Configuration
+@RequiredArgsConstructor
 public class WebClientConfig {
 
-    @Bean(name = "modelWebClient")
-    public WebClient modelWebClient(
-            @Value("${app.model.base-url}") String baseUrl,
-            @Value("${app.model.connect-timeout-ms:5000}") int connectTimeoutMs,
-            @Value("${app.model.read-timeout-ms:60000}") int readTimeoutMs
-    ) {
-        ExchangeStrategies strategies = ExchangeStrategies.builder()
-                .codecs(c -> c.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
-                .build();
+    private final ModelProperties modelProps; // ✅ app.model.* 값 주입
 
+    @Bean(name = "modelServerWebClient")
+    public WebClient modelWebClient() {
+        // 타임아웃 설정
         HttpClient http = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMs)
-                .responseTimeout(Duration.ofMillis(readTimeoutMs));
+                .responseTimeout(Duration.ofMillis(modelProps.getReadTimeoutMs()))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, modelProps.getConnectTimeoutMs());
 
         return WebClient.builder()
-                .baseUrl(baseUrl)
+                .baseUrl(modelProps.getBaseUrl()) // ✅ app.model.base-url
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .clientConnector(new ReactorClientHttpConnector(http))
-                .exchangeStrategies(strategies)
                 .build();
     }
 }

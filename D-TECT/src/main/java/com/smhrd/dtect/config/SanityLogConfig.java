@@ -1,22 +1,24 @@
 package com.smhrd.dtect.config;
 
+import org.springframework.context.annotation.Configuration;
+
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class SanityLogConfig {
 
+    private final ModelProperties modelProps;
     private final PdfProperties pdfProps;
-    private final StorageProperties storageProps;
 
     @PostConstruct
     public void logProps() {
+        log.info("[Props] model baseUrl={}, predictPath={}, connectTimeoutMs={}, readTimeoutMs={}",
+                modelProps.getBaseUrl(), modelProps.getPredictPath(),
+                modelProps.getConnectTimeoutMs(), modelProps.getReadTimeoutMs());
         log.info("[Props] pdf webhookUrl={}", pdfProps.getWebhookUrl());
-        log.info("[Props] storage provider={} publicBaseUrl={}",
-                storageProps.getProvider(), storageProps.getPublicBaseUrl());
     }
 }

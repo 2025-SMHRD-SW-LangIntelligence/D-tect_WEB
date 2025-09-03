@@ -160,7 +160,7 @@ import { initProfileEditPopup, setupLogout, setupWithdraw } from '/js/public/com
   document.getElementById('historyBtn')?.addEventListener('click', (e) => {
     e.preventDefault();
     if (!userId) return;
-    window.location.href = `/analysis/user-id/${userId}/history`;
+    window.location.href = `/analysis/user/${userId}/history`;
   });
 
   // 실행

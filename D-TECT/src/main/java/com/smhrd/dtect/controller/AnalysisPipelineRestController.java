@@ -1,22 +1,18 @@
 package com.smhrd.dtect.controller;
 
-import com.smhrd.dtect.dto.AnalysisFinalizeResponse;
-import com.smhrd.dtect.dto.AnalysisStartResponse;
-import com.smhrd.dtect.dto.AnalysisStatusDto;
+import com.smhrd.dtect.dto.*;
 import com.smhrd.dtect.entity.AnalRate;
-import com.smhrd.dtect.entity.Analysis;
-import com.smhrd.dtect.entity.FieldName;
-import com.smhrd.dtect.repository.AnalysisRepository;
+import com.smhrd.dtect.service.AnalysisGrader;
 import com.smhrd.dtect.service.AnalysisResultService;
-import lombok.Data;
+import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -25,110 +21,46 @@ import java.util.Map;
 public class AnalysisPipelineRestController {
 
     private final AnalysisResultService analysisResultService;
-    private final AnalysisRepository analysisRepository;
+    private final PdfWebhookClient pdfWebhookClient;
 
-    /**
-     * 프런트(tabshot.js)와 계약:
-     * 요청:  { "userId": number, "analId"?: number }
-     * 응답:  { "sid": string, "analId": number, "startedAt": ISO-8601 }
-     */
     @PostMapping(
         value = "/start",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<AnalysisStartResponse> start(@RequestBody StartRequest req) {
-        if (req.getUserId() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        // analId가 있으면 해당 분석과 세션 연결, 없으면 새 Analysis 생성
-        String sid = analysisResultService.beginSession(req.getUserId(), req.getAnalId());
-
-        // 방금 만든 세션 정보로 응답 구성
-        Long analId = analysisResultService.getAnalIdForSid(sid);
-        Instant startedAt = analysisResultService.getStartedAt(sid);
-
-        log.info("[AnalysisStart] userId={}, analId={}, sid={}", req.getUserId(), analId, sid);
-        return ResponseEntity.ok(new AnalysisStartResponse(sid, analId, startedAt));
+    public ResponseEntity<AnalysisStartResponse> start(
+            @RequestParam("userId") Long userId,  // Long (DB의 user_idx)
+            @RequestPart(value = "files", required = false) List<MultipartFile> files
+    ) {
+        String sid = analysisResultService.beginSession(userId, files);
+        return ResponseEntity.ok(new AnalysisStartResponse(sid));
     }
 
-    /** 세션 진행 상태 조회 (sid 기반) */
     @GetMapping(value = "/status", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AnalysisStatusDto> status(@RequestParam("sid") String sid) {
         return ResponseEntity.ok(analysisResultService.getStatus(sid));
     }
 
-    /**
-     * 종료 처리:
-     * - finishedAt 기록
-     * - 누적치 기반으로 n8n 웹훅 전송 (PDF 생성 트리거)
-     * - 현재 저장된 reportUrl(있으면) 함께 반환
-     */
-    @PostMapping(value = "/{analId}/finish", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> finishByAnalId(@PathVariable Long analId) {
-        Analysis a = analysisRepository.findById(analId)
-                .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
-
-        Instant now = Instant.now();
-        a.setFinishedAt(java.sql.Timestamp.from(now));
-        analysisRepository.save(a);
-
-        // ✅ 이제는 웹훅 전송 X
-        Map<String, Object> body = new HashMap<>();
-        body.put("analId", analId);
-        body.put("finishedAt", now.toString());
-        body.put("dispatched", false); // 무조건 false
-        body.put("reportUrl", a.getReportUrl()); // null 일 수 있음
-
-        return ResponseEntity.ok(body);
-    }
-
-    /**
-     * 리포트 URL 조회 (폴링용)
-     * - reportUrl이 아직 없어도 200 + { "reportUrl": null } 로 응답 (NPE 방지)
-     */
-    @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> report(@PathVariable Long analId) {
-        return analysisRepository.findById(analId)
-            .map(a -> {
-                Map<String, Object> out = new HashMap<>();
-                out.put("reportUrl", a.getReportUrl()); // null 허용
-                return ResponseEntity.ok(out);
-            })
-            .orElseGet(() ->
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", "analysis not found: " + analId))
-            );
-    }
-
-    /**
-     * (옵션) sid 기반 파이프라인 최종화
-     * - 누적 카운트 → 등급 산정 → n8n 웹훅 전송
-     */
     @PostMapping(value = "/finalize", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AnalysisFinalizeResponse> finalizeAnalysis(@RequestParam("sid") String sid) {
-        // 세션 종료 마킹
-        analysisResultService.markEnded(sid);
+        Long userId = analysisResultService.getUserIdForSid(sid);
+        if (userId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown sid");
 
-        // 누적 카운트 & 등급 산정
-        Map<FieldName,Integer> counts = analysisResultService.getTypeCounts(sid);
-        AnalRate rate = analysisResultService.gradeByCounts(counts);
-        int total = counts.values().stream().mapToInt(Integer::intValue).sum();
+        List<ModelMessage> items = analysisResultService.getResult(sid);
+        AnalRate rate = AnalysisGrader.grade(items);
+        boolean ok = pdfWebhookClient.dispatchJson(userId, sid, items, rate, null, null);
 
-        // n8n 웹훅 전송(세션 기반)
-        boolean ok = analysisResultService.finalizeNow(sid);
-
-        return ResponseEntity.ok(new AnalysisFinalizeResponse(sid, total, rate, ok));
+        return ResponseEntity.ok(new AnalysisFinalizeResponse(
+                sid, (items != null ? items.size() : 0), rate, ok));
     }
 
-    /* ====== 요청 DTO ====== */
-    @Data
-    public static class StartRequest {
-        private Long userId;   // 필수
-        private Long analId;   // 선택(있으면 기존 분석과 세션 연결)
-    }
 
-    /* ====== 응답 DTO (finish) ====== */
-    public record FinishResponse(Long analId, Instant finishedAt, boolean dispatched, String reportUrl) {}
+    private static String firstNonBlank(String... arr) {
+        if (arr == null) return null;
+        for (String s : arr) if (!isBlank(s)) return s;
+        return null;
+    }
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
 }

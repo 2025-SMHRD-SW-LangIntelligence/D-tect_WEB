@@ -10,21 +10,17 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
+<body th:attr="data-user-id=${userId != null ? userId : 0}">
+  <!-- 헤더 -->
+  <header class="topbar">
+    <div class="left">
+      <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
+      <h1 class="page-title">분석 결과</h1>
+    </div>
+  </header>
 
-<body>
-    <!-- 헤더 -->
-    <header class="topbar">
-        <div class="left">
-        
-            <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
-            <h1 class="page-title">분석 결과</h1>
-        </div>
-    </header>
-
-
-    <!-- 본문 -->
-    <main class="container" id="result-root" data-user-id="<!--th:utext='${userId}'-->">
-
+  <!-- 본문 -->
+  <main class="container">
     <!-- 결과 카드(차트) -->
     <section class="card result-card">
       <div class="chart-head">모델 분석 결과</div>
