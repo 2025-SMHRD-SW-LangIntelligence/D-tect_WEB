@@ -71,8 +71,8 @@
 
 				<!-- 이메일 인증번호 입력 -->
 				<div class="field" id="emailCodeRow" style="display: none">
-					<span class="dot" aria-hidden="true"></span>
-					<label for="emailCode" class="label">인증번호</label>
+					<span class="dot" aria-hidden="true"></span> <label for="emailCode"
+						class="label">인증번호</label>
 					<div class="input-row">
 						<input id="emailCode" name="emailCode" type="text"
 							placeholder="메일로 받은 인증번호 입력" />
@@ -88,7 +88,7 @@
 						class="label">전화번호</label> <input id="phone" type="tel" required
 						placeholder="하이픈(-) 없이 입력해주세요" />
 				</div>
-				
+
 				<!-- 주소 -->
 				<div class="field">
 					<span class="dot" aria-hidden="true"></span> <label
@@ -99,13 +99,13 @@
 						<button class="mini-btn" type="button" id="addrBtn">주소 찾기</button>
 					</div>
 				</div>
-                
-                <!-- 상세주소 -->
-                <div class="field">
-                    <span class="dot" aria-hidden="true"></span>
-                    <label for="addr2" class="label">상세주소</label>
-                    <input id="addr2" type="text" placeholder="상세주소를 입력해주세요." />
-                </div>
+
+				<!-- 상세주소 -->
+				<div class="field">
+					<span class="dot" aria-hidden="true"></span> <label for="addr2"
+						class="label">상세주소</label> <input id="addr2" type="text"
+						placeholder="상세주소를 입력해주세요." />
+				</div>
 
 
 
@@ -120,13 +120,15 @@
 
 				<!-- 자격증명서 -->
 				<div class="field">
-					<span class="dot" aria-hidden="true"></span> <label for="certFile"
-						class="label">자격증명서</label>
+					<span class="dot" aria-hidden="true"></span> <label
+						for="certFileName" class="label" id="certLabel">자격증명서</label>
 					<div class="input-row">
 						<input id="certFileName" class="file-name" type="text"
 							placeholder="자격증명서를 첨부해주세요" readonly /> <input id="certFile"
-							type="file" accept=".pdf,.jpg,.jpeg,.png" hidden />
-						<button class="mini-btn" type="button" id="fileBtn">찾아보기</button>
+							type="file" accept=".pdf,.jpg,.jpeg,.png" hidden tabindex="-1"
+							aria-hidden="true" />
+						<button class="mini-btn" type="button" id="fileBtn"
+							aria-describedby="certLabel">찾아보기</button>
 					</div>
 				</div>
 
@@ -153,7 +155,7 @@
     });
   });
 </script>
-	
+
 
 </body>
 

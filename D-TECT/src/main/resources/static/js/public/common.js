@@ -574,10 +574,10 @@ export function initProfileEditPopup(trigger, options = {}) {
                 <button type="button" id="addrSearchBtn" class="btn">주소검색</button>
               </div>
             </label>
-            <label class="field"><span class="label">전문분야</span>
+            <div class="field"><span class="label">전문분야</span>
               <div id="specialtyGroup" class="check-group" role="group" aria-label="전문분야 선택"></div>
               <small class="help">여러 개 선택 가능합니다.</small>
-            </label>
+            </div>
           `}
           <hr/>
           <label class="field"><span class="label">현재 비밀번호 <span class="req">*</span></span>

@@ -1,3 +1,6 @@
+// src/main/java/com/smhrd/dtect/dto/AnalysisStartResponse.java
 package com.smhrd.dtect.dto;
 
-public record AnalysisStartResponse(String sid) {}
+import java.time.Instant;
+
+public record AnalysisStartResponse(String sid, Long analId, Instant startedAt) {}

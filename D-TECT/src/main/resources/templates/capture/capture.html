@@ -40,7 +40,7 @@
 							class="num" type="number" min="1" max="60" value="5"
 							inputmode="numeric" pattern="[0-9]*" aria-label="주기(초)">
 						<span class="unit">초</span>
-					</div>					
+					</div>
 				</div>
 
 				<label for="prefix" class="sr-only">파일명 접두사</label> <input
@@ -60,17 +60,18 @@
 					<div class="hint">현재 선택 미리보기</div>
 					<video id="video" autoplay muted playsinline></video>
 					<canvas id="canvas" style="display: none"></canvas>
-				</div>				
+				</div>
 			</div>
 
 			<div class="log" id="log" role="log" aria-live="polite"></div>
 			<!-- 분석결과로 이동 CTA -->
-					<div class="cta-wrap">
-						<!-- data-href 로 이동 경로 원하는 곳으로 바꾸세요 -->
-						<button id="gotoResultBtn" class="cta-btn" data-href="/userAnalysisResultPage">
-							분석결과 보러가기</button>
-					</div>
-		</div>		
+			<div class="cta-wrap">
+				<!-- data-href 로 이동 경로 원하는 곳으로 바꾸세요 -->
+				<button id="gotoResultBtn" class="cta-btn"
+					data-href="/userAnalysisResultPage" data-anal-id="">분석결과
+					보러가기</button>
+			</div>
+		</div>
 	</div>
 
 	<script type="module" th:src="@{/js/capture/tabshot.js}"></script>

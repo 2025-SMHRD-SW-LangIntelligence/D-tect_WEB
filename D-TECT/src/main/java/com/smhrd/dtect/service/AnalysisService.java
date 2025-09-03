@@ -32,19 +32,31 @@ public class AnalysisService {
         Member m = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("member not found: " + username));
         return analysisRepository
-                .findByUser_Member_MemIdxOrderByCreatedAtDesc(m.getMemIdx())
-                .stream()
-                .map(this::toDto)
-                .toList();
+        		        .findByUser_Member_MemIdxOrderByCreatedAtDesc(m.getMemIdx())
+        		        .stream()
+        		        .filter(a -> a.getReportUrl() != null && !a.getReportUrl().isBlank())
+        		        .map(this::toDto)
+        		        .toList();
     }
 
+    public List<AnalysisSummaryDto> listForUserId(Long userIdx) {
+        return analysisRepository
+            .findByUser_UserIdxOrderByCreatedAtDesc(userIdx)
+            .stream()
+            // report_url 이 없는 실패 레코드는 숨김(선택)
+            .filter(a -> a.getReportUrl() != null && !a.getReportUrl().isBlank())
+            .map(this::toDto)
+            .toList();
+    }
+
+    // (확인) toDto 안의 URL은 실제 매핑에 맞춰주세요
     private AnalysisSummaryDto toDto(Analysis a) {
         String date = DATE_FMT.format(a.getCreatedAt().toInstant());
-        String fileName = "[" + date + "] 결과보고서.pdf";
-        String previewUrl  = "/analysis/" + a.getAnalIdx() + "/preview";
-        String downloadUrl = "/analysis/" + a.getAnalIdx() + "/download";
+        String fileName   = "[" + date + "] 결과보고서.pdf";
+        String previewUrl = "/api/analysis/" + a.getAnalIdx() + "/preview";
+        String downloadUrl= "/api/analysis/" + a.getAnalIdx() + "/download";
         return new AnalysisSummaryDto(
-                a.getAnalIdx(), fileName, a.getCreatedAt(), a.getAnalRate(), previewUrl, downloadUrl
+            a.getAnalIdx(), fileName, a.getCreatedAt(), a.getAnalRate(), previewUrl, downloadUrl
         );
     }
 
@@ -80,7 +92,7 @@ public class AnalysisService {
     public Analysis finish(Long analId) {
         Analysis a = analysisRepository.findById(analId)
                 .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
-        a.setFinished_at(new Timestamp(System.currentTimeMillis()));
+        a.setFinishedAt(new Timestamp(System.currentTimeMillis()));
         return a;
     }
 }

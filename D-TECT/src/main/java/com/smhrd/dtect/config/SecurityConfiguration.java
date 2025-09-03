@@ -96,6 +96,8 @@ public class SecurityConfiguration {
                 .deleteCookies("JSESSIONID", "remember-me") // 사용 중인 쿠키명 추가
                 .permitAll()
             )
+            
+            .headers(h -> h.frameOptions(f -> f.sameOrigin()))
 
             // 명시적으로 Provider 연결
             .authenticationProvider(provider)
