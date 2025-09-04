@@ -100,7 +100,7 @@
         const a = document.createElement("a");
         a.href = info.reportUrl;
 
-        // ✅ 파일명: name의 결과 보고서.pdf
+        // 파일명: name의 결과 보고서.pdf
         const userName = info.name || "사용자";
         a.download = `${userName}의 결과 보고서.pdf`;
 

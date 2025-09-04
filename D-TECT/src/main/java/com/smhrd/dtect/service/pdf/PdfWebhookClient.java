@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ public class PdfWebhookClient {
     private final PdfProperties pdfProps;
     private final WebClient webClient = WebClient.builder().build();
 
-    /** ✅ username + name 둘 다 전송하도록 시그니처 변경 */
+    /** username + name 둘 다 전송하도록 시그니처 변경 */
     public boolean dispatchCountsWithAnalId(
             Long analId,
             String username,
@@ -35,9 +36,7 @@ public class PdfWebhookClient {
             Instant endedAt
     ) {
         final String url = pdfProps.getWebhookUrl();
-        log.info("[PdfWebhook] resolved webhookUrl={}", url);
         if (url == null || url.isBlank()) {
-            log.error("[PdfWebhook] webhookUrl NOT configured. Skip dispatch. analId={} sid={}", analId, sid);
             return false;
         }
 
@@ -47,8 +46,8 @@ public class PdfWebhookClient {
 
         Map<String,Object> body = new LinkedHashMap<>();
         if (analId != null) body.put("analId", analId);
-        body.put("username", username == null ? "" : username); // ✅
-        body.put("name",     name == null ? "사용자" : name);    // ✅
+        body.put("username", username == null ? "" : username);
+        body.put("name",     name == null ? "사용자" : name);
         body.put("sid", sid == null ? "" : sid);
         body.put("period", Map.of(
                 "startedAt", startedAt != null ? startedAt.toString() : null,
@@ -58,10 +57,6 @@ public class PdfWebhookClient {
         body.put("analRate", (analRate != null ? analRate : AnalRate.NORMAL).name());
         if (callbackUrl != null) body.put("callbackUrl", callbackUrl);
 
-        log.info("[PdfWebhook] → POST {} | analId={} sid={} sum={} callbackUrl={}",
-                url, analId, sid, sum, callbackUrl);
-        log.info("[PdfWebhook] Request body: {}", body);
-
         Boolean ok = webClient.post()
                 .uri(url)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -69,17 +64,12 @@ public class PdfWebhookClient {
                 .exchangeToMono(resp -> resp.bodyToMono(String.class).defaultIfEmpty("")
                         .map(b -> {
                             if (resp.statusCode().is2xxSuccessful()) {
-                                log.info("[PdfWebhook] ← {} OK analId={} sid={} bodyLen={}",
-                                        resp.statusCode(), analId, sid, b.length());
                                 return true;
                             } else {
-                                log.error("[PdfWebhook] ← {} FAIL analId={} sid={} body={}",
-                                        resp.statusCode(), analId, sid, b);
                                 return false;
                             }
                         }))
                 .onErrorResume(e -> {
-                    log.error("[PdfWebhook] EXC analId={} sid={} err={}", analId, sid, e.toString());
                     return reactor.core.publisher.Mono.just(false);
                 })
                 .block();
@@ -111,4 +101,21 @@ public class PdfWebhookClient {
         if (src != null) src.forEach((k,v)-> out.put(k.name(), v==null?0:v));
         return out;
     }
+    
+    private static FieldName toFieldNameFlexible(String raw) {
+		if (raw == null)
+			return null;
+		String s = raw.trim().toUpperCase(Locale.ROOT);
+		switch (s) { // 별칭 보정
+		case "HARASSMENT" -> s = "BULLYING";
+		case "BLACKMAIL" -> s = "CHANTAGE";
+		case "VIOLENT" -> s = "VIOLENCE";
+		}
+		try {
+			return FieldName.valueOf(s);
+		} catch (Exception ignore) {
+			return null;
+		}
+    }
+	
 }

@@ -131,7 +131,7 @@ async function load() {
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		DATA = await res.json();
 
-		// ✅ userName 없으면 name(혹은 memberName)으로 보강
+		// userName 없으면 name(혹은 memberName)으로 보강
 		DATA = DATA.map(row => ({
 			...row,
 			userName: row.userName || row.name || row.memberName || "사용자"

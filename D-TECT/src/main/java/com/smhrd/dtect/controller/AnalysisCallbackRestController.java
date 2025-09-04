@@ -24,7 +24,7 @@ import java.util.*;
 public class AnalysisCallbackRestController {
 
     private final AnalysisResultService analysisResultService;
-    private final ObjectMapper om;
+    private final ObjectMapper objectMapper;
 
     @PostMapping(value = "/callback", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> callback(
@@ -77,7 +77,7 @@ public class AnalysisCallbackRestController {
     private List<Map<String, Object>> normalizeToListOfMaps(Object payload) {
         List<?> base = normalizeToList(payload);
         if (base.isEmpty()) return List.of();
-        return om.convertValue(base, new TypeReference<List<Map<String, Object>>>() {});
+        return objectMapper.convertValue(base, new TypeReference<List<Map<String, Object>>>() {});
     }
 
     /** payload → List (배열, {messages|results|data:[...]}, 단일객체→[obj]) */

@@ -33,7 +33,7 @@ public class AnalysisReportCallbackController {
     private final AnalysisRepository analysisRepository;
     private final ObjectMapper objectMapper;
     private final NcpS3ReportStorageWriter storageWriter;
-    private final AnalysisResultService analysisResultService; // ✅ 추가
+    private final AnalysisResultService analysisResultService;
 
     /** n8n → PDF 완료 콜백 */
     @PostMapping("/{analId}/pdf-callback")
@@ -61,7 +61,7 @@ public class AnalysisReportCallbackController {
                 }
             }
 
-            // ✅ 파일만 온 경우: 우리가 S3에 업로드하며 파일명 = "name의 결과 보고서.pdf"
+            // 파일만 온 경우: 우리가 S3에 업로드하며 파일명 = "name의 결과 보고서.pdf"
             if (objectKey == null && file != null) {
                 String name = analysisResultService.getNameForAnalId(analId);
                 String safe = sanitizeName(name);
@@ -109,7 +109,7 @@ public class AnalysisReportCallbackController {
         // presigned URL 생성 (7일)
         String presignedUrl = storageWriter.generatePresignedUrl(objectKey);
 
-        // ✅ 프론트 파일명용 name 포함
+        // 프론트 파일명용 name 포함
         String name = analysisResultService.getNameForAnalId(analId);
 
         log.info("[ReportAPI] 분석#{} objectKey={} → presignedUrl={} name={}", analId, objectKey, presignedUrl, name);
