@@ -46,9 +46,9 @@ function render() {
     const created = fmtDate(row.createdAt);
     const rate = row.analRate ?? '-';
 
-    // ✅ 이름 기반 파일명 (DB JSON에 userName 내려주도록 서버도 수정해야 함)
-    const userName = row.userName || "사용자";
-    const downloadName = `${userName}님의 결과 보고서.pdf`;
+    // ✅ 이름 기반 파일명: name > userName > "사용자"
+    const person = row.name || row.userName || "사용자";
+    const downloadName = `${person}의 결과 보고서.pdf`;
 
     return `
       <li class="row list-grid" data-id="${row.analIdx}">
@@ -83,7 +83,7 @@ listEl.addEventListener('click', (e) => {
   const url = btn.dataset.url;
   const name = btn.dataset.name || '미리보기';
   viewerTitle.textContent = name;
-  viewerFrame.src = url;
+  viewerFrame.src = url; // 서버가 inline으로 내려주므로 바로 렌더
   viewer.classList.add('is-open');
   viewer.setAttribute('aria-hidden', 'false');
 });
@@ -131,10 +131,10 @@ async function load() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     DATA = await res.json();
 
-    // ✅ userName이 없는 경우 대비: name으로 보강
+    // ✅ userName 없으면 name(혹은 memberName)으로 보강
     DATA = DATA.map(row => ({
       ...row,
-      userName: row.userName || (row.memberName ?? "사용자")
+      userName: row.userName || row.name || row.memberName || "사용자"
     }));
   } catch (e) {
     console.error('목록 로드 실패:', e);

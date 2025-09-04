@@ -80,7 +80,7 @@
     tile.removeAttribute("href");
     tile.style.pointerEvents = "none";
     caption.textContent = "PDF 준비 중...";
-    spinner.style.display = "inline-block";
+    if (spinner) spinner.style.display = "inline-block";
 
     let info = null;
     for (let i = 0; i < 20; i++) { // 최대 20초 폴링
@@ -91,18 +91,18 @@
 
     if (info?.reportUrl) {
       caption.textContent = "PDF 다운로드";
-      spinner.style.display = "none";
+      if (spinner) spinner.style.display = "none";
       tile.style.pointerEvents = "auto";
 
-      // ✅ 여러 번 클릭해도 동작하도록 once 제거
+      // 여러 번 클릭해도 동작
       tile.addEventListener("click", (e) => {
         e.preventDefault();
         const a = document.createElement("a");
         a.href = info.reportUrl;
 
-        // 사용자 이름 포함된 파일명
+        // ✅ 파일명: name의 결과 보고서.pdf
         const userName = info.name || "사용자";
-        a.download = `${userName}님의 결과 보고서.pdf`;
+        a.download = `${userName}의 결과 보고서.pdf`;
 
         document.body.appendChild(a);
         a.click();
@@ -110,7 +110,7 @@
       });
     } else {
       caption.textContent = "아직 준비되지 않음";
-      spinner.style.display = "none";
+      if (spinner) spinner.style.display = "none";
     }
   }
 

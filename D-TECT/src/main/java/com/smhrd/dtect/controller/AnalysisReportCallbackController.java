@@ -1,3 +1,4 @@
+// com/smhrd/dtect/controller/AnalysisReportCallbackController.java
 package com.smhrd.dtect.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -5,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smhrd.dtect.dto.PdfCallbackResponse;
 import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.repository.AnalysisRepository;
+import com.smhrd.dtect.service.AnalysisResultService;   // ✅ 추가
 import com.smhrd.dtect.storage.NcpS3ReportStorageWriter;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;            // ✅ 추가
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,6 +33,7 @@ public class AnalysisReportCallbackController {
     private final AnalysisRepository analysisRepository;
     private final ObjectMapper objectMapper;
     private final NcpS3ReportStorageWriter storageWriter;
+    private final AnalysisResultService analysisResultService; // ✅ 추가
 
     /** n8n → PDF 완료 콜백 */
     @PostMapping("/{analId}/pdf-callback")
@@ -45,7 +49,7 @@ public class AnalysisReportCallbackController {
 
             String objectKey = null;
 
-            // payloadJson 안에서 objectKey 추출
+            // payloadJson 안에서 objectKey 추출 (n8n이 직접 업로드해줬을 때)
             if (payloadJson != null && !payloadJson.isBlank()) {
                 try {
                     JsonNode node = objectMapper.readTree(payloadJson);
@@ -57,10 +61,15 @@ public class AnalysisReportCallbackController {
                 }
             }
 
-            // 파일만 온 경우 직접 업로드
+            // ✅ 파일만 온 경우: 우리가 S3에 업로드하며 파일명 = "name의 결과 보고서.pdf"
             if (objectKey == null && file != null) {
-                objectKey = storageWriter.uploadAutoName("analysis-" + analId,
-                        file.getOriginalFilename(), file.getBytes(), file.getContentType());
+                String name = analysisResultService.getNameForAnalId(analId);
+                String safe = sanitizeName(name);
+                String datePath = LocalDate.now().toString();
+                String filename = safe + "의 결과 보고서.pdf";
+                String key = "reports/" + datePath + "/analysis-" + analId + "-" + filename;
+
+                objectKey = storageWriter.upload(key, file.getBytes(), file.getContentType());
             }
 
             if (objectKey == null || objectKey.isBlank()) {
@@ -85,36 +94,40 @@ public class AnalysisReportCallbackController {
         }
     }
 
-    /** 결과 페이지에서 호출 → presigned URL + 사용자 이름 발급 */
+    /** 결과 페이지에서 호출 → presigned URL + name 반환 */
     @GetMapping("/{analId}/report")
     public ResponseEntity<?> getReportUrl(@PathVariable("analId") Long analId) {
         Optional<Analysis> opt = analysisRepository.findById(analId);
         if (opt.isEmpty() || opt.get().getReportUrl() == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new PdfCallbackResponse(analId, "report not found"));
+                    .body(Map.of("analId", analId, "reportUrl", null));
         }
 
-        Analysis a = opt.get();
-        String objectKey = a.getReportUrl();
+        // DB에는 objectKey만 저장됨
+        String objectKey = opt.get().getReportUrl();
 
-        // presigned URL 생성
+        // presigned URL 생성 (7일)
         String presignedUrl = storageWriter.generatePresignedUrl(objectKey);
 
-        // 사용자 이름 (없으면 "사용자")
-        String name = Optional.ofNullable(a.getUser())
-                .map(u -> u.getMember())
-                .map(m -> m.getName())
-                .orElse("사용자");
+        // ✅ 프론트 파일명용 name 포함
+        String name = analysisResultService.getNameForAnalId(analId);
 
         log.info("[ReportAPI] 분석#{} objectKey={} → presignedUrl={} name={}", analId, objectKey, presignedUrl, name);
 
-        return ResponseEntity.ok().body(
-                Map.of(
-                        "analId", analId,
-                        "reportUrl", presignedUrl,
-                        "expiresInDays", 7,
-                        "name", name
-                )
-        );
+        return ResponseEntity.ok(Map.of(
+                "analId", analId,
+                "reportUrl", presignedUrl,
+                "expiresInDays", 7,
+                "name", name
+        ));
+    }
+
+    // ===== 유틸 =====
+    private static String sanitizeName(String raw) {
+        if (raw == null || raw.isBlank()) return "사용자";
+        // S3 키에 문제될 수 있는 문자 최소 정리(경로 구분자 등)
+        String s = raw.replaceAll("[/\\\\:*?\"<>|#%&+]", " ").trim();
+        // 공백 압축
+        return s.replaceAll("\\s{2,}", " ");
     }
 }
