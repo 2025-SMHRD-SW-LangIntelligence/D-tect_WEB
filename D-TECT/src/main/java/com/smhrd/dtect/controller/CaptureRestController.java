@@ -40,6 +40,7 @@ public class CaptureRestController {
     }
 
     private StartResp startCommon(Long userId, Long analId) {
+        // AnalysisResultService.beginSession(userId, analId) 시그니처와 싱크 맞춤
         String sid = analysisResultService.beginSession(userId, analId);
         Instant startedAt = analysisResultService.getStartedAt(sid);
         return new StartResp(sid, startedAt);
@@ -63,6 +64,7 @@ public class CaptureRestController {
     private StopResp stopCommon(String sid) {
         analysisResultService.markEnded(sid);
 
+        // 원본 맵은 불변일 수 있으니 직렬화 안전하게 LinkedHashMap으로 복사
         Map<FieldName, Integer> counts = new LinkedHashMap<>(analysisResultService.getTypeCounts(sid));
         AnalRate rate = analysisResultService.gradeByCounts(counts);
 
@@ -70,6 +72,7 @@ public class CaptureRestController {
         return new StopResp(sid, dispatched, rate, counts);
     }
 
+    // ----- DTOs -----
     public record StartReq(Long userId, Long analId) {}
     public record StopReq(String sid) {}
 

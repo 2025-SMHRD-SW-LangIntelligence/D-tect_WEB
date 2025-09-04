@@ -1,3 +1,4 @@
+/* D-tect 탭/화면 캡처 (analId 동기화 포함) */
 (() => {
   // ===== 요소 =====
   const els = {
@@ -30,7 +31,7 @@
 
   // ====== 분석(Analysis) 연동 상태 ======
   let analysisId = null;
-  const ANALYSIS_ID_KEY = 'analysisAnalId'; // 결과 페이지에서 읽음
+  const ANALYSIS_ID_KEY = 'analysisAnalId'; // ← 결과페이지에서 읽음
 
   // ===== 유틸 =====
   const clamp = (n,min,max)=> Math.min(Math.max(n,min),max);
@@ -42,12 +43,11 @@
   }
   function log(msg){ const line = `[${new Date().toLocaleTimeString()}] ${msg}\n`; els.log.textContent += line; els.log.scrollTop = els.log.scrollHeight; }
 
-  // ▶ 파일명용 타임스탬프(초 단위)
   function ts(){
     const d = new Date();
     const pad = n => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_` +
-        `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+           `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
   }
 
   function ensureElapsed(){
@@ -78,36 +78,37 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       analysisId = json.analId;
+      // ✅ 결과 페이지용 세션 키에 저장
       try { sessionStorage.setItem(ANALYSIS_ID_KEY, String(analysisId)); } catch {}
-      log(`분석 생성됨 #${analysisId} (startedAt=${json.startedAt || 'null'})`);
+      log(`분석 생성됨 #${analysisId} (startedAt=${json.startedAt})`);
     }catch(e){
       log(`분석 생성 실패: ${e.message}`);
     }
   }
 
-  // 종료
+  // --- (교체) 종료 통지: finish + reportUrl 즉시/지연 처리 ---
   async function notifyFinish(){
     if (!analysisId) return null;
     try{
       const res = await fetch(`/api/analysis/${analysisId}/finish`, { method: 'POST' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
+
+      // ★ 항상 key가 존재하도록 서버를 고쳤지만, 방어적으로
       const dispatched = (json && typeof json.dispatched === 'boolean')
-          ? json.dispatched
-          : (typeof json?.ok === 'boolean' ? json.ok : null);
+        ? json.dispatched
+        : (typeof json?.ok === 'boolean' ? json.ok : null);
+
       log(`분석 종료됨 #${json.analId} (finishedAt=${json.finishedAt || 'null'}, dispatched=${String(dispatched)})`);
-      return json;
+      return json; // ★ 반드시 반환
     }catch(e){
       log(`분석 종료 실패: ${e.message}`);
       return { analId: analysisId, dispatched: false, reportUrl: null };
-    } finally {
-      // 다음 세션 대비 초기화
-      analysisId = null;
-      try { sessionStorage.removeItem(ANALYSIS_ID_KEY); } catch {}
     }
   }
 
-  // reportUrl 폴링 — 백엔드에 /report 있으면 사용
+  // --- (신규) reportUrl 폴링 ---
+  // (교체) 폴링: 최대 60회(60초), 1초 간격
   async function pollReportUrl(analId, {tries=60, intervalMs=1000} = {}){
     for (let i=0; i<tries; i++){
       try{
@@ -117,38 +118,43 @@
         });
         if (res.ok){
           const json = await res.json();
-          if (json?.reportUrl) return json.reportUrl;
-        }
-      }catch{}
+          if (json?.reportUrl){
+            return json.reportUrl;
+          }
+        } // 404면 아직 생성 전 → 다음 루프
+      }catch(e){
+        // 네트워크 오류 → 다음 루프
+      }
       await new Promise(r=> setTimeout(r, intervalMs));
     }
     return null;
   }
 
-  // URL 다운로드 유틸
+  // --- (신규) URL 강제 다운로드 ---
   function downloadByUrl(url, fallbackName='analysis_report.pdf'){
     try{
+      // 서버가 Content-Disposition을 주면 파일명 처리됨. 아니면 fallbackName 사용
       const a = document.createElement('a');
       a.href = url;
-      a.download = '';
+      a.download = ''; // 빈 문자열 → 서버 헤더 우선, 없으면 브라우저가 URL명 사용
       a.rel = 'noopener';
       a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       a.remove();
-    }catch{
+    }catch(e){
+      // 마지막 폴백: 새 탭 열기
       window.open(url, '_blank', 'noopener');
     }
   }
-
+  
   // ===== 페이지 이탈시 finish 보장(sendBeacon) =====
   function finishBeacon(){
-    const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
-    if (!id) return;
+    if (!analysisId) return;
     try{
-      const url = `/api/analysis/${id}/finish`;
+      const url = `/api/analysis/${analysisId}/finish`;
       navigator.sendBeacon(url, new Blob([], {type:'text/plain'}));
-    }catch{}
+    }catch(e){}
   }
   window.addEventListener('pagehide', finishBeacon, {capture:true});
   window.addEventListener('beforeunload', finishBeacon);
@@ -164,18 +170,20 @@
 
   function confirmDownloadFallback(){
     return window.confirm(
-        '이 환경에서는 PC 폴더에 직접 저장할 수 없습니다.\n' +
-        '대신 브라우저 다운로드 방식으로 저장할까요?\n\n' +
-        '확인: 다운로드로 진행 / 취소: 캡처 취소'
+      '이 환경에서는 PC 폴더에 직접 저장할 수 없습니다.\n' +
+      '대신 브라우저 다운로드 방식으로 저장할까요?\n\n' +
+      '확인: 다운로드로 진행 / 취소: 캡처 취소'
     );
   }
 
-  // 결과 페이지 이동(기존 동작 유지 + 추가 기능은 실패해도 무시)
+  // --- (교체) 결과 페이지 이동: 종료→리포트 다운로드→이동 ---
+  // (교체) 결과 이동 로직 일부
+  // --- (교체) 결과 페이지 이동: 종료→PDF 디스패치→SSE 구독→이동 ---
   async function gotoResults(){
-    const base = els.gotoBtn?.dataset?.href || '/analysis';
+    const base = els.gotoBtn?.dataset?.href || '/userAnalysisResultPage';
     const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
 
-    // 목적 URL 구성(analId 쿼리 전달)
+    // 목적 URL 구성
     const url = (() => {
       try {
         const u = new URL(base, location.origin);
@@ -196,42 +204,35 @@
       await cleanupWithoutFinish('페이지 이동'); // 스트림/타이머만 정리
     }
 
-    // 백엔드 확장 엔드포인트가 있을 때만 시도(없어도 기존 이동은 유지)
     if (id){
-      // 1) finish 호출
-      await (async () => {
-        try { await notifyFinish(); } catch {}
-      })();
+      // 1) finish 호출 (종료 기록만, dispatch 없음)
+      await notifyFinish();
 
-      // 2) (옵션) PDF 디스패치
-      await (async () => {
-        try {
-          await fetch(`/api/analysis/${id}/dispatch`, { method: "POST" });
-          setStatus('idle', '리포트 생성 중…');
-          log(`PDF 워크플로우 디스패치 시작 #${id}`);
-        } catch {}
-      })();
-
-      // 3) SSE 구독 — 페이지 이동 전까지 수신되면 바로 다운로드
+      // 2) PDF 디스패치 시작
       try {
-        const es = new EventSource(`/api/analysis/${id}/events`);
-        es.addEventListener("status", (e) => {
-          try {
-            const data = JSON.parse(e.data);
-            if (data.state === "ready" && data.reportUrl) {
-              log(`리포트 준비 완료: ${data.reportUrl}`);
-              downloadByUrl(data.reportUrl);
-              es.close();
-            }
-          } catch {}
-        });
-        // 페이지 이동하면 자동으로 끊김
-      } catch {}
+        await fetch(`/api/analysis/${id}/dispatch`, { method: "POST" });
+        setStatus('idle', '리포트 생성 중…');
+        log(`PDF 워크플로우 디스패치 시작 #${id}`);
+      } catch(e) {
+        log(`PDF 디스패치 실패: ${e.message}`);
+      }
+
+      // 3) SSE 구독
+      const evtSource = new EventSource(`/api/analysis/${id}/events`);
+      evtSource.addEventListener("status", (e) => {
+        const data = JSON.parse(e.data);
+        if (data.state === "ready") {
+          log(`리포트 준비 완료: ${data.reportUrl}`);
+          downloadByUrl(data.reportUrl);
+          evtSource.close();
+        }
+      });
     }
 
-    // 4) 결과 페이지로 이동(기존 동작)
+    // 4) 결과 페이지 이동
     location.href = url;
   }
+
 
   // 기본 = 폴더 저장. 불가하면 모달 동의 시 download, 아니면 취소
   async function ensureStorageStrategy(){
@@ -298,12 +299,11 @@
 
   // ===== 서버로 프레임 전송 =====
   async function sendToBackend(blob, fileName){
-    const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
-    if (!id) return {flagged:false, labels:[]};
+    if (!analysisId) return {flagged:false, labels:[]};
     try{
       const fd = new FormData();
       fd.append('file', blob, fileName);
-      fd.append('analId', String(id));
+      fd.append('analId', String(analysisId));
 
       const res = await fetch('/api/capture/frame', { method:'POST', body: fd });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -428,7 +428,7 @@
     updateMinState(false);
   }
 
-  // 공유 중지 시: UI만 정리(세션 유지)
+  // 공유 중지 시: UI만 정리(분석 유지)
   async function handleTrackEnded(){
     log('공유가 중지되었습니다. (세션 유지, 재시작 가능)');
     await cleanupWithoutFinish('공유 중지됨');
@@ -520,14 +520,11 @@
     const suffix = (captureIdx > 1) ? `_${String(captureIdx).padStart(2,'0')}` : '';
     const name   = `${(els.prefix.value || 'capture_')}${stamp}${suffix}.png`;
 
-    // 1) 로컬/다운로드 저장
     if (saveStrategy === 'folder') await saveLocal(blob, name);
     else                           await saveDownload(blob, name);
 
-    // 2) 백엔드로 전송 → 모델 → flagged/labels 수신
     const res = await sendToBackend(blob, name);
     if (res?.flagged){
-      // 3) 감지되면 Alerts 하위 폴더에 추가 저장(옵션)
       await saveToAlertsFolder(blob, name);
     }
   }

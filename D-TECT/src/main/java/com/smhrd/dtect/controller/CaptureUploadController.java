@@ -1,13 +1,13 @@
 package com.smhrd.dtect.controller;
 
-import com.smhrd.dtect.config.ModelProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,17 +24,18 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CaptureUploadController {
 
-    private final @Qualifier("modelWebClient") WebClient modelWebClient;
-    private final ModelProperties props;
+    private final WebClient modelWebClient;
 
-    @Value("${model.predict-path:}")
-    private String predictPathOverride;
+    // ModelProperties 대체: application.yml 의 model.predict-path 사용
+    @Value("${model.predict-path:/predict}")
+    private String predictPath;
 
     @PostMapping(value = "/frame", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> frame(
             @RequestParam("analId") Long analId,
             @RequestParam("file") MultipartFile file
     ) {
+
         if (analId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "analId is required"));
@@ -46,12 +47,13 @@ public class CaptureUploadController {
 
         final String filename = (file.getOriginalFilename() != null && !file.getOriginalFilename().isBlank())
                 ? file.getOriginalFilename()
-                : "frame.png";
+                : "frame";
         final MediaType partContentType = parseOrDefault(file.getContentType(), MediaType.APPLICATION_OCTET_STREAM);
 
         ByteArrayResource resource;
         try {
-            resource = new NamedByteArrayResource(file.getBytes(), filename);
+            byte[] bytes = file.getBytes();
+            resource = new NamedByteArrayResource(bytes, filename);
         } catch (Exception e) {
             log.warn("Failed to read uploaded file: {}", e.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -59,17 +61,15 @@ public class CaptureUploadController {
         }
 
         MultipartBodyBuilder mb = new MultipartBodyBuilder();
-        mb.part("file", resource).filename(filename).contentType(partContentType);
-
-        final String predictPath = (predictPathOverride != null && !predictPathOverride.isBlank())
-                ? predictPathOverride
-                : Objects.requireNonNullElse(props.getPredictPath(), "/predict");
+        mb.part("file", resource)
+          .filename(filename)
+          .contentType(partContentType);
 
         Map<String, Object> resp;
         try {
             resp = modelWebClient.post()
                     .uri(uriBuilder -> uriBuilder
-                            .path(predictPath)
+                            .path(Objects.requireNonNullElse(predictPath, "/predict"))
                             .queryParam("analId", analId)
                             .build())
                     .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -112,7 +112,7 @@ public class CaptureUploadController {
         return Map.of(k1, v1, k2, v2);
     }
 
-    // 파일 이름 보존용도
+    /** filename 보존용 */
     private static class NamedByteArrayResource extends ByteArrayResource {
         private final String filename;
         public NamedByteArrayResource(byte[] byteArray, String filename) {

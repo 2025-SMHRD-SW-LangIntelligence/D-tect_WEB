@@ -35,6 +35,8 @@ public class MyPageController {
     private final UserService userService;
     private final ExpertService expertService;
     private final PrincipalIdService principalIdService;
+    
+    // ✅ 새로 추가된 서비스
     private final MyPageService myPageService;
     
     @GetMapping
@@ -136,7 +138,7 @@ public class MyPageController {
         return matchingService.getExpertMatchings(expertId);
     }
     
- // 내 정보 조회
+ // ✅ 공통: 내 정보 조회 (팝업 프리필)
     @GetMapping("/api/me")
     @ResponseBody
     public MeProfileDto me(@AuthenticationPrincipal CustomUser principal) {
@@ -146,7 +148,7 @@ public class MyPageController {
         return myPageService.getMe(principal.getMember().getMemIdx());
     }
 
-    // 내 정보 수정 (현재 비밀번호 확인 + 옵션 비번변경 + 전문가 전문분야 반영)
+    // ✅ 공통: 내 정보 수정 (현재 비밀번호 확인 + 옵션 비번변경 + 전문가 전문분야 반영)
     @PatchMapping("/api/me")
     @ResponseBody
     @Transactional
@@ -157,7 +159,8 @@ public class MyPageController {
         }
         return myPageService.updateMe(principal.getMember().getMemIdx(), req);
     }
-
+    
+ // com/smhrd/dtect/controller/MyPageController.java
     @DeleteMapping("/api/me")
     @ResponseBody
     @Transactional
@@ -170,6 +173,7 @@ public class MyPageController {
         }
         myPageService.withdraw(principal.getMember().getMemIdx(), req);
 
+        // ✅ 세션 즉시 무효화(프론트 리다이렉트 전에)
         new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler()
                 .logout(request, response, null);
 

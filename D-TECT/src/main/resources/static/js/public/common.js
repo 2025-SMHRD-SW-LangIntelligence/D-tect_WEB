@@ -1,3 +1,10 @@
+// static/js/public/common.js
+
+/* =========================
+ *  공통 유틸 (export)
+ * ========================= */
+
+// === CSRF ===
 export function getCsrfHeaders() {
   const header = document.querySelector('meta[name="_csrf_header"]')?.content;
   const token  = document.querySelector('meta[name="_csrf"]')?.content;
@@ -148,7 +155,7 @@ export function setupEmailVerification(
     if (codeRowEl?.style) codeRowEl.style.display = 'block';
   };
 
-  // "이메일 변경" 버튼 연결
+  // 선택: "이메일 변경" 버튼 연결
   if (resetBtn) {
     const btn = typeof resetBtn === 'string' ? document.querySelector(resetBtn) : resetBtn;
     if (btn) {

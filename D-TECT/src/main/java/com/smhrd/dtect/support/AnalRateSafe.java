@@ -8,20 +8,20 @@ import java.util.Map;
 public final class AnalRateSafe {
     private AnalRateSafe() {}
 
-    // 동의어/한글 라벨 매핑
+    // 동의어/한글 라벨 매핑 (선택)
     private static final Map<String, AnalRate> ALIASES = Map.ofEntries(
-            Map.entry("NORMAL", AnalRate.NORMAL),
-            Map.entry("DEFAULT", AnalRate.NORMAL),
-            Map.entry("정상", AnalRate.NORMAL),
-            Map.entry("보통", AnalRate.NORMAL),
+        Map.entry("NORMAL", AnalRate.NORMAL),
+        Map.entry("DEFAULT", AnalRate.NORMAL),
+        Map.entry("정상", AnalRate.NORMAL),
+        Map.entry("보통", AnalRate.NORMAL),
 
-            Map.entry("WARNING", AnalRate.WARNING),
-            Map.entry("WARN", AnalRate.WARNING),
-            Map.entry("경고", AnalRate.WARNING),
+        Map.entry("WARNING", AnalRate.WARNING),
+        Map.entry("WARN", AnalRate.WARNING),
+        Map.entry("경고", AnalRate.WARNING),
 
-            Map.entry("DANGER", AnalRate.DANGER),
-            Map.entry("RISK", AnalRate.DANGER),
-            Map.entry("위험", AnalRate.DANGER)
+        Map.entry("DANGER", AnalRate.DANGER),
+        Map.entry("RISK", AnalRate.DANGER),
+        Map.entry("위험", AnalRate.DANGER)
     );
 
     /** null/빈값/미매칭 → NORMAL */

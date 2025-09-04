@@ -1,8 +1,7 @@
+// com/smhrd/dtect/service/pdf/PdfWebhookClient.java
 package com.smhrd.dtect.service.pdf;
 
 import com.smhrd.dtect.config.PdfProperties;
-import com.smhrd.dtect.dto.LabelCount;
-import com.smhrd.dtect.dto.ModelMessage;
 import com.smhrd.dtect.entity.AnalRate;
 import com.smhrd.dtect.entity.FieldName;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -20,11 +21,13 @@ import java.util.*;
 public class PdfWebhookClient {
 
     private final PdfProperties pdfProps;
-    private final WebClient webClient = WebClient.builder().build(); // 주입형이어도 OK
+    private final WebClient webClient = WebClient.builder().build();
 
+    /** ✅ username + name 둘 다 전송하도록 시그니처 변경 */
     public boolean dispatchCountsWithAnalId(
             Long analId,
             String username,
+            String name,
             String sid,
             Map<FieldName, Integer> typeCounts,
             AnalRate analRate,
@@ -34,7 +37,7 @@ public class PdfWebhookClient {
         final String url = pdfProps.getWebhookUrl();
         log.info("[PdfWebhook] resolved webhookUrl={}", url);
         if (url == null || url.isBlank()) {
-            log.error("[PdfWebhook] webhookUrl NOT configured (app.pdf.webhook-url). Skip dispatch. analId={} sid={}", analId, sid);
+            log.error("[PdfWebhook] webhookUrl NOT configured. Skip dispatch. analId={} sid={}", analId, sid);
             return false;
         }
 
@@ -44,7 +47,8 @@ public class PdfWebhookClient {
 
         Map<String,Object> body = new LinkedHashMap<>();
         if (analId != null) body.put("analId", analId);
-        body.put("username", username == null ? "" : username);
+        body.put("username", username == null ? "" : username); // ✅
+        body.put("name",     name == null ? "사용자" : name);    // ✅
         body.put("sid", sid == null ? "" : sid);
         body.put("period", Map.of(
                 "startedAt", startedAt != null ? startedAt.toString() : null,
@@ -57,6 +61,7 @@ public class PdfWebhookClient {
         log.info("[PdfWebhook] → POST {} | analId={} sid={} sum={} callbackUrl={}",
                 url, analId, sid, sum, callbackUrl);
         log.info("[PdfWebhook] Request body: {}", body);
+
         Boolean ok = webClient.post()
                 .uri(url)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -82,11 +87,11 @@ public class PdfWebhookClient {
         return Boolean.TRUE.equals(ok);
     }
 
-    public boolean dispatchCounts(String username, String sid,
-                                  Map<FieldName,Integer> typeCounts, AnalRate rate,
+    /** 레거시 호환(analId 없이도 가능) — 필요시 유지 */
+    public boolean dispatchCounts(String username, String name,
+                                  String sid, Map<FieldName,Integer> typeCounts, AnalRate rate,
                                   Instant startedAt, Instant endedAt) {
-
-        return dispatchCountsWithAnalId(null, username, sid, typeCounts, rate, startedAt, endedAt);
+        return dispatchCountsWithAnalId(null, username, name, sid, typeCounts, rate, startedAt, endedAt);
     }
 
     private String buildCallbackUrl(Long analId) {
@@ -106,54 +111,4 @@ public class PdfWebhookClient {
         if (src != null) src.forEach((k,v)-> out.put(k.name(), v==null?0:v));
         return out;
     }
-
-    public boolean dispatchJson(
-            Long userId,
-            String sid,
-            List<ModelMessage> items,
-            AnalRate analRate,
-            Instant startedAt,
-            Instant endedAt
-    ) {
-        // 1) items -> typeCounts 집계
-        EnumMap<FieldName, Integer> counts = new EnumMap<>(FieldName.class);
-        if (items != null) {
-            for (ModelMessage m : items) {
-                if (m == null || m.getClassification() == null) continue;
-                for (LabelCount lc : m.getClassification()) {
-                    if (lc == null) continue;
-                    FieldName fn = toFieldNameFlexible(lc.getLabel());
-                    if (fn == null) continue;
-                    int inc = Math.max(0, lc.getCount());
-                    counts.merge(fn, (inc > 0 ? inc : 1), Integer::sum);
-                }
-            }
-        }
-
-        String username = "";
-
-        return dispatchCountsWithAnalId(
-                null,
-                username,
-                (sid == null ? "" : sid),
-                counts,
-                (analRate != null ? analRate : AnalRate.NORMAL),
-                startedAt,
-                endedAt
-        );
-    }
-
-    private static FieldName toFieldNameFlexible(String raw) {
-        if (raw == null) return null;
-        String s = raw.trim().toUpperCase(Locale.ROOT);
-        switch (s) { // 별칭 보정
-            case "HARASSMENT" -> s = "BULLYING";
-            case "BLACKMAIL"  -> s = "CHANTAGE";
-            case "VIOLENT"    -> s = "VIOLENCE";
-        }
-        try { return FieldName.valueOf(s); }
-        catch (Exception ignore) { return null; }
-    }
-
 }
-

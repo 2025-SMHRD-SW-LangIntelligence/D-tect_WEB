@@ -12,6 +12,17 @@
 
 ## 주요 기능
 
+<ol>
+  <li>사이버불링 발생 시 분석 버튼을 클릭하여 화면 자동 캡처</li>
+  <li>캡처된 스크린샷에서 OCR을 통한 텍스트 추출<li>
+  <li>추출한 텍스트에서 사이버불링 탐지</li>
+  <li>탐지된 결과를 바탕으로 PDF 결과보고서 제작</li>
+  <li>탐지 결과물을 버튼 한 번으로 안전히 전송하여 법률 자문을 접수</li>
+  <li>관리자 페이지에서 비속어 사전 및 문구 업데이트</li>
+  <li>관리자는 비정상 이용자 차단</li>
+  <li>관리자는 법률 전문가 가입 승인</li>
+  <li>챗봇을 활용한 피해자 상담 및 정보 안내</li>
+</ol>
 
 ## 기술 스텍
 <table>
@@ -84,15 +95,36 @@
 
 ## 시스템 아키텍쳐
 
+<table>
+  <tr>
+    <td>
+      <img width="789" height="645" alt="Image" src="https://github.com/user-attachments/assets/b6b5420f-4f49-4a35-9d0c-727d6585a819" />
+    </td>
+  </tr>
+</table>
+
 ## 유스케이스 다이어그램
 
 ## 서비스 흐름도
 
 ## ER다이어그램
 
-https://www.erdcloud.com/d/ztCxFsoGhH5GD8aL5
+<table>
+  <tr>
+    <td>
+      <img width="4240" height="2032" alt="Image" src="https://github.com/user-attachments/assets/54524e49-c8c9-49c4-bef6-c32a67a4000e" />
+    </td>
+  </tr>
+  <tr>
+    <td>ERD Cloud : https://www.erdcloud.com/d/ztCxFsoGhH5GD8aL5</td>
+  </tr>
+</table>
 
 ## 화면 구성
+
+## 트러블 슈팅
+
+
 
 ## 팀원 역할
 <table>

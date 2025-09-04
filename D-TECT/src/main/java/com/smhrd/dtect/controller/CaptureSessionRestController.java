@@ -21,11 +21,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
 public class CaptureSessionRestController {
-
-    private final AnalysisRepository analysisRepository;
+	
+	private final AnalysisRepository analysisRepository;
     private final UserRepository userRepository;
     private final AnalysisResultService resultService;
 
+    // 예: POST /api/analysis/begin?userId=5
     @PostMapping("/begin")
     @Transactional
     public BeginResp begin(@RequestParam Long userId) {

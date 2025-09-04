@@ -16,6 +16,11 @@ public class AnalysisSessionRestController {
 
     private final AnalysisResultService analysisResultService;
 
+    /**
+     * [옵션 트리거] 캡처 종료 시 호출 가능.
+     * - A안 우선: sid -> analId 복원되면 analId 기반 finalize(/{analId}/finish 로직과 동일한 효과)
+     * - 폴백: analId 복원 실패 시, sid 기반 finalizeNow() 실행
+     */
     @PostMapping("/end")
     public ResponseEntity<Map<String, Object>> end(@RequestParam String sid) {
         if (sid == null || sid.isBlank()) {
@@ -30,12 +35,14 @@ public class AnalysisSessionRestController {
         Long analId = analysisResultService.getAnalIdForSid(sid);
         boolean ok;
 
-        // analId 기반
+        // A안: analId가 있으면 analId 기반 마무리 시도
         if (analId != null) {
             try {
+                // finalizeByAnalId가 서비스에 구현되어 있다면 A안으로 전송
                 ok = analysisResultService.finalizeByAnalId(analId);
                 log.info("[SessionEnd] sid={}, analId={}, dispatchedByAnalId={}", sid, analId, ok);
             } catch (NoSuchMethodError | NoClassDefFoundError e) {
+                // 만약 finalizeByAnalId가 아직 없는 코드베이스라면 sid 경로로 폴백
                 log.warn("[SessionEnd] finalizeByAnalId not available, fallback to finalizeNow(sid).");
                 ok = analysisResultService.finalizeNow(sid);
             }
@@ -51,6 +58,9 @@ public class AnalysisSessionRestController {
         ));
     }
 
+    /**
+     * 폴링: sid -> analId 매핑 조회
+     */
     @GetMapping("/anal-id")
     public ResponseEntity<Map<String, Object>> getAnalId(@RequestParam String sid) {
         if (sid == null || sid.isBlank()) {

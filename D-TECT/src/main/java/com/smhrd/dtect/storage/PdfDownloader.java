@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @RequiredArgsConstructor
 public class PdfDownloader {
 
+    // 공용 WebClient 쓰고 있다면 주입받아도 됩니다.
     private final WebClient webClient = WebClient.builder().build();
 
     public byte[] downloadPdf(String url) {

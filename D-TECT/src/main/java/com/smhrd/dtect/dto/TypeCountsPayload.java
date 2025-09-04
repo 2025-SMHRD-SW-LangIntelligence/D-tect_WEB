@@ -1,3 +1,4 @@
+// TypeCountsPayload.java  (n8n 웹훅에 보내는 바디 형식)
 package com.smhrd.dtect.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -10,11 +11,11 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record TypeCountsPayload(
-        Long userId,
-        String sid,
-        Period period,
-        Map<FieldName, Integer> typeCounts,
-        AnalRate analRate
+    Long userId,
+    String sid,
+    Period period,
+    Map<FieldName, Integer> typeCounts,
+    AnalRate analRate
 ) {
     public record Period(Instant startedAt, Instant endedAt) {}
 }

@@ -54,16 +54,16 @@ public class Analysis {
     @Column(name = "report_url", length = 1000)
     private String reportUrl;
 
-	// 캡쳐 종료 시
-	@Column(name = "finished_at", nullable = true)
+    // 캡쳐 종료 시
+    @Column(name = "finished_at", nullable = true)
 	private Timestamp finishedAt;
-
+    
 	// 날짜 자동 기입 함수
 	@PrePersist
 	protected void onCreate() {
 		if (this.createdAt == null) {
-			this.createdAt = new Timestamp(System.currentTimeMillis());
-		}
+	        this.createdAt = new Timestamp(System.currentTimeMillis());
+	    }
 	}
 
 }

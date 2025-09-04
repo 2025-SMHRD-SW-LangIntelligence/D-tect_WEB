@@ -16,6 +16,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+// (선택) GET /logout 허용 시 사용
+// import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
@@ -32,10 +34,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(
-            PasswordEncoder encoder,
-            com.smhrd.dtect.service.UserDetailsServiceImpl userDetailsServiceimpl
-    ) {
+    public DaoAuthenticationProvider daoAuthenticationProvider(PasswordEncoder encoder,
+                                                               com.smhrd.dtect.service.UserDetailsServiceImpl userDetailsServiceimpl) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsServiceimpl);
         provider.setPasswordEncoder(encoder);
@@ -54,55 +54,56 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(
-            HttpSecurity http,
-            DaoAuthenticationProvider provider,
-            SmartLogoutSuccessHandler logoutSuccessHandler // ← 빈을 파라미터로 주입
-    ) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider) throws Exception {
         http
-                // 비활성화
-                .csrf(csrf -> csrf.disable())
+            // 요청대로 비활성화
+            .csrf(csrf -> csrf.disable())
 
-                // 데모/개발용: 전부 허용
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
+            // 데모/개발용: 전부 허용(운영 시 필요한 경로만 permitAll로 좁히는 걸 권장)
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+            )
 
-                // 폼 로그인
-                .formLogin(form -> form
-                        .loginPage("/loginPage")
-                        .loginProcessingUrl("/login")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .successHandler(successHandler)
-                        .failureHandler(formFailureHandler)
-                        .permitAll()
-                )
+            // 폼 로그인
+            .formLogin(form -> form
+                .loginPage("/loginPage")
+                .loginProcessingUrl("/login")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .successHandler(successHandler)
+                .failureHandler(formFailureHandler)
+                .permitAll()
+            )
 
-                // OAuth2 로그인
-                .oauth2Login(oauth -> oauth
-                        .loginPage("/loginPage")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(successHandler)
-                        .failureHandler(oAuth2FailureHandler)
-                )
+            // OAuth2 로그인
+            .oauth2Login(oauth -> oauth
+                .loginPage("/loginPage")
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                .successHandler(successHandler)
+                .failureHandler(oAuth2FailureHandler)
+            )
 
-                // 로그아웃
-                .logout(logout -> logout
-                        .logoutUrl("/logout") // 기본은 POST /logout
-                        .logoutSuccessHandler(logoutSuccessHandler)
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .permitAll()
-                )
+            // 🔻 로그아웃 커스터마이징
+            .logout(logout -> logout
+                // 기본은 POST /logout (권장)
+                .logoutUrl("/logout")
+                // (선택) GET /logout 허용하려면 주석 해제 (CSRF off이므로 가능하지만 보안상 비권장)
+                // .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
 
-                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
+                .logoutSuccessHandler(smartLogoutSuccessHandler())
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID", "remember-me") // 사용 중인 쿠키명 추가
+                .permitAll()
+            )
+            
+            .headers(h -> h.frameOptions(f -> f.sameOrigin()))
 
-                // 명시적으로 Provider 연결
-                .authenticationProvider(provider)
+            // 명시적으로 Provider 연결
+            .authenticationProvider(provider)
 
-                .httpBasic(Customizer.withDefaults());
+            // (필요 시) 기타
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

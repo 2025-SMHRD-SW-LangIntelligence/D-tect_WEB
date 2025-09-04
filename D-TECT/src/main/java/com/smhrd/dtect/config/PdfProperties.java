@@ -1,3 +1,4 @@
+// src/main/java/com/smhrd/dtect/config/PdfProperties.java
 package com.smhrd.dtect.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -21,6 +22,7 @@ public class PdfProperties {
     private int connectTimeoutMs = 5000;
     private int readTimeoutMs = 60000;
 
+    // getters/setters
     public String getWebhookUrl() { return webhookUrl; }
     public void setWebhookUrl(String webhookUrl) { this.webhookUrl = webhookUrl; }
     public String getCallbackUrlTemplate() { return callbackUrlTemplate; }
@@ -31,10 +33,10 @@ public class PdfProperties {
     public void setConnectTimeoutMs(int connectTimeoutMs) { this.connectTimeoutMs = connectTimeoutMs; }
     public int getReadTimeoutMs() { return readTimeoutMs; }
     public void setReadTimeoutMs(int readTimeoutMs) { this.readTimeoutMs = readTimeoutMs; }
-
+    
     @PostConstruct
     public void debugInit() {
         System.out.println("### PdfProperties.webhookUrl=" + webhookUrl);
     }
-
+    
 }

@@ -13,10 +13,10 @@ import java.nio.file.Path;
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(
-        prefix = "app.storage",
-        name = "provider",
-        havingValue = "local",
-        matchIfMissing = true // 설정이 없으면 local로
+    prefix = "app.storage",
+    name = "provider",
+    havingValue = "local",
+    matchIfMissing = true // 설정이 없으면 local로
 )
 public class LocalReportStorageWriter implements ReportStorageWriter {
 

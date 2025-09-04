@@ -27,7 +27,10 @@ const fmtDate = (v) => {
 function getFiltered() {
 	const q = (searchEl.value || '').trim().toLowerCase();
 	if (!q) return DATA;
-	return DATA.filter(x => (x.fileName || '').toLowerCase().includes(q));
+	return DATA.filter(x => {
+		const target = `${x.userName || ''} ${x.fileName || ''}`.toLowerCase();
+		return target.includes(q);
+	});
 }
 
 function render() {
@@ -43,19 +46,23 @@ function render() {
 		const created = fmtDate(row.createdAt);
 		const rate = row.analRate ?? '-';
 
+		// ✅ 이름 기반 파일명: name > userName > "사용자"
+		const person = row.name || row.userName || "사용자";
+		const downloadName = `${person}의 결과 보고서.pdf`;
+
 		return `
       <li class="row list-grid" data-id="${row.analIdx}">
         <div class="col col--dot"><span class="${dotClass}" aria-hidden="true"></span></div>
-        <div class="col name" title="${row.fileName}">${row.fileName}</div>
+        <div class="col name" title="${downloadName}">${downloadName}</div>
         <div class="col date">${created}</div>
         <div class="col size">${rate}</div>
         <div class="col actions">
           <button class="btn btn--ghost act-view"
                   data-url="${row.previewUrl}"
-                  data-name="${row.fileName}">보기</button>
+                  data-name="${downloadName}">보기</button>
           <a class="btn btn--accent act-download"
              href="${row.downloadUrl}"
-             download="${row.fileName}">다운로드</a>
+             download="${downloadName}">다운로드</a>
         </div>
       </li>
     `;
@@ -94,7 +101,6 @@ viewer.addEventListener('click', (e) => {
 
 const root = document.getElementById('history-root');
 
-
 function getUserId() {
 	const ds = (root && root.dataset) || {};
 	let id = (ds.userId || '').trim();
@@ -107,7 +113,6 @@ function getUserId() {
 
 function getKey() {
 	const ds = (root && root.dataset) || {};
-	// data-username 우선, 없으면 URL에서 추출
 	let key = (ds.username || '').trim();
 	if (!key) {
 		const m = location.pathname.match(/\/analysis\/user\/([^/]+)\/history/);
@@ -117,15 +122,20 @@ function getKey() {
 }
 
 async function load() {
-
 	try {
 		const userId = getUserId();
 		if (!userId) { DATA = []; return render(); }
-			const res = await fetch(`/api/analysis/user-id/${encodeURIComponent(userId)}/history`, {
+		const res = await fetch(`/api/analysis/user-id/${encodeURIComponent(userId)}/history`, {
 			headers: { 'Accept': 'application/json' }
 		});
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		DATA = await res.json();
+
+		// ✅ userName 없으면 name(혹은 memberName)으로 보강
+		DATA = DATA.map(row => ({
+			...row,
+			userName: row.userName || row.name || row.memberName || "사용자"
+		}));
 	} catch (e) {
 		console.error('목록 로드 실패:', e);
 		DATA = [];

@@ -1,141 +1,129 @@
 (() => {
   const $ = (sel, root = document) => root.querySelector(sel);
 
-  // ---- analId 해석 ----
-  function pickAnalIdRaw() {
-    try {
-      const urlId = new URLSearchParams(location.search).get('analId');
-      if (urlId) return urlId;
-    } catch {}
-    if (typeof window !== 'undefined' && window.__analId != null) return String(window.__analId);
-    try {
-      const saved = sessionStorage.getItem('analysisAnalId');
-      if (saved) return saved;
-    } catch {}
-    return null;
-  }
-  function sanitizeAnalId(raw) {
-    if (raw == null) return null;
-    const s = String(raw).trim();
-    if (s === '' || ['undefined', 'null'].includes(s.toLowerCase())) return null;
-    if (!/^\d+$/.test(s)) return null;
-    return s;
-  }
   function getAnalId() {
-    return sanitizeAnalId(pickAnalIdRaw());
+    const urlId = new URLSearchParams(location.search).get("analId");
+    return urlId && /^\d+$/.test(urlId) ? urlId : null;
   }
 
-  // ---- summary API 호출 ----
-  async function loadAnalysisData(analId) {
-    if (analId) {
-      try {
-        const url = `/api/analysis/${encodeURIComponent(String(analId))}/summary`;
-        const res = await fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'include' });
-        if (res.ok) {
-          const json = await res.json();
-          if (json && Array.isArray(json.labels) && Array.isArray(json.values)) {
-            return json;
-          }
-        }
-      } catch (e) {
-        console.warn('[analysis] summary error:', e);
-      }
+  // summary 불러오기
+  async function loadSummary(analId) {
+    try {
+      const res = await fetch(`/api/analysis/${analId}/summary`, {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("summary error", e);
     }
     return null;
   }
 
-  // ---- SSE로 PDF 준비 알림 ----
-  function listenPdfReady(analId) {
-    const pdfBtn = $('#btnPdf');
-    if (!pdfBtn) return;
+  // 차트 렌더링
+  function renderRadar({ labels, values }) {
+    const canvas = $("#radar");
+    if (!canvas || typeof Chart === "undefined") return;
+    const ctx = canvas.getContext("2d");
 
-    try {
-      const evtSrc = new EventSource(`/api/analysis/${analId}/events`);
-      evtSrc.addEventListener('status', (ev) => {
-        const data = JSON.parse(ev.data);
-        if (data.state === 'ready' && data.reportUrl) {
-          pdfBtn.classList.remove('hidden'); // 🔹 버튼 표시
-          pdfBtn.addEventListener('click', () => {
-            const a = document.createElement('a');
-            a.href = data.reportUrl;
-            a.download = '';
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          });
-          evtSrc.close();
-        }
-      });
-    } catch (e) {
-      console.warn('[analysis] SSE 연결 실패:', e);
-    }
-  }
+    const normalized = normalize(values);
 
-  // ---- 차트 렌더링 ----
-  function normalizeTo100(values) {
-    const nums = values.map(v => Number(v) || 0);
-    const max = Math.max(0, ...nums);
-    if (max <= 0) return nums.map(() => 0);
-    return nums.map(v => Math.round((v / max) * 100));
-  }
-
-  let radarChart = null;
-  function renderRadar({ labels, values, normalized }) {
-    const canvas = $('#radar');
-    if (!canvas || typeof Chart === 'undefined') return;
-    const ctx = canvas.getContext('2d');
-    if (radarChart) radarChart.destroy();
-
-    radarChart = new Chart(ctx, {
-      type: 'radar',
+    new Chart(ctx, {
+      type: "radar",
       data: {
         labels,
         datasets: [{
-          label: '정규화(최대=100)',
+          label: "검출 비율",
           data: normalized,
           fill: true,
-          backgroundColor: 'rgba(239, 68, 68, 0.18)',
-          borderColor: '#ef4444',
+          backgroundColor: "rgba(239,68,68,0.18)",
+          borderColor: "#ef4444",
           borderWidth: 2,
-          pointBackgroundColor: '#ef4444',
-          pointBorderColor: '#ef4444'
+          pointBackgroundColor: "#ef4444",
+          pointBorderColor: "#ef4444"
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          r: {
-            beginAtZero: true,
-            suggestedMax: 100,
-            grid: { color: 'rgba(0,0,0,.08)' },
-            angleLines: { color: 'rgba(0,0,0,.08)' },
-            pointLabels: { color: '#333', font: { size: 12, weight: '600' } },
-            ticks: { display: false }
-          }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
   }
 
-  // ---- 초기화 ----
+  function normalize(values) {
+    const nums = values.map(v => Number(v) || 0);
+    const max = Math.max(0, ...nums);
+    return max <= 0 ? nums.map(() => 0) : nums.map(v => Math.round((v / max) * 100));
+  }
+
+  // presigned URL + 사용자 이름 요청
+  async function fetchReportInfo(analId) {
+    try {
+      const res = await fetch(`/api/analysis/${analId}/report`, {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+      });
+      if (res.ok) {
+        return await res.json(); // { reportUrl, expiresInDays, name }
+      }
+    } catch (e) {
+      console.warn("report fetch error", e);
+    }
+    return null;
+  }
+
+  // PDF 버튼 초기화
+  async function initPdfBtn(analId) {
+    const tile = $("#pdfTile");
+    const caption = $("#pdfCaption");
+    const spinner = $("#pdfSpinner");
+    if (!tile || !caption) return;
+
+    tile.hidden = false;
+    tile.removeAttribute("href");
+    tile.style.pointerEvents = "none";
+    caption.textContent = "PDF 준비 중...";
+    if (spinner) spinner.style.display = "inline-block";
+
+    let info = null;
+    for (let i = 0; i < 20; i++) { // 최대 20초 폴링
+      info = await fetchReportInfo(analId);
+      if (info?.reportUrl) break;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+
+    if (info?.reportUrl) {
+      caption.textContent = "PDF 다운로드";
+      if (spinner) spinner.style.display = "none";
+      tile.style.pointerEvents = "auto";
+
+      // 여러 번 클릭해도 동작
+      tile.addEventListener("click", (e) => {
+        e.preventDefault();
+        const a = document.createElement("a");
+        a.href = info.reportUrl;
+
+        // ✅ 파일명: name의 결과 보고서.pdf
+        const userName = info.name || "사용자";
+        a.download = `${userName}의 결과 보고서.pdf`;
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+    } else {
+      caption.textContent = "아직 준비되지 않음";
+      if (spinner) spinner.style.display = "none";
+    }
+  }
+
+  // 시작
   (async () => {
     const analId = getAnalId();
     if (!analId) return;
 
-    const data = await loadAnalysisData(analId);
+    const data = await loadSummary(analId);
     if (data && data.labels?.length) {
-      const labels = data.labels;
-      const values = data.values;
-      const normalized = normalizeTo100(values);
-      renderRadar({ labels, values, normalized });
+      renderRadar({ labels: data.labels, values: data.values });
     }
 
-    // SSE로 PDF 버튼 자동 활성화
-    listenPdfReady(analId);
+    await initPdfBtn(analId);
   })();
 })();

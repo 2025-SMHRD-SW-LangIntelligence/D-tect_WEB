@@ -1,16 +1,16 @@
+// AnalysisHistoryApiController.java
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.dto.AnalysisSummaryDto;
+import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.repository.AnalysisRepository;
-import com.smhrd.dtect.repository.UserRepository;
 import com.smhrd.dtect.service.AnalysisService;
-import com.smhrd.dtect.storage.NcpS3PresignService;
+import com.smhrd.dtect.storage.NcpS3ReportStorageWriter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.time.Duration;
 import java.util.List;
 
 @RestController
@@ -19,9 +19,8 @@ import java.util.List;
 public class AnalysisHistoryApiController {
 
     private final AnalysisService analysisService;
-    private final NcpS3PresignService presignService;
     private final AnalysisRepository analysisRepository;
-    private final UserRepository userRepository;
+    private final NcpS3ReportStorageWriter storageWriter;
 
     /** 히스토리 목록 */
     @GetMapping("/user-id/{userId}/history")
@@ -29,35 +28,41 @@ public class AnalysisHistoryApiController {
         return analysisService.listForUserId(userId);
     }
 
-    /** 미리보기(inline) — presign + username 파일명 적용 */
-    @GetMapping("/{analId}/preview")
-    public ResponseEntity<Void> preview(@PathVariable Long analId) {
-        var aOpt = analysisRepository.findById(analId);
-        if (aOpt.isEmpty()) return ResponseEntity.notFound().build();
+    /** 히스토리 페이지용: 무제한 미리보기 (inline) */
+    @GetMapping("/{analId}/report/stream")
+    public ResponseEntity<ByteArrayResource> streamReport(@PathVariable Long analId) {
+        Analysis a = analysisRepository.findById(analId)
+                .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analId));
 
-        String stored   = analysisService.getReportUrl(analId);              // DB의 URL 또는 key
-        Long userId   = aOpt.get().getUser().getUserIdx();
-        String username = userRepository
-                .findMemberUsernameByUserId(userId)
-                .orElse("사용자");
-        String url      = presignService.presignGet(stored, Duration.ofMinutes(15), true, username); // inline
+        byte[] data = storageWriter.loadBytes(a.getReportUrl());
+        if (data == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-        return ResponseEntity.status(302).location(URI.create(url)).build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"report.pdf\"")
+                .body(new ByteArrayResource(data));
     }
 
-    /** 다운로드(attachment) — presign + username 파일명 적용 */
-    @GetMapping("/{analId}/download")
-    public ResponseEntity<Void> download(@PathVariable Long analId) {
-        var aOpt = analysisRepository.findById(analId);
-        if (aOpt.isEmpty()) return ResponseEntity.notFound().build();
+    /** 히스토리 페이지용: 무제한 다운로드 (attachment) */
+    @GetMapping("/{analId}/report/file")
+    public ResponseEntity<ByteArrayResource> downloadReport(@PathVariable Long analId) {
+        Analysis a = analysisRepository.findById(analId)
+                .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analId));
 
-        String stored   = analysisService.getReportUrl(analId);
-        Long userId   = aOpt.get().getUser().getUserIdx();
-        String username = userRepository
-                .findMemberUsernameByUserId(userId)
-                .orElse("사용자");
-        String url      = presignService.presignGet(stored, Duration.ofMinutes(15), false, username); // attachment
+        byte[] data = storageWriter.loadBytes(a.getReportUrl());
+        if (data == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-        return ResponseEntity.status(302).location(URI.create(url)).build();
+        String filename = analysisService.buildReportFileName(analId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + 
+                        java.net.URLEncoder.encode(filename, java.nio.charset.StandardCharsets.UTF_8))
+                .body(new ByteArrayResource(data));
     }
 }

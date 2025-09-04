@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+/**
+ * 단일 콜백 엔드포인트:
+ * - 결과 저장(analId 경로) + 실시간 유형 누적(sid 경로) 모두 처리.
+ * - 쿼리 파라미터는 문자열로 받아 "undefined"/"null"/""를 안전하게 무시한 뒤 수동 파싱.
+ */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -32,7 +37,7 @@ public class AnalysisCallbackRestController {
         Long analId = parseLongOrNull(analIdParam);
         Long total  = parseLongOrNull(totalParam);
 
-        // analId -> 분석 결과 저장 ----
+        // ---- analId 경로: 분석 결과 저장 ----
         if (analId != null) {
             List<Map<String, Object>> results = normalizeToListOfMaps(payload);
             if (results.isEmpty()) {
@@ -44,7 +49,7 @@ public class AnalysisCallbackRestController {
             return ResponseEntity.ok().build();
         }
 
-        // ---- sid -> 실시간 유형 누적 ----
+        // ---- sid 경로: 실시간 유형 누적 ----
         if (sid != null && !sid.isBlank()) {
             List<?> arr = normalizeToList(payload);
             List<FieldName> types = new ArrayList<>();
@@ -60,11 +65,13 @@ public class AnalysisCallbackRestController {
             return ResponseEntity.ok().build();
         }
 
+        // ---- 둘 다 없음 ----
         log.warn("[Callback] missing analId/sid. raw analIdParam='{}', sid='{}', contentType={}",
                 analIdParam, sid, contentType);
         return ResponseEntity.badRequest().build();
     }
 
+    /* ================= Normalizers ================= */
 
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> normalizeToListOfMaps(Object payload) {
@@ -73,6 +80,7 @@ public class AnalysisCallbackRestController {
         return om.convertValue(base, new TypeReference<List<Map<String, Object>>>() {});
     }
 
+    /** payload → List (배열, {messages|results|data:[...]}, 단일객체→[obj]) */
     @SuppressWarnings("unchecked")
     private static List<?> normalizeToList(Object payload) {
         if (payload == null) return List.of();
@@ -93,6 +101,7 @@ public class AnalysisCallbackRestController {
         return null;
     }
 
+    /* =============== Type extraction (sid 경로) =============== */
 
     @SuppressWarnings("unchecked")
     private static List<FieldName> extractTypes(Object elem) {
@@ -147,6 +156,7 @@ public class AnalysisCallbackRestController {
         return out;
     }
 
+    /** 문자열 → FieldName (대소문자 무시 + 일부 별칭 보정) */
     private static FieldName toFieldName(String raw) {
         if (raw == null) return null;
         String s = raw.trim().toUpperCase(Locale.ROOT);
@@ -158,6 +168,8 @@ public class AnalysisCallbackRestController {
         try { return FieldName.valueOf(s); }
         catch (Exception ignore) { return null; }
     }
+
+    /* ================= Utilities ================= */
 
     private static Long parseLongOrNull(String s) {
         if (s == null) return null;
