@@ -62,7 +62,6 @@ public class AnalysisPipelineRestController {
     /**
      * 종료 처리:
      * - finishedAt 기록
-     * - 누적치 기반으로 n8n 웹훅 전송 (PDF 생성 트리거)
      * - 현재 저장된 reportUrl(있으면) 함께 반환
      */
     @PostMapping(value = "/{analId}/finish", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -74,36 +73,17 @@ public class AnalysisPipelineRestController {
         a.setFinishedAt(java.sql.Timestamp.from(now));
         analysisRepository.save(a);
 
-        // ✅ 이제는 웹훅 전송 X
         Map<String, Object> body = new HashMap<>();
         body.put("analId", analId);
         body.put("finishedAt", now.toString());
-        body.put("dispatched", false); // 무조건 false
-        body.put("reportUrl", a.getReportUrl()); // null 일 수 있음
+        body.put("dispatched", false); // 웹훅 X
+        body.put("reportUrl", a.getReportUrl()); // DB에 저장된 objectKey (presigned 변환은 CallbackController 담당)
 
         return ResponseEntity.ok(body);
     }
 
     /**
-     * 리포트 URL 조회 (폴링용)
-     * - reportUrl이 아직 없어도 200 + { "reportUrl": null } 로 응답 (NPE 방지)
-     */
-    @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> report(@PathVariable Long analId) {
-        return analysisRepository.findById(analId)
-            .map(a -> {
-                Map<String, Object> out = new HashMap<>();
-                out.put("reportUrl", a.getReportUrl()); // null 허용
-                return ResponseEntity.ok(out);
-            })
-            .orElseGet(() ->
-                ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", "analysis not found: " + analId))
-            );
-    }
-
-    /**
-     * (옵션) sid 기반 파이프라인 최종화
+     * sid 기반 파이프라인 최종화
      * - 누적 카운트 → 등급 산정 → n8n 웹훅 전송
      */
     @PostMapping(value = "/finalize", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -53,8 +53,11 @@ public class AnalysisService {
     private AnalysisSummaryDto toDto(Analysis a) {
         String date = DATE_FMT.format(a.getCreatedAt().toInstant());
         String fileName   = "[" + date + "] 결과보고서.pdf";
-        String previewUrl = "/api/analysis/" + a.getAnalIdx() + "/preview";
-        String downloadUrl= "/api/analysis/" + a.getAnalIdx() + "/download";
+
+        // ✅ presigned URL 대신 무제한 API 경로 사용
+        String previewUrl = "/api/analysis/" + a.getAnalIdx() + "/report/stream";
+        String downloadUrl= "/api/analysis/" + a.getAnalIdx() + "/report/file";
+
         return new AnalysisSummaryDto(
             a.getAnalIdx(), fileName, a.getCreatedAt(), a.getAnalRate(), previewUrl, downloadUrl
         );

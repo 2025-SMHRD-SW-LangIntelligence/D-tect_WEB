@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smhrd.dtect.dto.PdfCallbackResponse;
 import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.repository.AnalysisRepository;
-import com.smhrd.dtect.storage.ReportUrlBuilder;
+import com.smhrd.dtect.storage.NcpS3ReportStorageWriter;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -27,12 +29,9 @@ public class AnalysisReportCallbackController {
 
     private final AnalysisRepository analysisRepository;
     private final ObjectMapper objectMapper;
-    private final ReportUrlBuilder reportUrlBuilder;
-    private final AnalysisSseController analysisSseController; // 🔹 SSE 알림 주입
+    private final NcpS3ReportStorageWriter storageWriter;
 
-    /**
-     * n8n → PDF 완료 콜백 수신
-     */
+    /** n8n → PDF 완료 콜백 */
     @PostMapping("/{analId}/pdf-callback")
     @Transactional
     public ResponseEntity<PdfCallbackResponse> pdfCallback(
@@ -44,45 +43,39 @@ public class AnalysisReportCallbackController {
             Analysis a = analysisRepository.findById(analId)
                     .orElseThrow(() -> new IllegalArgumentException("analysis not found: " + analId));
 
-            String reportUrl = null;
+            String objectKey = null;
 
-            // 1) payloadJson 안에 reportUrl 있으면 우선 사용
+            // payloadJson 안에서 objectKey 추출
             if (payloadJson != null && !payloadJson.isBlank()) {
                 try {
                     JsonNode node = objectMapper.readTree(payloadJson);
-                    if (node.hasNonNull("reportUrl")) {
-                        reportUrl = node.get("reportUrl").asText();
+                    if (node.hasNonNull("objectKey")) {
+                        objectKey = node.get("objectKey").asText();
                     }
                 } catch (Exception e) {
-                    log.warn("[PdfCallback] payloadJson 파싱 실패 analId={} err={}", analId, e.toString());
+                    log.warn("[PdfCallback] payloadJson parse fail analId={} err={}", analId, e.toString());
                 }
             }
 
-            // 2) 파일만 왔고 reportUrl이 없으면 → 직접 URL 조립
-            if (reportUrl == null && file != null) {
-                String objectKey = String.format("reports/%s/%d-report.pdf",
-                        Instant.now().toString().substring(0, 7), analId);
-                reportUrl = reportUrlBuilder.toPublicUrl(objectKey);
+            // 파일만 온 경우 직접 업로드
+            if (objectKey == null && file != null) {
+                objectKey = storageWriter.uploadAutoName("analysis-" + analId,
+                        file.getOriginalFilename(), file.getBytes(), file.getContentType());
             }
 
-            if (reportUrl == null || reportUrl.isBlank()) {
-                log.error("[PdfCallback] reportUrl 누락 analId={}", analId);
+            if (objectKey == null || objectKey.isBlank()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new PdfCallbackResponse(analId, "reportUrl not provided"));
+                        .body(new PdfCallbackResponse(analId, "objectKey missing"));
             }
 
-            // 3) DB 업데이트
-            a.setReportUrl(reportUrl);
+            // DB에는 objectKey만 저장
+            a.setReportUrl(objectKey);
             if (a.getFinishedAt() == null) {
                 a.setFinishedAt(Timestamp.from(Instant.now()));
             }
             analysisRepository.save(a);
 
-            log.info("[PdfCallback] 분석#{} → reportUrl={} 저장 완료", analId, reportUrl);
-
-            // 4) SSE 알림 전송 (프론트가 실시간으로 버튼 활성화 가능)
-            analysisSseController.notifyReady(analId, reportUrl);
-
+            log.info("[PdfCallback] 분석#{} 저장 완료 objectKey={}", analId, objectKey);
             return ResponseEntity.ok(new PdfCallbackResponse(analId, "OK"));
 
         } catch (Exception e) {
@@ -90,5 +83,38 @@ public class AnalysisReportCallbackController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new PdfCallbackResponse(analId, "FAIL: " + e.getMessage()));
         }
+    }
+
+    /** 결과 페이지에서 호출 → presigned URL + 사용자 이름 발급 */
+    @GetMapping("/{analId}/report")
+    public ResponseEntity<?> getReportUrl(@PathVariable("analId") Long analId) {
+        Optional<Analysis> opt = analysisRepository.findById(analId);
+        if (opt.isEmpty() || opt.get().getReportUrl() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new PdfCallbackResponse(analId, "report not found"));
+        }
+
+        Analysis a = opt.get();
+        String objectKey = a.getReportUrl();
+
+        // presigned URL 생성
+        String presignedUrl = storageWriter.generatePresignedUrl(objectKey);
+
+        // 사용자 이름 (없으면 "사용자")
+        String name = Optional.ofNullable(a.getUser())
+                .map(u -> u.getMember())
+                .map(m -> m.getName())
+                .orElse("사용자");
+
+        log.info("[ReportAPI] 분석#{} objectKey={} → presignedUrl={} name={}", analId, objectKey, presignedUrl, name);
+
+        return ResponseEntity.ok().body(
+                Map.of(
+                        "analId", analId,
+                        "reportUrl", presignedUrl,
+                        "expiresInDays", 7,
+                        "name", name
+                )
+        );
     }
 }

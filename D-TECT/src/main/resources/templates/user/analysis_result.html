@@ -1,64 +1,72 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title></title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>D-tect | 분석 결과</title>
 
-  <link rel="stylesheet" th:href="@{/css/user/analysis_result.css}" />
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" th:href="@{/css/user/analysis_result.css}" />
+<script
+	src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
-  <!-- 헤더 -->
-  <header class="topbar">
-    <div class="left">
-      <img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
-      <h1 class="page-title">분석 결과</h1>
-    </div>
-  </header>
+	<!-- 헤더 -->
+	<header class="topbar">
+		<div class="left">
+			<img th:src="@{/images/logo.png}" alt="D-tect 로고" class="logo">
+			<h1 class="page-title">분석 결과</h1>
+		</div>
+	</header>
 
-  <!-- 본문 -->
-  <main class="container" id="result-root" data-user-id="<!--th:utext='${userId}'-->">
+	<!-- 본문 -->
+	<main class="container" id="result-root"
+		data-user-id="<!--th:utext='${userId}'-->">
 
-    <!-- 결과 카드(차트) -->
-    <section class="card result-card">
-      <div class="chart-head">모델 분석 결과</div>
-      <div class="chart-box">
-        <canvas id="radar" aria-label="욕설 카테고리 레이더 차트"></canvas>
-      </div>
-      <div class="legend">
-        <span class="key red"></span> 검출 비율(%) &nbsp;|&nbsp;
-        <span class="key gray"></span> 기준축
-      </div>
-    </section>
+		<!-- 결과 카드 -->
+		<section class="card result-card">
+			<div class="chart-head">모델 분석 결과</div>
+			<div class="chart-box">
+				<canvas id="radar" aria-label="욕설 카테고리 레이더 차트"></canvas>
+			</div>
+			<div class="legend">
+				<span class="key red"></span> 검출 비율(%) &nbsp;|&nbsp; <span
+					class="key gray"></span> 기준축
+			</div>
+		</section>
 
-    <!-- 액션 타일 -->
-    <section class="tiles">
-      <a class="tile" th:href="@{/userChatbotPage}" aria-label="챗봇 열기">
-        <img th:src="@{/images/chatAI.png}" alt="챗봇">
-        <span class="tile-caption">AI 상담하기</span>
-      </a>
+		<!-- 액션 타일 -->
+		<section class="tiles">
+			<!-- AI 상담 -->
+			<a class="tile" th:href="@{/userChatbotPage}" aria-label="챗봇 열기">
+				<img th:src="@{/images/chatAI.png}" alt="챗봇"> <span
+				class="tile-caption">AI 상담하기</span>
+			</a>
 
-      <button type="button" class="tile tile-btn hidden" id="btnPdf" aria-label="PDF 다운로드">
-        <img th:src="@{/images/PDFimage.jfif}" alt="PDF 다운로드">
-        <span class="tile-caption">PDF 다운로드 (7일 이내)</span>
-      </button>
-      <p class="pdf-expiry-msg">⚠️ 보고서는 발급일로부터 7일 동안만 다운로드할 수 있습니다.</p>
+			<!-- PDF 다운로드 (처음엔 숨김) -->
+			<a class="tile" id="pdfTile" hidden> <img
+				th:src="@{/images/PDFimage.jfif}" alt="PDF 다운로드"> <span
+				class="tile-caption"> <span id="pdfSpinner"
+					class="spinner small"></span> <span id="pdfCaption">PDF 준비
+						중...</span>
+			</span>
+			</a>
 
-      <a class="tile" id="btnConsult" th:if="${userId != null}" th:href="@{/matching/select(userId=${userId})}" aria-label="전문가와 상담하기">
-        <img th:src="@{/images/lawyer.png}" alt="전문가와 상담하기">
-        <span class="tile-caption">전문가와 상담하기</span>
-      </a>
+			<!-- 전문가와 상담 -->
+			<a class="tile" id="btnConsult" th:if="${userId != null}"
+				th:href="@{/matching/select(userId=${userId})}"
+				aria-label="전문가와 상담하기"> <img th:src="@{/images/lawyer.png}"
+				alt="전문가와 상담하기"> <span class="tile-caption">전문가와 상담하기</span>
+			</a>
 
-      <a class="tile" th:href="@{/mypage}" aria-label="마이페이지">
-        <img th:src="@{/images/mypage.jfif}" alt="마이페이지">
-        <span class="tile-caption">마이페이지</span>
-      </a>
-    </section>
-  </main>
+			<!-- 마이페이지 -->
+			<a class="tile" th:href="@{/mypage}" aria-label="마이페이지"> <img
+				th:src="@{/images/mypage.jfif}" alt="마이페이지"> <span
+				class="tile-caption">마이페이지</span>
+			</a>
+		</section>
+	</main>
 
-  <script th:src="@{/js/user/analysis_result.js}"></script>
+	<script th:src="@{/js/user/analysis_result.js}"></script>
 </body>
 </html>
