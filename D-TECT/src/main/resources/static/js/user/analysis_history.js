@@ -17,40 +17,40 @@ let page = 1;
 
 // 날짜 포맷
 const fmtDate = (v) => {
-  if (!v) return '-';
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return '-';
-  return d.toISOString().slice(0, 10); // yyyy-MM-dd
+	if (!v) return '-';
+	const d = new Date(v);
+	if (Number.isNaN(d.getTime())) return '-';
+	return d.toISOString().slice(0, 10); // yyyy-MM-dd
 };
 
 // 검색 필터
 function getFiltered() {
-  const q = (searchEl.value || '').trim().toLowerCase();
-  if (!q) return DATA;
-  return DATA.filter(x => {
-    const target = `${x.userName || ''} ${x.fileName || ''}`.toLowerCase();
-    return target.includes(q);
-  });
+	const q = (searchEl.value || '').trim().toLowerCase();
+	if (!q) return DATA;
+	return DATA.filter(x => {
+		const target = `${x.userName || ''} ${x.fileName || ''}`.toLowerCase();
+		return target.includes(q);
+	});
 }
 
 function render() {
-  const rows = getFiltered();
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  page = Math.min(Math.max(1, page), totalPages);
-  pageInfo.textContent = `${page} / ${totalPages}`;
+	const rows = getFiltered();
+	const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+	page = Math.min(Math.max(1, page), totalPages);
+	pageInfo.textContent = `${page} / ${totalPages}`;
 
-  const slice = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+	const slice = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  listEl.innerHTML = slice.map(row => {
-    const dotClass = 'dot';
-    const created = fmtDate(row.createdAt);
-    const rate = row.analRate ?? '-';
+	listEl.innerHTML = slice.map(row => {
+		const dotClass = 'dot';
+		const created = fmtDate(row.createdAt);
+		const rate = row.analRate ?? '-';
 
-    // ✅ 이름 기반 파일명: name > userName > "사용자"
-    const person = row.name || row.userName || "사용자";
-    const downloadName = `${person}의 결과 보고서.pdf`;
+		// ✅ 이름 기반 파일명: name > userName > "사용자"
+		const person = row.name || row.userName || "사용자";
+		const downloadName = `${person}의 결과 보고서.pdf`;
 
-    return `
+		return `
       <li class="row list-grid" data-id="${row.analIdx}">
         <div class="col col--dot"><span class="${dotClass}" aria-hidden="true"></span></div>
         <div class="col name" title="${downloadName}">${downloadName}</div>
@@ -66,9 +66,9 @@ function render() {
         </div>
       </li>
     `;
-  }).join('');
+	}).join('');
 
-  document.getElementById('emptyState').hidden = rows.length !== 0;
+	document.getElementById('emptyState').hidden = rows.length !== 0;
 }
 
 // 이벤트
@@ -78,70 +78,70 @@ nextBtn.addEventListener('click', () => { page++; render(); });
 
 // 보기(미리보기) 버튼
 listEl.addEventListener('click', (e) => {
-  const btn = e.target.closest('.act-view');
-  if (!btn) return;
-  const url = btn.dataset.url;
-  const name = btn.dataset.name || '미리보기';
-  viewerTitle.textContent = name;
-  viewerFrame.src = url; // 서버가 inline으로 내려주므로 바로 렌더
-  viewer.classList.add('is-open');
-  viewer.setAttribute('aria-hidden', 'false');
+	const btn = e.target.closest('.act-view');
+	if (!btn) return;
+	const url = btn.dataset.url;
+	const name = btn.dataset.name || '미리보기';
+	viewerTitle.textContent = name;
+	viewerFrame.src = url; // 서버가 inline으로 내려주므로 바로 렌더
+	viewer.classList.add('is-open');
+	viewer.setAttribute('aria-hidden', 'false');
 });
 
 // 모달 닫기
 function closeViewer() {
-  viewer.classList.remove('is-open');
-  viewer.setAttribute('aria-hidden', 'true');
-  viewerFrame.src = 'about:blank';
+	viewer.classList.remove('is-open');
+	viewer.setAttribute('aria-hidden', 'true');
+	viewerFrame.src = 'about:blank';
 }
 viewerClose.addEventListener('click', closeViewer);
 viewer.addEventListener('click', (e) => {
-  if (e.target.classList.contains('modal__backdrop')) closeViewer();
+	if (e.target.classList.contains('modal__backdrop')) closeViewer();
 });
 
 const root = document.getElementById('history-root');
 
 function getUserId() {
-  const ds = (root && root.dataset) || {};
-  let id = (ds.userId || '').trim();
-  if (!id) {
-    const m = location.pathname.match(/\/analysis\/user-id\/(\d+)\/history/);
-    if (m) id = m[1];
-  }
-  return id;
+	const ds = (root && root.dataset) || {};
+	let id = (ds.userId || '').trim();
+	if (!id) {
+		const m = location.pathname.match(/\/analysis\/user-id\/(\d+)\/history/);
+		if (m) id = m[1];
+	}
+	return id;
 }
 
 function getKey() {
-  const ds = (root && root.dataset) || {};
-  let key = (ds.username || '').trim();
-  if (!key) {
-    const m = location.pathname.match(/\/analysis\/user\/([^/]+)\/history/);
-    if (m) key = decodeURIComponent(m[1]);
-  }
-  return key;
+	const ds = (root && root.dataset) || {};
+	let key = (ds.username || '').trim();
+	if (!key) {
+		const m = location.pathname.match(/\/analysis\/user\/([^/]+)\/history/);
+		if (m) key = decodeURIComponent(m[1]);
+	}
+	return key;
 }
 
 async function load() {
-  try {
-    const userId = getUserId();
-    if (!userId) { DATA = []; return render(); }
-    const res = await fetch(`/api/analysis/user-id/${encodeURIComponent(userId)}/history`, {
-      headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    DATA = await res.json();
+	try {
+		const userId = getUserId();
+		if (!userId) { DATA = []; return render(); }
+		const res = await fetch(`/api/analysis/user-id/${encodeURIComponent(userId)}/history`, {
+			headers: { 'Accept': 'application/json' }
+		});
+		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		DATA = await res.json();
 
-    // ✅ userName 없으면 name(혹은 memberName)으로 보강
-    DATA = DATA.map(row => ({
-      ...row,
-      userName: row.userName || row.name || row.memberName || "사용자"
-    }));
-  } catch (e) {
-    console.error('목록 로드 실패:', e);
-    DATA = [];
-  }
-  page = 1;
-  render();
+		// ✅ userName 없으면 name(혹은 memberName)으로 보강
+		DATA = DATA.map(row => ({
+			...row,
+			userName: row.userName || row.name || row.memberName || "사용자"
+		}));
+	} catch (e) {
+		console.error('목록 로드 실패:', e);
+		DATA = [];
+	}
+	page = 1;
+	render();
 }
 
 // 초기 로드
