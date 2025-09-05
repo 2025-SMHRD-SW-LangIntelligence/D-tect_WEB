@@ -32,10 +32,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(
-            PasswordEncoder encoder,
-            com.smhrd.dtect.service.UserDetailsServiceImpl userDetailsServiceimpl
-    ) {
+    public DaoAuthenticationProvider daoAuthenticationProvider(PasswordEncoder encoder,
+                                                               com.smhrd.dtect.service.UserDetailsServiceImpl userDetailsServiceimpl) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsServiceimpl);
         provider.setPasswordEncoder(encoder);

@@ -7,10 +7,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -60,7 +63,8 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
                     .bucket(props.getBucket())
                     .key(key)
                     .contentType(contentType != null ? contentType : "application/pdf")
-                    .acl(ObjectCannedACL.PRIVATE) // 🔹 presigned URL로만 접근 가능
+                    // dev 정책 유지: 공개 금지, presigned로만 접근
+                    .acl(ObjectCannedACL.PRIVATE)
                     .build();
 
             s3.putObject(req, RequestBody.fromBytes(bytes));
@@ -83,7 +87,7 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
         return upload(key, bytes, contentType);
     }
 
-    /** 🔹 presigned URL 생성 (7일 유효) */
+    /** presigned URL 생성 (7일 유효) — dev 동작 유지 */
     public String generatePresignedUrl(String objectKey) {
         try (S3Presigner presigner = presigner()) {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -92,11 +96,31 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
                     .build();
 
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofDays(7)) // 🔹 7일 유효
+                    .signatureDuration(Duration.ofDays(7))
                     .getObjectRequest(getObjectRequest)
                     .build();
 
             return presigner.presignGetObject(presignRequest).url().toString();
+        } catch (Exception e) {
+            log.error("[NCP] presigned URL 생성 실패 key={} → {}", objectKey, e.getMessage(), e);
+            throw new RuntimeException("Failed to generate presigned URL: " + e.getMessage(), e);
+        }
+    }
+
+    /** 팀원 기능 흡수: S3에서 바이트 바로 읽기(비공개 객체도 자격증명으로 접근 가능) */
+    public byte[] loadBytes(String objectKey) {
+        try (S3Client s3 = s3()) {
+            ResponseBytes<GetObjectResponse> obj = s3.getObject(
+                    GetObjectRequest.builder()
+                            .bucket(props.getBucket())
+                            .key(objectKey)
+                            .build(),
+                    ResponseTransformer.toBytes()
+            );
+            return obj.asByteArray();
+        } catch (Exception e) {
+            log.error("[NCP] loadBytes 실패 key={} → {}", objectKey, e.getMessage(), e);
+            return null;
         }
     }
 }

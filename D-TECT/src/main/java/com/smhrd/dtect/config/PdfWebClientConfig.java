@@ -24,8 +24,9 @@ public class PdfWebClientConfig {
         HttpClient http = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getConnectTimeoutMs())
                 .responseTimeout(Duration.ofMillis(props.getReadTimeoutMs()))
-                .doOnConnected(conn -> conn.addHandlerLast(
-                        new ReadTimeoutHandler(props.getReadTimeoutMs(), TimeUnit.MILLISECONDS)));
+                .doOnConnected(conn -> conn
+                        .addHandlerLast(new ReadTimeoutHandler(props.getReadTimeoutMs(), TimeUnit.MILLISECONDS))
+                );
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(http))

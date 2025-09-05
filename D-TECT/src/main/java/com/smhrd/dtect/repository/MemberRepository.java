@@ -1,25 +1,23 @@
 package com.smhrd.dtect.repository;
 
-import java.util.Optional;
-
+import com.smhrd.dtect.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.smhrd.dtect.entity.Member;
+import java.util.Optional;
 
 @Repository
-public interface MemberRepository extends JpaRepository<Member, Long>{
+public interface MemberRepository extends JpaRepository<Member, Long> {
 
 	Optional<Member> findByUsername(String username);
 
-	void save(Optional<Member> member);
-
 	boolean existsByUsername(String username);
-	
+
 	Optional<Member> findByEmail(String email);
-    Optional<Member> findByOauthProviderAndOauthId(String oauthProvider, String oauthId);
+
+	Optional<Member> findByOauthProviderAndOauthId(String oauthProvider, String oauthId);
 
 	@Query("select m from Member m where lower(trim(m.username)) = lower(trim(:username))")
 	Optional<Member> findByUsernameIgnoreCaseTrim(@Param("username") String username);

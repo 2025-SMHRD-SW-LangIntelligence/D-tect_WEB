@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.ServletWebRequest;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -44,8 +46,16 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
     }
 
+    // 기타 예외 (SSE 요청은 JSON 응답 없이 스트림 종료)
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleAny(Exception e) {
+    public ResponseEntity<?> handleAny(Exception e, WebRequest request) {
+        if (request instanceof ServletWebRequest swr) {
+            String accept = swr.getRequest().getHeader("Accept");
+            String uri = swr.getRequest().getRequestURI();
+            if ((accept != null && accept.contains("text/event-stream")) || (uri != null && uri.contains("/events"))) {
+                return ResponseEntity.noContent().build(); // 204, 바디 없음
+            }
+        }
         // log.error("Unhandled", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "서버 오류가 발생했습니다."));

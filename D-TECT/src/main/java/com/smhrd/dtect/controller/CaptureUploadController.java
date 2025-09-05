@@ -4,9 +4,9 @@ import com.smhrd.dtect.config.ModelProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +46,7 @@ public class CaptureUploadController {
 
         final String filename = (file.getOriginalFilename() != null && !file.getOriginalFilename().isBlank())
                 ? file.getOriginalFilename()
-                : "frame.png";
+                : "frame.png"; // dev 기본 유지
         final MediaType partContentType = parseOrDefault(file.getContentType(), MediaType.APPLICATION_OCTET_STREAM);
 
         ByteArrayResource resource;
@@ -61,9 +61,9 @@ public class CaptureUploadController {
         MultipartBodyBuilder mb = new MultipartBodyBuilder();
         mb.part("file", resource).filename(filename).contentType(partContentType);
 
-        final String predictPath = (predictPathOverride != null && !predictPathOverride.isBlank())
+        final String predictPath = !isBlank(predictPathOverride)
                 ? predictPathOverride
-                : Objects.requireNonNullElse(props.getPredictPath(), "/predict");
+                : (!isBlank(props.getPredictPath()) ? props.getPredictPath() : "/predict");
 
         Map<String, Object> resp;
         try {
@@ -96,6 +96,10 @@ public class CaptureUploadController {
         return ResponseEntity.ok(resp);
     }
 
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
+
     private static MediaType parseOrDefault(String ct, MediaType def) {
         try {
             return (ct == null || ct.isBlank()) ? def : MediaType.parseMediaType(ct);
@@ -112,7 +116,6 @@ public class CaptureUploadController {
         return Map.of(k1, v1, k2, v2);
     }
 
-    // 파일 이름 보존용도
     private static class NamedByteArrayResource extends ByteArrayResource {
         private final String filename;
         public NamedByteArrayResource(byte[] byteArray, String filename) {
