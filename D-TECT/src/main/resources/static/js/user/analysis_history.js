@@ -27,7 +27,11 @@ const fmtDate = (v) => {
 function getFiltered() {
 	const q = (searchEl.value || '').trim().toLowerCase();
 	if (!q) return DATA;
-	return DATA.filter(x => (x.fileName || '').toLowerCase().includes(q));
+	return DATA.filter(x => {
+		const person = (x.name || x.userName || x.memberName || '').toLowerCase();
+		const fname  = (x.fileName || '').toLowerCase();
+		return (person + ' ' + fname).includes(q);
+	});
 }
 
 function render() {
@@ -43,22 +47,29 @@ function render() {
 		const created = fmtDate(row.createdAt);
 		const rate = row.analRate ?? '-';
 
-		return `
-      <li class="row list-grid" data-id="${row.analIdx}">
-        <div class="col col--dot"><span class="${dotClass}" aria-hidden="true"></span></div>
-        <div class="col name" title="${row.fileName}">${row.fileName}</div>
-        <div class="col date">${created}</div>
-        <div class="col size">${rate}</div>
-        <div class="col actions">
-          <button class="btn btn--ghost act-view"
-                  data-url="${row.previewUrl}"
-                  data-name="${row.fileName}">보기</button>
-          <a class="btn btn--accent act-download"
-             href="${row.downloadUrl}"
-             download="${row.fileName}">다운로드</a>
-        </div>
-      </li>
-    `;
+		// 목록 표시와 미리보기 타이틀은 "원래 파일명" 유지
+		const displayName = row.fileName || '파일 없음';
+
+		// 다운로드 시 파일명은 사용자 이름을 우선 적용
+		const person = row.name || row.userName || row.memberName || '사용자';
+		const downloadName = `${person}의 결과 보고서.pdf`;
+
+		return (
+			'<li class="row list-grid" data-id="' + row.analIdx + '">' +
+			'<div class="col col--dot"><span class="' + dotClass + '" aria-hidden="true"></span></div>' +
+			'<div class="col name" title="' + displayName + '">' + displayName + '</div>' +
+			'<div class="col date">' + created + '</div>' +
+			'<div class="col size">' + rate + '</div>' +
+			'<div class="col actions">' +
+			'<button class="btn btn--ghost act-view" ' +
+			'data-url="' + (row.previewUrl || '') + '" ' +
+			'data-name="' + displayName + '">보기</button>' +
+			'<a class="btn btn--accent act-download" ' +
+			'href="' + (row.downloadUrl || '#') + '" ' +
+			'download="' + downloadName + '">다운로드</a>' +
+			'</div>' +
+			'</li>'
+		);
 	}).join('');
 
 	document.getElementById('emptyState').hidden = rows.length !== 0;
@@ -94,7 +105,6 @@ viewer.addEventListener('click', (e) => {
 
 const root = document.getElementById('history-root');
 
-
 function getUserId() {
 	const ds = (root && root.dataset) || {};
 	let id = (ds.userId || '').trim();
@@ -107,7 +117,7 @@ function getUserId() {
 
 function getKey() {
 	const ds = (root && root.dataset) || {};
-	// data-username 우선, 없으면 URL에서 추출
+	// data-username 우선, 없으면 URL에서 추출 (현재 사용처는 없지만 dev 호환 위해 유지)
 	let key = (ds.username || '').trim();
 	if (!key) {
 		const m = location.pathname.match(/\/analysis\/user\/([^/]+)\/history/);
@@ -117,15 +127,20 @@ function getKey() {
 }
 
 async function load() {
-
 	try {
 		const userId = getUserId();
 		if (!userId) { DATA = []; return render(); }
-			const res = await fetch(`/api/analysis/user-id/${encodeURIComponent(userId)}/history`, {
+		const res = await fetch('/api/analysis/user-id/' + encodeURIComponent(userId) + '/history', {
 			headers: { 'Accept': 'application/json' }
 		});
-		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		if (!res.ok) throw new Error('HTTP ' + res.status);
 		DATA = await res.json();
+
+		// 팀원 보강: userName 미존재 시 name/memberName로 보강
+		DATA = DATA.map(row => ({
+			...row,
+			userName: row.userName || row.name || row.memberName || '사용자'
+		}));
 	} catch (e) {
 		console.error('목록 로드 실패:', e);
 		DATA = [];

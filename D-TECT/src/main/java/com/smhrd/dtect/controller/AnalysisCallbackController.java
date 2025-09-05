@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
@@ -30,8 +29,6 @@ public class AnalysisCallbackController {
             @RequestBody byte[] body
     ) throws Exception {
         String s = new String(body, StandardCharsets.UTF_8);
-        log.info("[Callback] analId={}, contentType={}, bodyLen={}",
-                analId, req.getContentType(), body != null ? body.length : 0);
 
         List<ModelMessage> results = om.readValue(s, new TypeReference<List<ModelMessage>>() {});
         if (results != null && !results.isEmpty()) {

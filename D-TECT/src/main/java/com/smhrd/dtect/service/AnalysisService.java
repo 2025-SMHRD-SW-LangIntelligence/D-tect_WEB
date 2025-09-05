@@ -51,8 +51,11 @@ public class AnalysisService {
     private AnalysisSummaryDto toDto(Analysis a) {
         String date = DATE_FMT.format(a.getCreatedAt().toInstant());
         String fileName   = "[" + date + "] 결과보고서.pdf";
-        String previewUrl = "/api/analysis/" + a.getAnalIdx() + "/preview";
-        String downloadUrl= "/api/analysis/" + a.getAnalIdx() + "/download";
+
+        // ✅ presigned URL 대신 무제한 API 경로 사용
+        String previewUrl = "/api/analysis/" + a.getAnalIdx() + "/report/stream";
+        String downloadUrl= "/api/analysis/" + a.getAnalIdx() + "/report/file";
+
         return new AnalysisSummaryDto(
             a.getAnalIdx(), fileName, a.getCreatedAt(), a.getAnalRate(), previewUrl, downloadUrl
         );
@@ -92,5 +95,13 @@ public class AnalysisService {
                 .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
         a.setFinishedAt(new Timestamp(System.currentTimeMillis()));
         return a;
+    }
+
+    public String getNameForAnalId(Long analId) {
+        return analysisRepository.findById(analId)
+                .map(Analysis::getUser)
+                .map(User::getMember)
+                .map(Member::getName)
+                .orElse("사용자");
     }
 }

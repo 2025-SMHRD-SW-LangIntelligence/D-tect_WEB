@@ -4,6 +4,7 @@ import io.netty.channel.ChannelOption;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -14,10 +15,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(ModelProperties.class)
 @RequiredArgsConstructor
 public class WebClientConfig {
 
-    private final ModelProperties modelProps;
+    private final ModelProperties props;
+
+    private HttpClient httpClient() {
+        return HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getConnectTimeoutMs())
+                .responseTimeout(Duration.ofMillis(props.getReadTimeoutMs()));
+    }
 
     @Bean(name = "modelServerWebClient")
     public WebClient modelServerWebClient(
@@ -28,15 +36,19 @@ public class WebClientConfig {
                         .maxInMemorySize(Math.max(1, maxInMemoryMb) * 1024 * 1024))
                 .build();
 
-        HttpClient http = HttpClient.create()
-                .responseTimeout(Duration.ofMillis(modelProps.getReadTimeoutMs()))
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, modelProps.getConnectTimeoutMs());
-
         return WebClient.builder()
-                .baseUrl(modelProps.getBaseUrl())
+                .baseUrl(props.getBaseUrl())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .exchangeStrategies(strategies)
-                .clientConnector(new ReactorClientHttpConnector(http))
+                .clientConnector(new ReactorClientHttpConnector(httpClient()))
+                .build();
+    }
+
+    @Bean(name = "modelWebClient")
+    public WebClient modelWebClient() {
+        return WebClient.builder()
+                .baseUrl(props.getBaseUrl())
+                .clientConnector(new ReactorClientHttpConnector(httpClient()))
                 .build();
     }
 }

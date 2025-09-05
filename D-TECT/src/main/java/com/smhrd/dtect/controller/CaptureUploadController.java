@@ -4,9 +4,9 @@ import com.smhrd.dtect.config.ModelProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/capture")
 @RequiredArgsConstructor
@@ -46,14 +45,13 @@ public class CaptureUploadController {
 
         final String filename = (file.getOriginalFilename() != null && !file.getOriginalFilename().isBlank())
                 ? file.getOriginalFilename()
-                : "frame.png";
+                : "frame.png"; // dev 기본 유지
         final MediaType partContentType = parseOrDefault(file.getContentType(), MediaType.APPLICATION_OCTET_STREAM);
 
         ByteArrayResource resource;
         try {
             resource = new NamedByteArrayResource(file.getBytes(), filename);
         } catch (Exception e) {
-            log.warn("Failed to read uploaded file: {}", e.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "failed to read file bytes"));
         }
@@ -61,9 +59,9 @@ public class CaptureUploadController {
         MultipartBodyBuilder mb = new MultipartBodyBuilder();
         mb.part("file", resource).filename(filename).contentType(partContentType);
 
-        final String predictPath = (predictPathOverride != null && !predictPathOverride.isBlank())
+        final String predictPath = !isBlank(predictPathOverride)
                 ? predictPathOverride
-                : Objects.requireNonNullElse(props.getPredictPath(), "/predict");
+                : (!isBlank(props.getPredictPath()) ? props.getPredictPath() : "/predict");
 
         Map<String, Object> resp;
         try {
@@ -80,10 +78,8 @@ public class CaptureUploadController {
                     .block();
 
         } catch (WebClientResponseException wcre) {
-            log.warn("Model server error: status={}, body={}", wcre.getRawStatusCode(), wcre.getResponseBodyAsString());
             resp = null;
         } catch (Exception e) {
-            log.warn("Model server call failed: {}", e.toString());
             resp = null;
         }
 
@@ -94,6 +90,10 @@ public class CaptureUploadController {
         }
 
         return ResponseEntity.ok(resp);
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
     }
 
     private static MediaType parseOrDefault(String ct, MediaType def) {
@@ -112,7 +112,6 @@ public class CaptureUploadController {
         return Map.of(k1, v1, k2, v2);
     }
 
-    // 파일 이름 보존용도
     private static class NamedByteArrayResource extends ByteArrayResource {
         private final String filename;
         public NamedByteArrayResource(byte[] byteArray, String filename) {

@@ -1,159 +1,178 @@
-package com.smhrd.dtect.service.pdf;
-
-import com.smhrd.dtect.config.PdfProperties;
-import com.smhrd.dtect.dto.LabelCount;
-import com.smhrd.dtect.dto.ModelMessage;
-import com.smhrd.dtect.entity.AnalRate;
-import com.smhrd.dtect.entity.FieldName;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.time.Instant;
-import java.util.*;
-
-@Service
-@RequiredArgsConstructor
-@Slf4j
-public class PdfWebhookClient {
-
-    private final PdfProperties pdfProps;
-    private final WebClient webClient = WebClient.builder().build(); // 주입형이어도 OK
-
-    public boolean dispatchCountsWithAnalId(
-            Long analId,
-            String username,
-            String sid,
-            Map<FieldName, Integer> typeCounts,
-            AnalRate analRate,
-            Instant startedAt,
-            Instant endedAt
-    ) {
-        final String url = pdfProps.getWebhookUrl();
-        log.info("[PdfWebhook] resolved webhookUrl={}", url);
-        if (url == null || url.isBlank()) {
-            log.error("[PdfWebhook] webhookUrl NOT configured (app.pdf.webhook-url). Skip dispatch. analId={} sid={}", analId, sid);
-            return false;
-        }
-
-        final String callbackUrl = buildCallbackUrl(analId);
-        final Map<String,Integer> counts = toStringKeyMap(typeCounts);
-        final int sum = counts.values().stream().mapToInt(Integer::intValue).sum();
-
-        Map<String,Object> body = new LinkedHashMap<>();
-        if (analId != null) body.put("analId", analId);
-        body.put("username", username == null ? "" : username);
-        body.put("sid", sid == null ? "" : sid);
-        body.put("period", Map.of(
-                "startedAt", startedAt != null ? startedAt.toString() : null,
-                "endedAt",   endedAt   != null ? endedAt.toString()   : null
-        ));
-        body.put("typeCounts", counts);
-        body.put("analRate", (analRate != null ? analRate : AnalRate.NORMAL).name());
-        if (callbackUrl != null) body.put("callbackUrl", callbackUrl);
-
-        log.info("[PdfWebhook] → POST {} | analId={} sid={} sum={} callbackUrl={}",
-                url, analId, sid, sum, callbackUrl);
-        log.info("[PdfWebhook] Request body: {}", body);
-        Boolean ok = webClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(body)
-                .exchangeToMono(resp -> resp.bodyToMono(String.class).defaultIfEmpty("")
-                        .map(b -> {
-                            if (resp.statusCode().is2xxSuccessful()) {
-                                log.info("[PdfWebhook] ← {} OK analId={} sid={} bodyLen={}",
-                                        resp.statusCode(), analId, sid, b.length());
-                                return true;
-                            } else {
-                                log.error("[PdfWebhook] ← {} FAIL analId={} sid={} body={}",
-                                        resp.statusCode(), analId, sid, b);
-                                return false;
-                            }
-                        }))
-                .onErrorResume(e -> {
-                    log.error("[PdfWebhook] EXC analId={} sid={} err={}", analId, sid, e.toString());
-                    return reactor.core.publisher.Mono.just(false);
-                })
-                .block();
-
-        return Boolean.TRUE.equals(ok);
-    }
-
-    public boolean dispatchCounts(String username, String sid,
-                                  Map<FieldName,Integer> typeCounts, AnalRate rate,
-                                  Instant startedAt, Instant endedAt) {
-
-        return dispatchCountsWithAnalId(null, username, sid, typeCounts, rate, startedAt, endedAt);
-    }
-
-    private String buildCallbackUrl(Long analId) {
-        if (analId == null) return null;
-        String tpl = pdfProps.getCallbackUrlTemplate();
-        if (tpl != null && !tpl.isBlank()) return tpl.replace("{analId}", String.valueOf(analId));
-        String base = pdfProps.getPublicBaseUrl();
-        if (base != null && !base.isBlank()) {
-            String b = base.replaceAll("/+$", "");
-            return b + "/api/analysis/" + analId + "/pdf-callback";
-        }
-        return null;
-    }
-
-    private static Map<String,Integer> toStringKeyMap(Map<FieldName,Integer> src) {
-        Map<String,Integer> out = new LinkedHashMap<>();
-        if (src != null) src.forEach((k,v)-> out.put(k.name(), v==null?0:v));
-        return out;
-    }
-
-    public boolean dispatchJson(
-            Long userId,
-            String sid,
-            List<ModelMessage> items,
-            AnalRate analRate,
-            Instant startedAt,
-            Instant endedAt
-    ) {
-        // 1) items -> typeCounts 집계
-        EnumMap<FieldName, Integer> counts = new EnumMap<>(FieldName.class);
-        if (items != null) {
-            for (ModelMessage m : items) {
-                if (m == null || m.getClassification() == null) continue;
-                for (LabelCount lc : m.getClassification()) {
-                    if (lc == null) continue;
-                    FieldName fn = toFieldNameFlexible(lc.getLabel());
-                    if (fn == null) continue;
-                    int inc = Math.max(0, lc.getCount());
-                    counts.merge(fn, (inc > 0 ? inc : 1), Integer::sum);
-                }
-            }
-        }
-
-        String username = "";
-
-        return dispatchCountsWithAnalId(
-                null,
-                username,
-                (sid == null ? "" : sid),
-                counts,
-                (analRate != null ? analRate : AnalRate.NORMAL),
-                startedAt,
-                endedAt
-        );
-    }
-
-    private static FieldName toFieldNameFlexible(String raw) {
-        if (raw == null) return null;
-        String s = raw.trim().toUpperCase(Locale.ROOT);
-        switch (s) { // 별칭 보정
-            case "HARASSMENT" -> s = "BULLYING";
-            case "BLACKMAIL"  -> s = "CHANTAGE";
-            case "VIOLENT"    -> s = "VIOLENCE";
-        }
-        try { return FieldName.valueOf(s); }
-        catch (Exception ignore) { return null; }
-    }
-
-}
-
+//package com.smhrd.dtect.service.pdf;
+//
+//import com.smhrd.dtect.config.PdfProperties;
+//import com.smhrd.dtect.dto.LabelCount;
+//import com.smhrd.dtect.dto.ModelMessage;
+//import com.smhrd.dtect.entity.AnalRate;
+//import com.smhrd.dtect.entity.FieldName;
+//import lombok.RequiredArgsConstructor;
+//import lombok.extern.slf4j.Slf4j;
+//import org.springframework.http.MediaType;
+//import org.springframework.stereotype.Service;
+//import org.springframework.web.reactive.function.client.WebClient;
+//
+//import java.time.Instant;
+//import java.util.*;
+//
+//@Service
+//@RequiredArgsConstructor
+//public class PdfWebhookClient {
+//
+//    private final PdfProperties pdfProps;
+//    private final WebClient webClient = WebClient.builder().build(); // 주입형이어도 OK
+//
+//    // username + name 둘 다 전송
+//    public boolean dispatchCountsWithAnalId(
+//            Long analId,
+//            String username,
+//            String name,
+//            String sid,
+//            Map<FieldName, Integer> typeCounts,
+//            AnalRate analRate,
+//            Instant startedAt,
+//            Instant endedAt
+//    ) {
+//        final String url = pdfProps.getWebhookUrl();
+//        if (url == null || url.isBlank()) {
+//            return false;
+//        }
+//
+//        final String callbackUrl = buildCallbackUrl(analId);
+//        final Map<String,Integer> counts = toStringKeyMap(typeCounts);
+//        final int sum = counts.values().stream().mapToInt(Integer::intValue).sum();
+//
+//        Map<String,Object> body = new LinkedHashMap<>();
+//        if (analId != null) body.put("analId", analId);
+//        body.put("username", username == null ? "" : username);
+//        body.put("name",     (name == null || name.isBlank()) ? "사용자" : name); // 팀원 확장
+//        body.put("sid", sid == null ? "" : sid);
+//        body.put("period", Map.of(
+//                "startedAt", startedAt != null ? startedAt.toString() : null,
+//                "endedAt",   endedAt   != null ? endedAt.toString()   : null
+//        ));
+//        body.put("typeCounts", counts);
+//        body.put("analRate", (analRate != null ? analRate : AnalRate.NORMAL).name());
+//        if (callbackUrl != null) body.put("callbackUrl", callbackUrl);
+//
+//
+//        Boolean ok = webClient.post()
+//                .uri(url)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .bodyValue(body)
+//                .exchangeToMono(resp -> resp.bodyToMono(String.class).defaultIfEmpty("")
+//                        .map(b -> {
+//                            if (resp.statusCode().is2xxSuccessful()) {
+//                                return true;
+//                            } else {
+//                                return false;
+//                            }
+//                        }))
+//                .onErrorResume(e -> {
+//                    return reactor.core.publisher.Mono.just(false);
+//                })
+//                .block();
+//
+//        return Boolean.TRUE.equals(ok);
+//    }
+//
+//    public boolean dispatchCountsWithAnalId(
+//            Long analId,
+//            String username,
+//            String sid,
+//            Map<FieldName, Integer> typeCounts,
+//            AnalRate analRate,
+//            Instant startedAt,
+//            Instant endedAt
+//    ) {
+//        return dispatchCountsWithAnalId(
+//                analId, username, sid, typeCounts, analRate, startedAt, endedAt
+//        );
+//    }
+//    public boolean dispatchCounts(
+//            String username,
+//            String name,
+//            String sid,
+//            Map<FieldName,Integer> typeCounts,
+//            AnalRate rate,
+//            Instant startedAt,
+//            Instant endedAt
+//    ) {
+//        return dispatchCountsWithAnalId(null, username, name, sid, typeCounts, rate, startedAt, endedAt);
+//    }
+//
+//    public boolean dispatchCounts(
+//            String username,
+//            String sid,
+//            Map<FieldName,Integer> typeCounts,
+//            AnalRate rate,
+//            Instant startedAt,
+//            Instant endedAt
+//    ) {
+//        return dispatchCountsWithAnalId(null, username, sid, typeCounts, rate, startedAt, endedAt);
+//    }
+//
+//    public boolean dispatchJson(
+//            Long userId,
+//            String sid,
+//            List<ModelMessage> items,
+//            AnalRate analRate,
+//            Instant startedAt,
+//            Instant endedAt
+//    ) {
+//        EnumMap<FieldName, Integer> counts = new EnumMap<>(FieldName.class);
+//        if (items != null) {
+//            for (ModelMessage m : items) {
+//                if (m == null || m.getClassification() == null) continue;
+//                for (LabelCount lc : m.getClassification()) {
+//                    if (lc == null) continue;
+//                    FieldName fn = toFieldNameFlexible(lc.getLabel());
+//                    if (fn == null) continue;
+//                    int inc = Math.max(0, lc.getCount());
+//                    counts.merge(fn, (inc > 0 ? inc : 1), Integer::sum);
+//                }
+//            }
+//        }
+//
+//        String username = "";
+//        return dispatchCountsWithAnalId(
+//                null,
+//                username,
+//                /* name */ null,
+//                (sid == null ? "" : sid),
+//                counts,
+//                (analRate != null ? analRate : AnalRate.NORMAL),
+//                startedAt,
+//                endedAt
+//        );
+//    }
+//
+//    private String buildCallbackUrl(Long analId) {
+//        if (analId == null) return null;
+//        String tpl = pdfProps.getCallbackUrlTemplate();
+//        if (tpl != null && !tpl.isBlank()) return tpl.replace("{analId}", String.valueOf(analId));
+//        String base = pdfProps.getPublicBaseUrl();
+//        if (base != null && !base.isBlank()) {
+//            String b = base.replaceAll("/+$", "");
+//            return b + "/api/analysis/" + analId + "/pdf-callback";
+//        }
+//        return null;
+//    }
+//
+//    private static Map<String,Integer> toStringKeyMap(Map<FieldName,Integer> src) {
+//        Map<String,Integer> out = new LinkedHashMap<>();
+//        if (src != null) src.forEach((k,v)-> out.put(k.name(), v==null?0:v));
+//        return out;
+//    }
+//
+//    private static FieldName toFieldNameFlexible(String raw) {
+//        if (raw == null) return null;
+//        String s = raw.trim().toUpperCase(Locale.ROOT);
+//        switch (s) { // 별칭 보정
+//            case "HARASSMENT" -> s = "BULLYING";
+//            case "BLACKMAIL"  -> s = "CHANTAGE";
+//            case "VIOLENT"    -> s = "VIOLENCE";
+//        }
+//        try { return FieldName.valueOf(s); }
+//        catch (Exception ignore) { return null; }
+//    }
+//}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>D-TECT 분석 보고서</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', Arial, sans-serif; color: #111; margin: 0; }
+        .wrap { max-width: 920px; margin: 40px auto; padding: 32px; border: 1px solid #eee; }
+        header { border-bottom: 2px solid #222; padding-bottom: 12px; margin-bottom: 24px; }
+        header h1 { margin: 0; font-size: 24px; letter-spacing: 0.5px; }
+        header h1 small { display:block; font-size:14px; color:#666; font-weight:400; margin-top:6px; }
+        .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin: 16px 0 0; }
+        .meta div { font-size: 14px; color: #444; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-weight: 700; }
+        .rate-NORMAL { background: #e6f4ea; color: #0b8043; }
+        .rate-WARNING{ background: #fff4e5; color: #b06000; }
+        .rate-DANGER { background: #fde8e8; color: #b00020; }
+        section h2 { margin: 24px 0 12px; font-size: 18px; border-left: 4px solid #222; padding-left: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #fafafa; text-align: left; }
+        td.count { text-align: right; font-variant-numeric: tabular-nums; }
+        tfoot td { font-weight: 700; }
+        .empty { text-align: center; color: #666; padding: 16px; }
+        .summary { margin-top: 12px; font-size: 14px; color: #333; line-height: 1.6; }
+        footer { margin-top: 28px; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 12px; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <h1>D-TECT 분석 보고서 <small>{{TITLE_NAME}} • 분석 ID #{{ANAL_ID}}</small></h1>
+        <div class="meta">
+            <div><b>분석 기간</b> : {{PERIOD}}</div>
+            <div><b>생성일</b> : {{TODAY}}</div>
+            <div><b>분석 등급</b> :
+                <span class="badge rate-{{ANAL_RATE}}">{{ANAL_RATE_KO}}</span>
+            </div>
+            {{USERNAME_LINE}}
+        </div>
+    </header>
+
+    <section>
+        <h2>사이버불링 유형별 탐지 횟수</h2>
+        <table>
+            <thead>
+            <tr><th>유형</th><th style="text-align:right">횟수</th></tr>
+            </thead>
+            <tbody>
+            {{ROWS}}
+            </tbody>
+            <tfoot>
+            <tr><td>총계</td><td class="count">{{TOTAL}}</td></tr>
+            </tfoot>
+        </table>
+
+        <p class="summary">
+            해당 기간 동안 총 <b>{{TOTAL}}</b>건의 사이버불링이 감지되었습니다.<br></br>
+            유형과 빈도를 고려하여 등급은 <b>{{ANAL_RATE_KO}}</b>로 산정되었습니다.<br></br>
+            필요한 경우 플랫폼 신고나 법적 조치 등 추가 대응을 검토하시기 바랍니다.
+        </p>
+    </section>
+
+    <footer>
+        ※ 본 보고서는 자동 분석에 기반하며, 오탐 가능성이 있습니다. 중요한 의사결정 전 인적 검토를 권장합니다.<br/>
+    </footer>
+</div>
+</body>
+</html>

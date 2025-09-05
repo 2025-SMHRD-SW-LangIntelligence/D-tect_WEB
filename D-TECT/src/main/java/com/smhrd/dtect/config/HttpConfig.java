@@ -16,13 +16,14 @@ public class HttpConfig {
             RestTemplateBuilder builder,
             @Value("${http.client.connect-timeout-ms:5000}") long connectTimeoutMs,
             @Value("${http.client.read-timeout-ms:60000}") long readTimeoutMs,
-            @Value("${http.client.user-agent:D-TECT/1.0 (+payment)}") String userAgent
+            @Value("${http.client.user-agent:D-TECT/1.0 (+payment)}") String userAgent,
+            @Value("${http.client.force-user-agent:false}") boolean forceUserAgent
     ) {
         return builder
                 .setConnectTimeout(Duration.ofMillis(connectTimeoutMs))
                 .setReadTimeout(Duration.ofMillis(readTimeoutMs))
                 .additionalInterceptors((req, body, exec) -> {
-                    if (!req.getHeaders().containsKey(HttpHeaders.USER_AGENT)) {
+                    if (forceUserAgent || !req.getHeaders().containsKey(HttpHeaders.USER_AGENT)) {
                         req.getHeaders().set(HttpHeaders.USER_AGENT, userAgent);
                     }
                     return exec.execute(req, body);
@@ -30,3 +31,4 @@ public class HttpConfig {
                 .build();
     }
 }
+
