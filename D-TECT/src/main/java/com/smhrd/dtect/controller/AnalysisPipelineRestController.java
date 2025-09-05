@@ -1,4 +1,3 @@
-// path: com/smhrd/dtect/controller/AnalysisPipelineRestController.java
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.dto.AnalysisFinalizeResponse;
@@ -10,9 +9,11 @@ import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.repository.AnalysisRepository;
 import com.smhrd.dtect.service.AnalysisGrader;
 import com.smhrd.dtect.service.AnalysisResultService;
-import com.smhrd.dtect.service.pdf.PdfWebhookClient;
+import com.smhrd.dtect.service.pdf.PdfReportOrchestrator;
+//import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,11 +28,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
+@Slf4j
 public class AnalysisPipelineRestController {
 
     private final AnalysisResultService analysisResultService;
-    private final PdfWebhookClient pdfWebhookClient;
+//    private final PdfWebhookClient pdfWebhookClient;
     private final AnalysisRepository analysisRepository;
+    private final PdfReportOrchestrator pdfOrchestrator;
 
     @PostMapping(
             value = "/start",
@@ -57,6 +60,7 @@ public class AnalysisPipelineRestController {
         Long analId = analysisResultService.getAnalIdForSid(sid);
         Instant startedAt = analysisResultService.getStartedAt(sid);
 
+        log.info("[AnalysisStart(JSON)] userId={}, analId={}, sid={}", req.getUserId(), analId, sid);
         return ResponseEntity.ok(new AnalysisStartResponse(sid, analId, startedAt));
     }
 
@@ -82,60 +86,59 @@ public class AnalysisPipelineRestController {
         return ResponseEntity.ok(analysisResultService.getStatus(sid));
     }
 
-    @PostMapping(value = "/finalize", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AnalysisFinalizeResponse> finalizeAnalysis(@RequestParam("sid") String sid) {
-        AnalRate rate = null;
-        int total = 0;
-        Boolean ok = null;
-
-        try {
-            Class<?> cls = analysisResultService.getClass();
-
-            try {
-                Method mark = cls.getMethod("markEnded", String.class);
-                mark.invoke(analysisResultService, sid);
-            } catch (NoSuchMethodException ignored) {}
-
-            Map<?, Integer> counts = null;
-            try {
-                Method getCounts = cls.getMethod("getTypeCounts", String.class);
-                Object res = getCounts.invoke(analysisResultService, sid);
-                if (res instanceof Map) {
-                    counts = (Map<?, Integer>) res;
-                }
-            } catch (NoSuchMethodException ignored) {}
-
-            if (counts != null) {
-                for (Integer v : counts.values()) total += (v != null ? v : 0);
-
-                try {
-                    Method grade = cls.getMethod("gradeByCounts", Map.class);
-                    Object r = grade.invoke(analysisResultService, counts);
-                    if (r instanceof AnalRate) rate = (AnalRate) r;
-                } catch (NoSuchMethodException ignored) {}
-
-                try {
-                    Method fin = cls.getMethod("finalizeNow", String.class);
-                    Object r = fin.invoke(analysisResultService, sid);
-                    if (r instanceof Boolean) ok = (Boolean) r;
-                } catch (NoSuchMethodException ignored) {}
-            }
-        } catch (Exception e) {
-            // no-op
-        }
-
-        if (rate == null || ok == null || !ok) {
-            Long userId = analysisResultService.getUserIdForSid(sid);
-            if (userId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown sid");
-
-            List<ModelMessage> items = analysisResultService.getResult(sid);
-            rate = (rate != null ? rate : AnalysisGrader.grade(items));
-            total = (items != null ? items.size() : 0);
-            ok = pdfWebhookClient.dispatchJson(userId, sid, items, rate, null, null);
-        }
-
-        return ResponseEntity.ok(new AnalysisFinalizeResponse(sid, total, rate, ok));
-    }
+//    @PostMapping(value = "/finalize", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<AnalysisFinalizeResponse> finalizeAnalysis(@RequestParam("sid") String sid) {
+//        AnalRate rate = null;
+//        int total = 0;
+//        Boolean ok = null;
+//
+//        try {
+//            Class<?> cls = analysisResultService.getClass();
+//
+//            try {
+//                Method mark = cls.getMethod("markEnded", String.class);
+//                mark.invoke(analysisResultService, sid);
+//            } catch (NoSuchMethodException ignored) {}
+//
+//            Map<?, Integer> counts = null;
+//            try {
+//                Method getCounts = cls.getMethod("getTypeCounts", String.class);
+//                Object res = getCounts.invoke(analysisResultService, sid);
+//                if (res instanceof Map) {
+//                    counts = (Map<?, Integer>) res;
+//                }
+//            } catch (NoSuchMethodException ignored) {}
+//
+//            if (counts != null) {
+//                for (Integer v : counts.values()) total += (v != null ? v : 0);
+//
+//                try {
+//                    Method grade = cls.getMethod("gradeByCounts", Map.class);
+//                    Object r = grade.invoke(analysisResultService, counts);
+//                    if (r instanceof AnalRate) rate = (AnalRate) r;
+//                } catch (NoSuchMethodException ignored) {}
+//
+//                try {
+//                    Method fin = cls.getMethod("finalizeNow", String.class);
+//                    Object r = fin.invoke(analysisResultService, sid);
+//                    if (r instanceof Boolean) ok = (Boolean) r;
+//                } catch (NoSuchMethodException ignored) {}
+//            }
+//        } catch (Exception e) {
+//        }
+//
+//        if (rate == null || ok == null || !ok) {
+//            Long userId = analysisResultService.getUserIdForSid(sid);
+//            if (userId == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unknown sid");
+//
+//            List<ModelMessage> items = analysisResultService.getResult(sid);
+//            rate = (rate != null ? rate : AnalysisGrader.grade(items));
+//            total = (items != null ? items.size() : 0);
+//            ok = pdfWebhookClient.dispatchJson(userId, sid, items, rate, null, null);
+//        }
+//
+//        return ResponseEntity.ok(new AnalysisFinalizeResponse(sid, total, rate, ok));
+//    }
 
     @PostMapping(value = "/{analId}/finish", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> finishByAnalId(@PathVariable Long analId) {
@@ -146,21 +149,22 @@ public class AnalysisPipelineRestController {
         a.setFinishedAt(java.sql.Timestamp.from(now));
         analysisRepository.save(a);
 
+        boolean generated = pdfOrchestrator.generateAndStoreToS3(analId);
+
         Map<String, Object> body = new HashMap<>();
         body.put("analId", analId);
         body.put("finishedAt", now.toString());
-        body.put("dispatched", false);
-        body.put("reportUrl", a.getReportUrl());
-
+        body.put("generated", generated);
+        body.put("reportUrl", generated ? ("/api/analysis/" + analId + "/report/file") : null);
         return ResponseEntity.ok(body);
     }
 
-    // ▼▼▼ 추가: PDF 워크플로우 트리거(캡처 페이지에서 호출)
-    @PostMapping(value = "/{analId}/dispatch", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> dispatchByAnalId(@PathVariable Long analId) {
-        boolean ok = analysisResultService.finalizeByAnalId(analId);
-        return ResponseEntity.ok(Map.of("analId", analId, "dispatched", ok));
-    }
+//
+//    @PostMapping(value = "/{analId}/dispatch", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Map<String, Object>> dispatchByAnalId(@PathVariable Long analId) {
+//        boolean ok = analysisResultService.finalizeByAnalId(analId);
+//        return ResponseEntity.ok(Map.of("analId", analId, "dispatched", ok));
+//    }
 
     // 리포트 URL 조회 (presigned URL은 다른 컨트롤러에서 생성해도 OK)
 //    @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -96,4 +96,12 @@ public class AnalysisService {
         a.setFinishedAt(new Timestamp(System.currentTimeMillis()));
         return a;
     }
+
+    public String getNameForAnalId(Long analId) {
+        return analysisRepository.findById(analId)
+                .map(Analysis::getUser)
+                .map(User::getMember)
+                .map(Member::getName)
+                .orElse("사용자");
+    }
 }

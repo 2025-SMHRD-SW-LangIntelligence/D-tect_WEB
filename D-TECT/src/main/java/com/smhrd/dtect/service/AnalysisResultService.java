@@ -9,7 +9,7 @@ import com.smhrd.dtect.entity.*;
 import com.smhrd.dtect.repository.AnalysisRepository;
 import com.smhrd.dtect.repository.CaseRepository;
 import com.smhrd.dtect.repository.UserRepository;
-import com.smhrd.dtect.service.pdf.PdfWebhookClient;
+//import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class AnalysisResultService {
 
-    private final PdfWebhookClient pdfWebhookClient;
+//    private final PdfWebhookClient pdfWebhookClient;
     private final AnalysisRepository analysisRepository;
     private final CaseRepository caseRepository;
     private final UserRepository userRepository;
@@ -259,52 +259,52 @@ public class AnalysisResultService {
     }
 
     // ===== 세션 종료 시 웹훅 + DB 누적 보정 =====
-    public boolean finalizeNow(String sid) {
-        SessionState st = sessions.get(sid);
-        if (st == null) return false;
+//    public boolean finalizeNow(String sid) {
+//        SessionState st = sessions.get(sid);
+//        if (st == null) return false;
+//
+//        Map<FieldName, Integer> counts = getTypeCounts(sid);
+//        AnalRate rate = gradeByCounts(counts);
+//
+//        String username = getUsernameForSid(sid);
+//        String name     = getNameForSid(sid);
+//
+//        boolean ok = pdfWebhookClient.dispatchCountsWithAnalId(
+//                st.analId, username, name, sid, counts, rate, st.startedAt, st.endedAt
+//        );
+//
+//        if (st.analId != null) {
+//            persistMergeToAnalysis(st.analId, counts, st.received);
+//        }
+//        return ok;
+//    }
 
-        Map<FieldName, Integer> counts = getTypeCounts(sid);
-        AnalRate rate = gradeByCounts(counts);
-
-        String username = getUsernameForSid(sid);
-        String name     = getNameForSid(sid);
-
-        boolean ok = pdfWebhookClient.dispatchCountsWithAnalId(
-                st.analId, username, name, sid, counts, rate, st.startedAt, st.endedAt
-        );
-
-        if (st.analId != null) {
-            persistMergeToAnalysis(st.analId, counts, st.received);
-        }
-        return ok;
-    }
-
-    public boolean finalizeByAnalId(Long analId) {
-        Analysis a = analysisRepository.findById(analId)
-                .orElseThrow(() -> new IllegalArgumentException("Analysis not found: " + analId));
-
-        Map<FieldName, Integer> counts = parseCountsFromAnalResult(a.getAnalResult());
-        AnalRate rate = gradeByCounts(counts);
-
-        String username = getUsernameForAnalId(analId);
-        String name     = getNameForAnalId(analId);
-
-        String sid = analIdToSid.get(analId);
-        Instant started = (a.getCreatedAt()  != null) ? a.getCreatedAt().toInstant()  : null;
-        Instant ended   = (a.getFinishedAt() != null) ? a.getFinishedAt().toInstant() : null;
-
-        try {
-            return pdfWebhookClient.dispatchCountsWithAnalId(
-                    analId, username, name, sid, counts, rate, started, ended
-            );
-        } catch (NoSuchMethodError | RuntimeException e) {
-            // 레거시 클라이언트 폴백
-            return pdfWebhookClient.dispatchJson(
-                    (a.getUser() != null ? a.getUser().getUserIdx() : null),
-                    "anal-" + analId, List.of(), rate, started, ended
-            );
-        }
-    }
+//    public boolean finalizeByAnalId(Long analId) {
+//        Analysis a = analysisRepository.findById(analId)
+//                .orElseThrow(() -> new IllegalArgumentException("Analysis not found: " + analId));
+//
+//        Map<FieldName, Integer> counts = parseCountsFromAnalResult(a.getAnalResult());
+//        AnalRate rate = gradeByCounts(counts);
+//
+//        String username = getUsernameForAnalId(analId);
+//        String name     = getNameForAnalId(analId);
+//
+//        String sid = analIdToSid.get(analId);
+//        Instant started = (a.getCreatedAt()  != null) ? a.getCreatedAt().toInstant()  : null;
+//        Instant ended   = (a.getFinishedAt() != null) ? a.getFinishedAt().toInstant() : null;
+//
+//        try {
+//            return pdfWebhookClient.dispatchCountsWithAnalId(
+//                    analId, username, name, sid, counts, rate, started, ended
+//            );
+//        } catch (NoSuchMethodError | RuntimeException e) {
+//            // 레거시 클라이언트 폴백
+//            return pdfWebhookClient.dispatchJson(
+//                    (a.getUser() != null ? a.getUser().getUserIdx() : null),
+//                    "anal-" + analId, List.of(), rate, started, ended
+//            );
+//        }
+//    }
 
     // ===== 파싱/유틸 =====
     private Map<FieldName, Integer> parseCountsFromAnalResult(String json) {

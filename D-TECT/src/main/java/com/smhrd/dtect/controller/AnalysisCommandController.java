@@ -3,6 +3,7 @@ package com.smhrd.dtect.controller;
 import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.AnalysisService;
+import com.smhrd.dtect.service.pdf.PdfReportOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +18,8 @@ import java.time.ZoneId;
 public class AnalysisCommandController {
 
     private final AnalysisService analysisService;
-    private final AnalysisResultService analysisResultService;
+//    private final AnalysisResultService analysisResultService;
+    private final PdfReportOrchestrator pdfOrchestrator;
 
     // 캡처 시작
     @PostMapping("/start")
@@ -35,14 +37,13 @@ public class AnalysisCommandController {
     // 캡처 종료
     @PostMapping("/{analId}/finish")
     public ResponseEntity<FinishRes> finish(@PathVariable Long analId) {
-
         Analysis a = analysisService.finish(analId);
-
-        boolean dispatched = analysisResultService.finalizeByAnalId(analId);
+        boolean generated = pdfOrchestrator.generateAndStoreToS3(analId);
 
         String finished = (a.getFinishedAt() == null) ? null
                 : a.getFinishedAt().toInstant().atZone(ZoneId.systemDefault()).toString();
-        return ResponseEntity.ok(new FinishRes(a.getAnalIdx(), finished, dispatched));
+
+        return ResponseEntity.ok(new FinishRes(analId, finished, generated));
     }
 
     // DTO
