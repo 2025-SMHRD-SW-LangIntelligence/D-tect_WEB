@@ -1,3 +1,4 @@
+// path: com/smhrd/dtect/controller/AnalysisPipelineRestController.java
 package com.smhrd.dtect.controller;
 
 import com.smhrd.dtect.dto.AnalysisFinalizeResponse;
@@ -12,7 +13,6 @@ import com.smhrd.dtect.service.AnalysisResultService;
 import com.smhrd.dtect.service.pdf.PdfWebhookClient;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +27,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
-@Slf4j
 public class AnalysisPipelineRestController {
 
     private final AnalysisResultService analysisResultService;
@@ -58,7 +57,6 @@ public class AnalysisPipelineRestController {
         Long analId = analysisResultService.getAnalIdForSid(sid);
         Instant startedAt = analysisResultService.getStartedAt(sid);
 
-        log.info("[AnalysisStart(JSON)] userId={}, analId={}, sid={}", req.getUserId(), analId, sid);
         return ResponseEntity.ok(new AnalysisStartResponse(sid, analId, startedAt));
     }
 
@@ -103,7 +101,6 @@ public class AnalysisPipelineRestController {
                 Method getCounts = cls.getMethod("getTypeCounts", String.class);
                 Object res = getCounts.invoke(analysisResultService, sid);
                 if (res instanceof Map) {
-
                     counts = (Map<?, Integer>) res;
                 }
             } catch (NoSuchMethodException ignored) {}
@@ -124,7 +121,7 @@ public class AnalysisPipelineRestController {
                 } catch (NoSuchMethodException ignored) {}
             }
         } catch (Exception e) {
-            log.warn("Team finalize path failed, fallback to dev. reason={}", e.toString());
+            // no-op
         }
 
         if (rate == null || ok == null || !ok) {
@@ -158,7 +155,14 @@ public class AnalysisPipelineRestController {
         return ResponseEntity.ok(body);
     }
 
-    // 리포트 URL 조회
+    // ▼▼▼ 추가: PDF 워크플로우 트리거(캡처 페이지에서 호출)
+    @PostMapping(value = "/{analId}/dispatch", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> dispatchByAnalId(@PathVariable Long analId) {
+        boolean ok = analysisResultService.finalizeByAnalId(analId);
+        return ResponseEntity.ok(Map.of("analId", analId, "dispatched", ok));
+    }
+
+    // 리포트 URL 조회 (presigned URL은 다른 컨트롤러에서 생성해도 OK)
     @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> report(@PathVariable Long analId) {
         return analysisRepository.findById(analId)

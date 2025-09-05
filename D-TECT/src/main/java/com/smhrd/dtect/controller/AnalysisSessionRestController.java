@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/analysis/session")
 @RequiredArgsConstructor
@@ -34,15 +33,12 @@ public class AnalysisSessionRestController {
         if (analId != null) {
             try {
                 ok = analysisResultService.finalizeByAnalId(analId);
-                log.info("[SessionEnd] sid={}, analId={}, dispatchedByAnalId={}", sid, analId, ok);
             } catch (NoSuchMethodError | NoClassDefFoundError e) {
-                log.warn("[SessionEnd] finalizeByAnalId not available, fallback to finalizeNow(sid).");
                 ok = analysisResultService.finalizeNow(sid);
             }
         } else {
             // 폴백: 세션만으로 마무리
             ok = analysisResultService.finalizeNow(sid);
-            log.info("[SessionEnd] sid={}, analId=null, dispatchedBySid={}", sid, ok);
         }
 
         return ResponseEntity.ok(Map.of(

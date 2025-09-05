@@ -24,7 +24,6 @@ import java.nio.file.FileSystems;
 import java.time.Duration;
 import java.time.LocalDate;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.storage.provider", havingValue = "ncp")
@@ -68,11 +67,8 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
                     .build();
 
             s3.putObject(req, RequestBody.fromBytes(bytes));
-            log.info("[NCP] uploaded bucket={} key={} size={}B contentType={}",
-                    props.getBucket(), key, bytes.length, contentType);
 
         } catch (Exception e) {
-            log.error("[NCP] upload failed bucket={} key={} → {}", props.getBucket(), key, e.getMessage(), e);
             throw new RuntimeException("NCP upload failed: " + e.getMessage(), e);
         }
         return key;
@@ -102,7 +98,6 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
 
             return presigner.presignGetObject(presignRequest).url().toString();
         } catch (Exception e) {
-            log.error("[NCP] presigned URL 생성 실패 key={} → {}", objectKey, e.getMessage(), e);
             throw new RuntimeException("Failed to generate presigned URL: " + e.getMessage(), e);
         }
     }
@@ -119,7 +114,6 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
             );
             return obj.asByteArray();
         } catch (Exception e) {
-            log.error("[NCP] loadBytes 실패 key={} → {}", objectKey, e.getMessage(), e);
             return null;
         }
     }

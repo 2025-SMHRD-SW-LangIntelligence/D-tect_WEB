@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AnalysisResultService {
 
     private final PdfWebhookClient pdfWebhookClient;
@@ -165,7 +164,6 @@ public class AnalysisResultService {
         }
         if (!toSave.isEmpty()) {
             caseRepository.saveAll(toSave);
-            log.info("Saved {} CASE(s) for analId={}", toSave.size(), analId);
         }
     }
 

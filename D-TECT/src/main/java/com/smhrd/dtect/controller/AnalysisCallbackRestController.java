@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
@@ -36,10 +35,8 @@ public class AnalysisCallbackRestController {
         if (analId != null) {
             List<Map<String, Object>> results = normalizeToListOfMaps(payload);
             if (results.isEmpty()) {
-                log.warn("[Callback] analId={}, contentType={}, empty results", analId, contentType);
                 return ResponseEntity.noContent().build();
             }
-            log.info("[Callback] analId={}, contentType={}, resultCount={}", analId, contentType, results.size());
             analysisResultService.saveFromCallback(analId, results);
             return ResponseEntity.ok().build();
         }
@@ -52,16 +49,12 @@ public class AnalysisCallbackRestController {
                 types.addAll(extractTypes(elem));
             }
             if (types.isEmpty()) {
-                log.warn("[Callback] sid={}, contentType={}, no types extracted", sid, contentType);
                 return ResponseEntity.noContent().build();
             }
             analysisResultService.appendTypes(sid, types, total);
-            log.info("[Callback] sid={}, contentType={}, appendedTypes={}, total={}", sid, contentType, types.size(), total);
             return ResponseEntity.ok().build();
         }
 
-        log.warn("[Callback] missing analId/sid. raw analIdParam='{}', sid='{}', contentType={}",
-                analIdParam, sid, contentType);
         return ResponseEntity.badRequest().build();
     }
 

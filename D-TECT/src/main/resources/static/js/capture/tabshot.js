@@ -42,12 +42,11 @@
   }
   function log(msg){ const line = `[${new Date().toLocaleTimeString()}] ${msg}\n`; els.log.textContent += line; els.log.scrollTop = els.log.scrollHeight; }
 
-  // ▶ 파일명용 타임스탬프(초 단위)
   function ts(){
     const d = new Date();
     const pad = n => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_` +
-        `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+           `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
   }
 
   function ensureElapsed(){
@@ -78,14 +77,17 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       analysisId = json.analId;
-      try { sessionStorage.setItem(ANALYSIS_ID_KEY, String(analysisId)); } catch {}
+      try {
+        sessionStorage.setItem(ANALYSIS_ID_KEY, String(analysisId));
+        // ★ 결과 페이지 폴백용 백업
+        localStorage.setItem('analysisAnalIdLast', String(analysisId));
+      } catch {}
       log(`분석 생성됨 #${analysisId} (startedAt=${json.startedAt || 'null'})`);
     }catch(e){
       log(`분석 생성 실패: ${e.message}`);
     }
   }
 
-  // 종료
   async function notifyFinish(){
     if (!analysisId) return null;
     try{
@@ -104,10 +106,10 @@
       // 다음 세션 대비 초기화
       analysisId = null;
       try { sessionStorage.removeItem(ANALYSIS_ID_KEY); } catch {}
+      // localStorage 백업은 결과 페이지 폴백을 위해 일부러 보존
     }
   }
 
-  // reportUrl 폴링 — 백엔드에 /report 있으면 사용
   async function pollReportUrl(analId, {tries=60, intervalMs=1000} = {}){
     for (let i=0; i<tries; i++){
       try{
@@ -125,8 +127,7 @@
     return null;
   }
 
-  // URL 다운로드 유틸
-  function downloadByUrl(url, fallbackName='analysis_report.pdf'){
+  function downloadByUrl(url){
     try{
       const a = document.createElement('a');
       a.href = url;
@@ -141,7 +142,6 @@
     }
   }
 
-  // ===== 페이지 이탈시 finish 보장(sendBeacon) =====
   function finishBeacon(){
     const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
     if (!id) return;
@@ -153,7 +153,6 @@
   window.addEventListener('pagehide', finishBeacon, {capture:true});
   window.addEventListener('beforeunload', finishBeacon);
 
-  // ===== 폴더 권한/전략 =====
   async function verifyDirPermission(handle){
     if (!handle) return false;
     let perm = await handle.queryPermission?.({ mode: 'readwrite' });
@@ -164,18 +163,19 @@
 
   function confirmDownloadFallback(){
     return window.confirm(
-        '이 환경에서는 PC 폴더에 직접 저장할 수 없습니다.\n' +
-        '대신 브라우저 다운로드 방식으로 저장할까요?\n\n' +
-        '확인: 다운로드로 진행 / 취소: 캡처 취소'
+      '이 환경에서는 PC 폴더에 직접 저장할 수 없습니다.\n' +
+      '대신 브라우저 다운로드 방식으로 저장할까요?\n\n' +
+      '확인: 다운로드로 진행 / 취소: 캡처 취소'
     );
   }
 
-  // 결과 페이지 이동(기존 동작 유지 + 추가 기능은 실패해도 무시)
+  // 결과 페이지 이동
   async function gotoResults(){
     const base = els.gotoBtn?.dataset?.href || '/analysis';
-    const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
+    const id = analysisId
+      || sessionStorage.getItem(ANALYSIS_ID_KEY)
+      || localStorage.getItem('analysisAnalIdLast'); // ★ 폴백 추가
 
-    // 목적 URL 구성(analId 쿼리 전달)
     const url = (() => {
       try {
         const u = new URL(base, location.origin);
@@ -188,22 +188,16 @@
       }
     })();
 
-    // 진행 중이면 사용자 확인 후 스트림만 정리
     const capturing = !!(timerId || stream);
     if (capturing){
       const ok = window.confirm('캡처가 진행 중입니다. 이동하면 중지됩니다. 이동할까요?');
       if (!ok) return;
-      await cleanupWithoutFinish('페이지 이동'); // 스트림/타이머만 정리
+      await cleanupWithoutFinish('페이지 이동');
     }
 
-    // 백엔드 확장 엔드포인트가 있을 때만 시도(없어도 기존 이동은 유지)
     if (id){
-      // 1) finish 호출
-      await (async () => {
-        try { await notifyFinish(); } catch {}
-      })();
+      await (async () => { try { await notifyFinish(); } catch {} })();
 
-      // 2) (옵션) PDF 디스패치
       await (async () => {
         try {
           await fetch(`/api/analysis/${id}/dispatch`, { method: "POST" });
@@ -212,7 +206,6 @@
         } catch {}
       })();
 
-      // 3) SSE 구독 — 페이지 이동 전까지 수신되면 바로 다운로드
       try {
         const es = new EventSource(`/api/analysis/${id}/events`);
         es.addEventListener("status", (e) => {
@@ -225,15 +218,12 @@
             }
           } catch {}
         });
-        // 페이지 이동하면 자동으로 끊김
       } catch {}
     }
 
-    // 4) 결과 페이지로 이동(기존 동작)
     location.href = url;
   }
 
-  // 기본 = 폴더 저장. 불가하면 모달 동의 시 download, 아니면 취소
   async function ensureStorageStrategy(){
     saveStrategy = 'folder';
     const supportsFS = 'showDirectoryPicker' in window;
@@ -256,7 +246,6 @@
     }
   }
 
-  // ===== 저장 =====
   async function saveDownload(blob, fileName){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href=url; a.download=fileName; a.style.display='none';
@@ -282,7 +271,6 @@
     }
   }
 
-  // === 불링 감지 전용 폴더 저장(옵션) ===
   async function saveToAlertsFolder(blob, fileName){
     if (saveStrategy !== 'folder') return;
     try{
@@ -296,7 +284,6 @@
     }
   }
 
-  // ===== 서버로 프레임 전송 =====
   async function sendToBackend(blob, fileName){
     const id = analysisId || sessionStorage.getItem(ANALYSIS_ID_KEY);
     if (!id) return {flagged:false, labels:[]};
@@ -428,13 +415,11 @@
     updateMinState(false);
   }
 
-  // 공유 중지 시: UI만 정리(세션 유지)
   async function handleTrackEnded(){
     log('공유가 중지되었습니다. (세션 유지, 재시작 가능)');
     await cleanupWithoutFinish('공유 중지됨');
   }
 
-  // ===== 캡처 로직 =====
   async function chooseTarget(){
     try{
       setStatus('idle','대상 선택 중…');
@@ -520,19 +505,15 @@
     const suffix = (captureIdx > 1) ? `_${String(captureIdx).padStart(2,'0')}` : '';
     const name   = `${(els.prefix.value || 'capture_')}${stamp}${suffix}.png`;
 
-    // 1) 로컬/다운로드 저장
     if (saveStrategy === 'folder') await saveLocal(blob, name);
     else                           await saveDownload(blob, name);
 
-    // 2) 백엔드로 전송 → 모델 → flagged/labels 수신
     const res = await sendToBackend(blob, name);
     if (res?.flagged){
-      // 3) 감지되면 Alerts 하위 폴더에 추가 저장(옵션)
       await saveToAlertsFolder(blob, name);
     }
   }
 
-  // UI/타이머/스트림만 정리(분석 finish는 호출 안 함)
   async function cleanupWithoutFinish(msg){
     if (timerId){ clearInterval(timerId); timerId=null; }
     if (elapsedTimer){ clearInterval(elapsedTimer); elapsedTimer=null; }
@@ -552,7 +533,6 @@
     log('캡처 중지');
   }
 
-  // 사용자 종료 버튼/의도적 이동에서만 finished_at 기록
   async function stop(msg){
     await cleanupWithoutFinish(msg);
     await notifyFinish();
@@ -577,14 +557,12 @@
   function currentInterval(){ const n=parseInt(els.intervalNum.value,10); return clamp(isNaN(n)?5:n,1,60); }
   function applyInterval(n){ const v=clamp(n,1,60); els.intervalNum.value=String(v); els.intervalSec.value=String(v); if (timerId){ clearInterval(timerId); timerId=setInterval(captureOnce, v*1000); log(`주기 변경: ${v}초`);} }
 
-  // 숫자 입력 정제 & 슬라이더 동기화
   els.intervalSec.addEventListener('input', e=>{ const v=clamp(parseInt(e.target.value,10)||5,1,60); els.intervalNum.value=String(v); if (timerId){ clearInterval(timerId); timerId=setInterval(captureOnce, v*1000); log(`주기 변경: ${v}초`);} });
   els.intervalNum.addEventListener('keydown', e=>{ const ok=['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End']; if (ok.includes(e.key)) return; if (e.ctrlKey||e.metaKey) return; if (!/^[0-9]$/.test(e.key)) e.preventDefault(); });
   els.intervalNum.addEventListener('beforeinput', e=>{ if (e.inputType.startsWith('delete')) return; const d=e.data; if (d && /\D/.test(d)) e.preventDefault(); });
   els.intervalNum.addEventListener('paste', e=>{ const t=(e.clipboardData||window.clipboardData).getData('text')||''; const only=t.replace(/\D+/g,''); if (only!==t){ e.preventDefault(); if (only) document.execCommand('insertText',false,only); } });
   els.intervalNum.addEventListener('input', e=>{ let v=e.target.value; if (/\D/.test(v)){ v=v.replace(/\D+/g,''); e.target.value=v; } if (v==='') return; if (/^0+$/.test(v)){ e.target.value='1'; applyInterval(1); return; } const num=parseInt(v,10); if (num>60){ e.target.value='60'; applyInterval(60); return; } els.intervalSec.value=String(num); if (timerId){ clearInterval(timerId); timerId=setInterval(captureOnce, num*1000); log(`주기 변경: ${num}`);} });
 
-  // 버튼 타입 보정
   function ensureButtonsClickable(){
     try{
       els.reselectBtn?.setAttribute('type','button');
@@ -595,7 +573,6 @@
     }catch{}
   }
 
-  // ===== 이벤트 바인딩
   if (els.gotoBtn) els.gotoBtn.addEventListener('click', gotoResults);
   els.reselectBtn.addEventListener('click', reselect);
   els.resetBtn.addEventListener('click', ()=>{ stop('리셋'); els.log.textContent=''; setStatus('idle','대기'); updateMinState?.(false); });
@@ -604,7 +581,6 @@
   els.stopBtn.addEventListener('click', ()=> stop());
   window.addEventListener('keydown', e=>{ const isCmdR = (e.key.toLowerCase()==='r') && (e.metaKey||e.ctrlKey); if (isCmdR){ e.preventDefault(); stop('리셋'); setTimeout(()=> location.reload(), 50);} });
 
-  // 초기화
   applyInterval(5);
   setStatus('idle','대기');
   ensureButtonsClickable();

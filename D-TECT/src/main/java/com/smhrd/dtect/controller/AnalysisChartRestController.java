@@ -1,18 +1,16 @@
 package com.smhrd.dtect.controller;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smhrd.dtect.dto.ChartDataDto;
 import com.smhrd.dtect.entity.Analysis;
 import com.smhrd.dtect.repository.AnalysisRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
@@ -30,7 +28,7 @@ public class AnalysisChartRestController {
             "폭력", "명예훼손", "성범죄", "따돌림/집단따돌림", "협박", "공갈"
     );
 
-    @GetMapping("/{analId}/summary")
+    @GetMapping(value = "/{analId}/summary", produces = MediaType.APPLICATION_JSON_VALUE)
     public ChartDataDto summaryByAnalId(@PathVariable Long analId) {
         Analysis a = analysisRepository.findById(analId)
                 .orElseThrow(() -> new IllegalArgumentException("분석 없음: " + analId));
@@ -39,9 +37,7 @@ public class AnalysisChartRestController {
         Map<String, Integer> counts = parseCountsSafe(json);
 
         List<Integer> values = new ArrayList<>(KEYS.size());
-        for (String k : KEYS) {
-            values.add(counts.getOrDefault(k, 0));
-        }
+        for (String k : KEYS) values.add(counts.getOrDefault(k, 0));
 
         String title = "분석 결과 #" + analId;
         return new ChartDataDto(title, LABELS, values);
@@ -50,36 +46,23 @@ public class AnalysisChartRestController {
     private Map<String, Integer> parseCountsSafe(String analResultJson) {
         try {
             JsonNode root = om.readTree(Optional.ofNullable(analResultJson).orElse("{}"));
-
             JsonNode node = root.hasNonNull("results") ? root.get("results") : root;
 
             JsonNode countsNode = firstNonNullNode(
                     node.get("counts"),
                     node.get("typeCounts"),
-                    node.path("type_counts") // 혹시 스네이크케이스 사용 시
+                    node.path("type_counts")
             );
-            if (isObject(countsNode)) {
-                return mapObjectCounts(countsNode);
-            }
+            if (isObject(countsNode)) return mapObjectCounts(countsNode);
 
-            if (node.isArray()) {
-                return scanArrayCounts(node);
-            }
-
-            if (root.isArray()) {
-                return scanArrayCounts(root);
-            }
-
+            if (node.isArray()) return scanArrayCounts(node);
+            if (root.isArray()) return scanArrayCounts(root);
 
             for (String arrKey : List.of("messages", "data")) {
                 JsonNode arr = node.get(arrKey);
-                if (arr != null && arr.isArray()) {
-                    return scanArrayCounts(arr);
-                }
+                if (arr != null && arr.isArray()) return scanArrayCounts(arr);
             }
-        } catch (Exception e) {
-            log.warn("Failed to parse analResult JSON safely: {}", e.toString());
-        }
+        } catch (Exception ignored) {}
         return Collections.emptyMap();
     }
 
@@ -133,43 +116,28 @@ public class AnalysisChartRestController {
         String s = raw.trim();
         if (s.isEmpty()) return null;
         s = s.toUpperCase(Locale.ROOT);
-
         switch (s) {
             case "HARASSMENT": s = "BULLYING"; break;
             case "BLACKMAIL" : s = "CHANTAGE"; break;
             case "VIOLENT"   : s = "VIOLENCE"; break;
         }
-
         return KEYS.contains(s) ? s : null;
     }
 
-    private static boolean isObject(JsonNode n) {
-        return n != null && n.isObject() && !n.isNull();
-    }
-
-    private static JsonNode firstNonNullNode(JsonNode... nodes) {
-        for (JsonNode n : nodes) if (n != null && !n.isNull()) return n;
-        return null;
-    }
-
+    private static boolean isObject(JsonNode n) { return n != null && n.isObject() && !n.isNull(); }
+    private static JsonNode firstNonNullNode(JsonNode... nodes) { for (JsonNode n : nodes) if (n != null && !n.isNull()) return n; return null; }
     private static String firstNonNullText(JsonNode... nodes) {
-        for (JsonNode n : nodes) {
-            if (n != null && n.isTextual()) {
-                String s = n.asText(null);
-                if (s != null && !s.isBlank()) return s;
-            }
+        for (JsonNode n : nodes) if (n != null && n.isTextual()) {
+            String s = n.asText(null); if (s != null && !s.isBlank()) return s;
         }
         return null;
     }
-
     private static int readInt(JsonNode obj, String key) {
         if (obj == null) return 0;
         JsonNode v = obj.get(key);
         if (v == null || v.isNull()) return 0;
         if (v.isNumber()) return v.intValue();
-        if (v.isTextual()) {
-            try { return Integer.parseInt(v.asText().trim()); } catch (Exception ignore) {}
-        }
+        if (v.isTextual()) { try { return Integer.parseInt(v.asText().trim()); } catch (Exception ignored) {} }
         return 0;
     }
 }

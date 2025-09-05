@@ -22,7 +22,6 @@ import java.time.LocalDate;            // ✅ 추가
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @Validated
@@ -56,8 +55,9 @@ public class AnalysisReportCallbackController {
                         objectKey = node.get("objectKey").asText();
                     }
                 } catch (Exception e) {
-                    log.warn("[PdfCallback] payloadJson parse fail analId={} err={}", analId, e.toString());
+                	
                 }
+                
             }
 
             // 파일만 온 경우: 우리가 S3에 업로드하며 파일명 = "name의 결과 보고서.pdf"
@@ -83,11 +83,9 @@ public class AnalysisReportCallbackController {
             }
             analysisRepository.save(a);
 
-            log.info("[PdfCallback] 분석#{} 저장 완료 objectKey={}", analId, objectKey);
             return ResponseEntity.ok(new PdfCallbackResponse(analId, "OK"));
 
         } catch (Exception e) {
-            log.error("[PdfCallback] 실패 analId={} err={}", analId, e.toString(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new PdfCallbackResponse(analId, "FAIL: " + e.getMessage()));
         }
@@ -111,7 +109,6 @@ public class AnalysisReportCallbackController {
         // 프론트 파일명용 name 포함
         String name = analysisResultService.getNameForAnalId(analId);
 
-        log.info("[ReportAPI] 분석#{} objectKey={} → presignedUrl={} name={}", analId, objectKey, presignedUrl, name);
 
         return ResponseEntity.ok(Map.of(
                 "analId", analId,

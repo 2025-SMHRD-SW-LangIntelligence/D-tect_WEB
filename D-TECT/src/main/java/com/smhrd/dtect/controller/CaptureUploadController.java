@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/capture")
 @RequiredArgsConstructor
@@ -53,7 +52,6 @@ public class CaptureUploadController {
         try {
             resource = new NamedByteArrayResource(file.getBytes(), filename);
         } catch (Exception e) {
-            log.warn("Failed to read uploaded file: {}", e.toString());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "failed to read file bytes"));
         }
@@ -80,10 +78,8 @@ public class CaptureUploadController {
                     .block();
 
         } catch (WebClientResponseException wcre) {
-            log.warn("Model server error: status={}, body={}", wcre.getRawStatusCode(), wcre.getResponseBodyAsString());
             resp = null;
         } catch (Exception e) {
-            log.warn("Model server call failed: {}", e.toString());
             resp = null;
         }
 

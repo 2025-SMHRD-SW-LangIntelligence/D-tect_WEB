@@ -16,7 +16,6 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PdfWebhookClient {
 
     private final PdfProperties pdfProps;
@@ -34,9 +33,7 @@ public class PdfWebhookClient {
             Instant endedAt
     ) {
         final String url = pdfProps.getWebhookUrl();
-        log.info("[PdfWebhook] resolved webhookUrl={}", url);
         if (url == null || url.isBlank()) {
-            log.error("[PdfWebhook] webhookUrl NOT configured (app.pdf.webhook-url). Skip dispatch. analId={} sid={}", analId, sid);
             return false;
         }
 
@@ -57,9 +54,6 @@ public class PdfWebhookClient {
         body.put("analRate", (analRate != null ? analRate : AnalRate.NORMAL).name());
         if (callbackUrl != null) body.put("callbackUrl", callbackUrl);
 
-        log.info("[PdfWebhook] → POST {} | analId={} sid={} sum={} callbackUrl={}",
-                url, analId, sid, sum, callbackUrl);
-        log.info("[PdfWebhook] Request body: {}", body);
 
         Boolean ok = webClient.post()
                 .uri(url)
@@ -68,17 +62,12 @@ public class PdfWebhookClient {
                 .exchangeToMono(resp -> resp.bodyToMono(String.class).defaultIfEmpty("")
                         .map(b -> {
                             if (resp.statusCode().is2xxSuccessful()) {
-                                log.info("[PdfWebhook] ← {} OK analId={} sid={} bodyLen={}",
-                                        resp.statusCode(), analId, sid, b.length());
                                 return true;
                             } else {
-                                log.error("[PdfWebhook] ← {} FAIL analId={} sid={} body={}",
-                                        resp.statusCode(), analId, sid, b);
                                 return false;
                             }
                         }))
                 .onErrorResume(e -> {
-                    log.error("[PdfWebhook] EXC analId={} sid={} err={}", analId, sid, e.toString());
                     return reactor.core.publisher.Mono.just(false);
                 })
                 .block();
@@ -96,7 +85,7 @@ public class PdfWebhookClient {
             Instant endedAt
     ) {
         return dispatchCountsWithAnalId(
-                analId, username, /*name*/ null, sid, typeCounts, analRate, startedAt, endedAt
+                analId, username, sid, typeCounts, analRate, startedAt, endedAt
         );
     }
     public boolean dispatchCounts(
@@ -119,7 +108,7 @@ public class PdfWebhookClient {
             Instant startedAt,
             Instant endedAt
     ) {
-        return dispatchCountsWithAnalId(null, username, /*name*/ null, sid, typeCounts, rate, startedAt, endedAt);
+        return dispatchCountsWithAnalId(null, username, sid, typeCounts, rate, startedAt, endedAt);
     }
 
     public boolean dispatchJson(

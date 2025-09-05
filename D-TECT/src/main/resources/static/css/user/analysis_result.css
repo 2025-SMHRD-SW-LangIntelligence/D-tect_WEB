@@ -9,6 +9,9 @@
   --radius-lg: 18px;
 }
 
+/* Utility */
+.hidden { display: none !important; }
+
 /* Topbar */
 .topbar {
   position: sticky;
@@ -115,6 +118,12 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, .16);
 }
+.tile:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .16);
+}
 .tile img {
   width: 100%;
   height: 160px;
@@ -179,7 +188,6 @@ body {
   margin-right: 6px;
   animation: spin 1s linear infinite;
 }
-
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
