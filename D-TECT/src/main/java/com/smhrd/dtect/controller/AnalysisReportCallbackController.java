@@ -99,17 +99,12 @@ public class AnalysisReportCallbackController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("analId", analId, "reportUrl", null));
         }
-
-        // DB에는 objectKey만 저장됨
         String objectKey = opt.get().getReportUrl();
-
-        // presigned URL 생성 (7일)
-        String presignedUrl = storageWriter.generatePresignedUrl(objectKey);
-
-        // 프론트 파일명용 name 포함
         String name = analysisResultService.getNameForAnalId(analId);
-
-
+        String presignedUrl = storageWriter.generatePresignedUrl(
+                objectKey,
+                name + "의 결과 보고서.pdf"
+        );
         return ResponseEntity.ok(Map.of(
                 "analId", analId,
                 "reportUrl", presignedUrl,

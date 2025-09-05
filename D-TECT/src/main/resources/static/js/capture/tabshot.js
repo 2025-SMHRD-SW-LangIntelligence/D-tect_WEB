@@ -171,58 +171,45 @@
 
   // 결과 페이지 이동
   async function gotoResults(){
-    const base = els.gotoBtn?.dataset?.href || '/analysis';
-    const id = analysisId
-      || sessionStorage.getItem(ANALYSIS_ID_KEY)
-      || localStorage.getItem('analysisAnalIdLast'); // ★ 폴백 추가
+      const base = els.gotoBtn?.dataset?.href || '/analysis';
+      const id = analysisId
+        || sessionStorage.getItem(ANALYSIS_ID_KEY)
+        || localStorage.getItem('analysisAnalIdLast'); // 폴백
 
-    const url = (() => {
-      try {
-        const u = new URL(base, location.origin);
-        if (id) u.searchParams.set('analId', String(id));
-        return u.toString();
-      } catch {
-        if (!id) return base;
-        const sep = base.includes('?') ? '&' : '?';
-        return `${base}${sep}analId=${encodeURIComponent(String(id))}`;
-      }
-    })();
-
-    const capturing = !!(timerId || stream);
-    if (capturing){
-      const ok = window.confirm('캡처가 진행 중입니다. 이동하면 중지됩니다. 이동할까요?');
-      if (!ok) return;
-      await cleanupWithoutFinish('페이지 이동');
-    }
-
-    if (id){
-      await (async () => { try { await notifyFinish(); } catch {} })();
-
-      await (async () => {
-        try {
-          await fetch(`/api/analysis/${id}/dispatch`, { method: "POST" });
-          setStatus('idle', '리포트 생성 중…');
-          log(`PDF 워크플로우 디스패치 시작 #${id}`);
-        } catch {}
+      const url = (() => {
+        try { const u = new URL(base, location.origin); if (id) u.searchParams.set('analId', String(id)); return u.toString(); }
+        catch { if (!id) return base; const sep = base.includes('?') ? '&' : '?'; return `${base}${sep}analId=${encodeURIComponent(String(id))}`; }
       })();
 
-      try {
-        const es = new EventSource(`/api/analysis/${id}/events`);
-        es.addEventListener("status", (e) => {
-          try {
-            const data = JSON.parse(e.data);
-            if (data.state === "ready" && data.reportUrl) {
-              log(`리포트 준비 완료: ${data.reportUrl}`);
-              downloadByUrl(data.reportUrl);
-              es.close();
-            }
-          } catch {}
-        });
-      } catch {}
-    }
+      const capturing = !!(timerId || stream);
+      if (capturing){
+        const ok = window.confirm('캡처가 진행 중입니다. 이동하면 중지됩니다. 이동할까요?');
+        if (!ok) return;
+        await cleanupWithoutFinish('페이지 이동');
+      }
 
-    location.href = url;
-  }
+      if (id){
+        // ✅ 저번 방식: finish만 찍고 외부 워크플로우가 PDF 생성
+        await (async () => { try { await notifyFinish(); } catch {} })();
+
+        // (선택) 준비되면 다운로드 받도록 SSE 대기 — 실패해도 페이지 이동은 그대로
+        try {
+          const es = new EventSource(`/api/analysis/${id}/events`);
+          es.addEventListener("status", (e) => {
+            try {
+              const data = JSON.parse(e.data);
+              if (data.state === "ready" && data.reportUrl) {
+                log(`리포트 준비 완료: ${data.reportUrl}`);
+                const a = document.createElement('a'); a.href = data.reportUrl; a.download=''; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove();
+                es.close();
+              }
+            } catch {}
+          });
+        } catch {}
+      }
+
+      location.href = url;
+    }
 
   async function ensureStorageStrategy(){
     saveStrategy = 'folder';

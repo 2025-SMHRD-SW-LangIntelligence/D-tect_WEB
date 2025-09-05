@@ -163,19 +163,19 @@ public class AnalysisPipelineRestController {
     }
 
     // 리포트 URL 조회 (presigned URL은 다른 컨트롤러에서 생성해도 OK)
-    @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> report(@PathVariable Long analId) {
-        return analysisRepository.findById(analId)
-                .map(a -> {
-                    Map<String, Object> out = new HashMap<>();
-                    out.put("reportUrl", a.getReportUrl());
-                    return ResponseEntity.ok(out);
-                })
-                .orElseGet(() ->
-                        ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body(Map.of("message", "analysis not found: " + analId))
-                );
-    }
+//    @GetMapping(value = "/{analId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Map<String, Object>> report(@PathVariable Long analId) {
+//        return analysisRepository.findById(analId)
+//                .map(a -> {
+//                    Map<String, Object> out = new HashMap<>();
+//                    out.put("reportUrl", a.getReportUrl());
+//                    return ResponseEntity.ok(out);
+//                })
+//                .orElseGet(() ->
+//                        ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                                .body(Map.of("message", "analysis not found: " + analId))
+//                );
+//    }
 
     @Data
     public static class StartRequest {

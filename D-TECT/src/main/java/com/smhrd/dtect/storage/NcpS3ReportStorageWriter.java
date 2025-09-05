@@ -23,6 +23,8 @@ import java.net.URI;
 import java.nio.file.FileSystems;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -84,16 +86,27 @@ public class NcpS3ReportStorageWriter implements ReportStorageWriter {
     }
 
     /** presigned URL 생성 (7일 유효) — dev 동작 유지 */
+    // 기존 1-인자 메서드는 유지(호환)
     public String generatePresignedUrl(String objectKey) {
+        return generatePresignedUrl(objectKey, null);
+    }
+
+    // ★ 새 오버로드: 다운로드 파일명 지정까지
+    public String generatePresignedUrl(String objectKey, String downloadName) {
         try (S3Presigner presigner = presigner()) {
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+            GetObjectRequest.Builder get = GetObjectRequest.builder()
                     .bucket(props.getBucket())
-                    .key(objectKey)
-                    .build();
+                    .key(objectKey);
+
+            if (downloadName != null && !downloadName.isBlank()) {
+                String encoded = URLEncoder.encode(downloadName, StandardCharsets.UTF_8)
+                        .replace("+", "%20");
+                get = get.responseContentDisposition("attachment; filename*=UTF-8''" + encoded);
+            }
 
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                     .signatureDuration(Duration.ofDays(7))
-                    .getObjectRequest(getObjectRequest)
+                    .getObjectRequest(get.build())
                     .build();
 
             return presigner.presignGetObject(presignRequest).url().toString();
