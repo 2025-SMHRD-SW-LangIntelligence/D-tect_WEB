@@ -45,7 +45,7 @@
     <td>사용 프레임워크</td>
     <td>
       <img src = "https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white">
-      <img src = "https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=Spring Security&logoColor=white"/>
+      <img src = "https://img.shields.io/badge/Spring Security-6DB33F?style=for-the-badge&logo=Spring Security&logoColor=white">
     </td>
   </tr>
   <tr>
@@ -65,7 +65,7 @@
   <tr>
     <td>사용 서버환경</td>
     <td>
-      <img src="https://img.shields.io/badge/Apache Tomcat 9.0-D22128?style=for-the-badge&logo=Apache Tomcat&logoColor=white"/> 
+      <img src="https://img.shields.io/badge/Apache Tomcat 9.0-D22128?style=for-the-badge&logo=Apache Tomcat&logoColor=white"> 
     </td>
   </tr>
   <tr>
@@ -124,6 +124,7 @@ https://www.erdcloud.com/d/ztCxFsoGhH5GD8aL5
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
