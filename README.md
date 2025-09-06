@@ -2,7 +2,7 @@
 
 ## 서비스 소개
 <ul>
-  <li>서비스명 : 화면 자동캡쳐기능을 통한 사이버 불링 탐색 시스템</li>
+  <li>서비스명 : 자연어 처리 및 화면 자동 캡쳐 기능을 통한 사이버불링 탐지 시스템</li>
 </ul>
 
 ## 프로젝트 기간
@@ -124,6 +124,7 @@ https://www.erdcloud.com/d/ztCxFsoGhH5GD8aL5
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
