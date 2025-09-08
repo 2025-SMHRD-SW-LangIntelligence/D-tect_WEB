@@ -281,7 +281,7 @@
     </td>
   </tr>
   <tr>
-    <td><h3 colspan = "2">관리자 화면</h3></td>
+    <td colspan = "2"><h3>관리자 화면</h3></td>
   </tr>
   <tr>
     <td>관리자 메인 페이지</td>
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
