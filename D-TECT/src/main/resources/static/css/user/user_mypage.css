@@ -1,6 +1,12 @@
 :root{
     --bg:#f6f6f6; --ink:#1b1b1b; --muted:#6a6a6a; --panel:#2f2f2f; --border:#3c3c3c;
     --brand:#ffd400; --brand-ink:#111; --radius:14px; --radius-lg:18px;
+
+    --page-align-offset: 64px;
+
+    /* 레이아웃 튜닝용 */
+    --left-col: 340px;
+    --grid-gap: 20px;    /* 컬럼 사이 간격 */
 }
 
 /* Base */
@@ -26,26 +32,26 @@ body{
 .text-link{background:none; border:none; color:#ddd; cursor:pointer; padding:6px 8px}
 .text-link:hover{color:#fff}
 
-/* Layout: 중앙정렬 → 좌측정렬 */
 .container{
     max-width:1080px;
-    /* margin:24px auto;  ← 가운데 정렬 제거 */
-    margin:24px 0;            /* 위아래만 마진 */
-    padding-left:clamp(16px, 3vw, 40px);  /* 좌측 여백(반응형) */
-    padding-right:16px;       /* 우측 여백 최소 */
+    width:100%;
+    margin:24px 0 24px calc(50px + var(--page-align-offset));
+    padding-left:0;
+    padding-right:16px;
 }
 
 /* 왼쪽 고정폭 + 오른쪽 가변 */
 .grid{
     display:grid;
-    grid-template-columns:340px 1fr;
-    gap:20px;
+    grid-template-columns: var(--left-col) 1fr;
+    gap: var(--grid-gap);
     align-items:start;
 }
 
-/* 오른쪽 컬럼으로 강제 배치 */
+/* 오른쪽 컬럼으로 강제 배치 (인보이스/CTA 등) */
 .col-2{ grid-column:2 / 3; }
 
+/* Card */
 .card{
     background:#fff; border:1.5px solid #e7e7e7; border-radius:var(--radius-lg);
     padding:16px; box-shadow:0 2px 10px rgba(0,0,0,.04);
@@ -62,7 +68,7 @@ body{
 .btn--accent{background:var(--brand); color:var(--brand-ink); min-width:220px}
 .btn--danger{outline:2px solid #111}
 
-/* CTA 버튼: 오른쪽 컬럼에서 시작(인보이스와 같은 시작선) */
+/* CTA 버튼: 오른쪽 컬럼 시작선에 정렬 */
 .cta-wrap{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:24px }
 
 /* Forms */
@@ -78,7 +84,7 @@ body{
 .list-scroll{ border:1.5px solid #dcdcdc; border-radius:12px; overflow:auto; max-height:320px; background:#fff; position:relative; }
 .list-grid, .list-row{
     display:grid;
-    grid-template-columns:var(--col1,140px) var(--col2,140px) var(--col3,140px) var(--col4,140px) minmax(var(--col5,160px),1fr) var(--col6);
+    grid-template-columns:var(--col1,140px) var(--col2,140px) var(--col3,140px) var(--col4,140px) minmax(var(--col5,160px),1fr) var(--col6,120px);
     gap:12px; align-items:center;
 }
 .list-head{
@@ -89,6 +95,7 @@ body{
 .list-row{padding:12px; border-top:1px solid #eee; background:#fff}
 .list-head .col, .list-row .col{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
+/* 채팅 버튼 */
 .chat-btn{
     border:none; cursor:pointer; font-weight:800; border-radius:999px; padding:6px 12px;
     background:var(--brand); color:var(--brand-ink); box-shadow:inset 0 0 0 2px #00000020;
@@ -132,12 +139,20 @@ body{
 .btn.btn--accent{background:var(--brand)!important; color:var(--brand-ink)!important;}
 .btn.btn--accent.btn--danger{outline:2px solid #111}
 
-/* Responsive */
-@media (min-width:1200px){
-    .list{ --col1:160px; --col2:180px; --col3:160px; --col4:160px; --col5:220px; }
+@media (min-width:1400px){
+    /* :root{ --page-align-offset: 84px; } */
 }
+
+/* 모바일 */
 @media (max-width:900px){
-    .grid{ grid-template-columns:1fr; }
+    /* 모바일은 가운데 정렬이 보기 좋아서 기본 중앙으로 복귀 */
+    .container{ margin:24px auto; padding:0 16px; }
+    .grid{ grid-template-columns:1fr; gap:16px; }
     .col-2{ grid-column:auto; }
     .cta-wrap{ grid-template-columns:1fr; }
+}
+
+/* 超대형 테이블 컬럼 확장 (옵션) */
+@media (min-width:1200px){
+    .list{ --col1:160px; --col2:180px; --col3:160px; --col4:160px; --col5:220px; }
 }

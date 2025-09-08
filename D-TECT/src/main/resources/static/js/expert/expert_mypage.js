@@ -274,7 +274,7 @@ setupLogout(document.querySelectorAll('.logout-link'), {
 });
 
 // 상단 버튼
-document.getElementById('reqBtn')?.addEventListener('click', () => alert('상담 신청 확인으로 이동'));
+//document.getElementById('reqBtn')?.addEventListener('click', () => alert('상담 신청 확인으로 이동'));
 document.getElementById('scheduleBtn')?.addEventListener('click', () => window.location.href = '/expertSchedulePage');
 
 // ✅ 회원탈퇴(공통 바인딩)

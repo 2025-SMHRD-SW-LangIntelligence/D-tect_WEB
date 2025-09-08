@@ -1,4 +1,9 @@
-:root{ --bg:#f6f6f6; --ink:#1b1b1b; --muted:#6a6a6a; --panel:#2f2f2f; --border:#3c3c3c; --brand:#ffd400; --brand-ink:#111; --radius:14px; --radius-lg:18px; }
+:root{
+    --bg:#f6f6f6; --ink:#1b1b1b; --muted:#6a6a6a; --panel:#2f2f2f; --border:#3c3c3c;
+    --brand:#ffd400; --brand-ink:#111; --radius:14px; --radius-lg:18px;
+
+    --card-align-offset: 64px;
+}
 
 /* Base */
 *{box-sizing:border-box}
@@ -23,10 +28,22 @@ body{
 .text-link{background:none; border:none; color:#ddd; cursor:pointer; padding:6px 8px}
 .text-link:hover{color:#fff}
 
-/* Layout */
-.container{max-width:1100px; margin:24px auto; padding:0 16px}
-.grid{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+.container{
+    max-width:1100px;
+    width:100%;
+    margin:24px 0 24px calc(120px + var(--card-align-offset)); /* ← '지' 시작선에 맞추는 핵심 */
+    padding-right:12px;           /* 오른쪽만 약간 여백 */
+    display:grid;
+    grid-template-columns:1.3fr 1fr; /* 좌측(개인정보) 강조 */
+    gap:20px;
+    align-items:start;
+}
+.grid{display:contents}
 .align-right{grid-column:2}
+
+.container > .grid > article.card.card--dark{ grid-column:1; grid-row:1 / span 2; }
+.container > .grid > article.card.list{      grid-column:2; grid-row:1; }
+.container > .cta-wrap{                       grid-column:2; grid-row:2; margin-top:0; }
 
 /* Card */
 .card{
@@ -44,7 +61,8 @@ body{
 .btn--ghost{background:#efefef}
 .btn--accent{background:var(--brand); color:var(--brand-ink); min-width:220px}
 .btn--danger{outline:2px solid #111}
-.cta-wrap{display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:24px}
+
+.cta-wrap{display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px;}
 
 /* Forms */
 .info-form .field, .fee-form .field{display:flex; flex-direction:column; gap:6px; margin-top:12px}
@@ -138,14 +156,18 @@ label.field:has(.tag-wrap) input { pointer-events:auto; }
 .list-foot{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px}
 .page-info{min-width:60px; text-align:center}
 
-/* Responsive */
-@media (min-width:1200px){
-    .list{ --col1:160px; --col2:180px; --col3:160px; --col4:160px; --col5:220px; --col6:240px; }
+@media (min-width:1400px){
+    :root{ --card-align-offset: 84px; } /* 필요없으면 이 줄 지워도 됩니다 */
 }
+
+/* 모바일/태블릿: 단일 컬럼으로 복귀 */
 @media (max-width:900px){
-    .grid{grid-template-columns:1fr}
-    .align-right{grid-column:auto}
-    .cta-wrap{grid-template-columns:1fr}
+    .container{ display:block; padding:0 16px; margin:24px auto; } /* 모바일은 가운데 */
+    .grid{ display:grid; grid-template-columns:1fr; }
+    .container > .grid > article.card.card--dark,
+    .container > .grid > article.card.list,
+    .container > .cta-wrap{ grid-column:auto; grid-row:auto; }
+    .cta-wrap{ grid-template-columns:1fr; margin-top:18px; }
 }
 
 /* ======= 청구서 모달(범위 한정) ======= */

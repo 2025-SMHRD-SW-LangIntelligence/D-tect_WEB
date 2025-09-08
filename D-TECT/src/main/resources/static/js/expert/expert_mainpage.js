@@ -1,5 +1,5 @@
 // ===== 기본 경로/ID =====
-const SCHEDULE_PATH = "/expert_schedule.html";
+const SCHEDULE_PATH = "#";
 const EXPERT_ID = (() => {
     const byBody = Number(document.body.dataset.expertId || 0);
     if (byBody) return byBody;
