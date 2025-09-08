@@ -117,7 +117,7 @@
 <table>
   <tr>
     <td>
-      <img width="789" height="645" alt="Image" src="https://github.com/user-attachments/assets/b6b5420f-4f49-4a35-9d0c-727d6585a819" />
+      <img width="1920" height="1080" alt="사용자 (1)" src="https://github.com/user-attachments/assets/f4ff63cc-8695-4f9f-a4a9-1cd090e18236" />
     </td>
   </tr>
 </table>
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
