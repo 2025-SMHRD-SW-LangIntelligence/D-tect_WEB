@@ -299,19 +299,19 @@
 <table>
   <tr>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899">
+      <img width = "200" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899"/>
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5">
+      <img width = "200" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5"/>
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/e2bb464c-e10b-4e53-906a-fd527a11b54e">
+      <img width = "200" src = "https://github.com/user-attachments/assets/e2bb464c-e10b-4e53-906a-fd527a11b54e"/>
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/50da7596-e6e4-4c6a-87f2-10be0d1bc80d">
+      <img width = "200" src = "https://github.com/user-attachments/assets/50da7596-e6e4-4c6a-87f2-10be0d1bc80d"/>
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d">
+      <img width = "200" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d"/>
     </td>
   </tr>
   <tr>
@@ -336,6 +336,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
