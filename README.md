@@ -305,15 +305,14 @@
       <img width = "200" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5"/>
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/23130591-b8fd-44bd-ab9c-b736ba3031a8"/>
+      <img width = "200" src = "https://github.com/user-attachments/assets/86d70b95-c801-4ab2-91cc-1fce9e6adf35"/>
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/148b0d15-9497-457c-8a0c-f59cdde2e4a3"/>
+      <img width = "200" src = "https://github.com/user-attachments/assets/6e0c9363-7491-4a7e-a8ec-745b9442444c"/>
     </td>
     <td>
       <img width = "200" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d"/>
     </td>
-
   </tr>
   <tr>
     <td align="center">정광원(팀장)</td>
@@ -337,6 +336,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
