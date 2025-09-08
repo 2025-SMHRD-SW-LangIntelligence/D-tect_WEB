@@ -16,12 +16,8 @@
         <h1 class="page-title">관리자 페이지</h1>
     </div>
     <div class="right">
-        <span class="admin-name" th:text="${displayName}">관리자님</span>
+        <span class="admin-name" th:text="${(displayName != null and !#strings.isEmpty(displayName)) ? displayName : '관리자님'}">관리자님</span>
 
-        <!-- 로그아웃(POST) -->
-<!--        <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">-->
-<!--            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
-<!--        </form>-->
         <form id="logoutForm" action="#" method="post" style="display:none">
             <input type="hidden" name="#" value="#" />
         </form>
@@ -30,6 +26,18 @@
 </header>
 
 <main class="container">
+    <section class="kpi">
+        <div class="kpi-card">
+            <div class="kpi-label">총 수수료</div>
+            <div class="kpi-value">
+                <span id="kpiTotal"
+                      th:text="${#numbers.formatInteger(myPoint == null ? 0 : myPoint, 0, 'COMMA')}">0</span>
+                <span class="unit"> 원</span>
+            </div>
+            <div class="kpi-hint">※ 현재 관리자 계정에 적립된 포인트</div>
+        </div>
+    </section>
+
     <!-- 컬럼 레이아웃 -->
     <section class="layout-2col">
         <!-- 신조어 / 부정 이용자 -->

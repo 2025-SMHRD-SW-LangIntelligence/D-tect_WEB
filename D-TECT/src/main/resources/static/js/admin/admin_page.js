@@ -2,7 +2,6 @@ function showResult(ok, msg) {
     alert(ok ? (msg || '작업이 완료되었습니다.') : (msg || '작업이 실패했습니다.'));
 }
 
-// CSRF 유틸
 const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]')?.content;
 const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.content;
 
@@ -47,14 +46,14 @@ function getCsrfParam() {
 })();
 
 // ====== 좌측 카드 (데모) ======
-document.getElementById('newwordForm').addEventListener('submit', (e) => {
+document.getElementById('newwordForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const word = document.getElementById('nwWord').value.trim();
     const mean = document.getElementById('nwMeaning').value.trim();
     showResult(!!(word && mean));
     if (word && mean) e.target.reset();
 });
-document.getElementById('banForm').addEventListener('submit', (e) => {
+document.getElementById('banForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const uid = document.getElementById('banId').value.trim();
     const reason = document.getElementById('banReason').value.trim();
@@ -107,12 +106,12 @@ function normalizeExpert(row) {
 
 // 행 렌더
 function renderRows() {
+    if (!expertRows) return;
     const rows = pageSlice(currentPage);
 
     expertRows.innerHTML = rows.map(e => {
         const applied    = e.joinedAt ? new Date(e.joinedAt).toISOString().slice(0,10) : '-';
 
-        // 토큰 단위 줄바꿈: 개별 항목은 끊지 않고 콤마에서만 줄바꿈
         const fieldsHtml = (Array.isArray(e.fields) && e.fields.length)
             ? e.fields.map(code => {
                 const label = FIELD_KO[code] || code;
@@ -135,12 +134,12 @@ function renderRows() {
     `;
     }).join('');
 
-    // 현재 페이지 내에서만 전체선택 적용
-    checkAll.checked = false;
+    if (checkAll) checkAll.checked = false;
     renderPager();
 }
 
 function renderPager() {
+    if (!pagerEl) return;
     const tp = totalPages();
     let html = '';
 
@@ -149,7 +148,6 @@ function renderPager() {
 
     html += `<button class="pg-btn" data-go="prev" ${prevDisabled}>이전</button>`;
 
-    // 페이지 숫자 (현재 중심 ±2)
     const pages = [];
     const start = Math.max(1, currentPage - 2);
     const end   = Math.min(tp, currentPage + 2);
@@ -174,12 +172,13 @@ function renderPager() {
 }
 
 // 전체선택(보이는 페이지 한정)
-checkAll.addEventListener('change', (e) => {
-    expertRows.querySelectorAll('.rowchk').forEach(chk => chk.checked = e.target.checked);
+checkAll?.addEventListener('change', (e) => {
+    expertRows?.querySelectorAll('.rowchk').forEach(chk => chk.checked = e.target.checked);
 });
 
 // 승인(보이는 페이지에서 체크된 항목만)
-approveBtn.addEventListener('click', async () => {
+approveBtn?.addEventListener('click', async () => {
+    if (!expertRows) return;
     const ids = [...expertRows.querySelectorAll('.rowchk:checked')]
         .map(chk => Number(chk.closest('.row').dataset.id))
         .filter(n => Number.isFinite(n) && n > 0);
@@ -198,7 +197,7 @@ approveBtn.addEventListener('click', async () => {
             body: JSON.stringify({ ids })
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        const json = await res.json(); // { ok:true, count:n }
+        const json = await res.json();
 
         PENDING = PENDING.filter(x => !ids.includes(x.expertIdx));
         const tp = totalPages();
@@ -212,7 +211,8 @@ approveBtn.addEventListener('click', async () => {
 });
 
 // 가입거절(보이는 페이지에서 체크된 항목만, 1건씩 호출)
-rejectBtn.addEventListener('click', async () => {
+rejectBtn?.addEventListener('click', async () => {
+    if (!expertRows) return;
     const ids = [...expertRows.querySelectorAll('.rowchk:checked')]
         .map(chk => Number(chk.closest('.row').dataset.id))
         .filter(n => Number.isFinite(n) && n > 0);
@@ -257,7 +257,7 @@ async function loadPending() {
                     : []);
 
         PENDING = list.map(normalizeExpert);
-        currentPage = 1; // 새로고침 시 1페이지로
+        currentPage = 1;
     } catch (err) {
         console.error('[pending] 로드 실패:', err);
         PENDING = [];
@@ -265,12 +265,12 @@ async function loadPending() {
     renderRows();
 }
 
-refreshBtn.addEventListener('click', loadPending);
+refreshBtn?.addEventListener('click', loadPending);
 
 // 초기 로드
 document.addEventListener('DOMContentLoaded', loadPending);
 
 // 로그아웃
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    document.getElementById('logoutForm').submit();
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    document.getElementById('logoutForm')?.submit();
 });

@@ -34,13 +34,16 @@ public class ExpertService {
                 .map(f -> f.getFieldName().name())
                 .toList();
 
+        Long total = (e.getPoint() == null) ? 0L : e.getPoint();
+
         return new ExpertProfileDto(
                 e.getExpertIdx(),
                 name,
                 email,
                 e.getOfficeName(),
                 e.getOfficeAddress(),
-                codes
+                codes,
+                total
         );
     }
 

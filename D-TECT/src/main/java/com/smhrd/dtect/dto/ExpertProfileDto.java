@@ -15,4 +15,6 @@ public class ExpertProfileDto {
     private String officeAddress;
 
     private List<String> specialtyCodes;
+    // 총 수익(포인트)
+    private Long totalEarnings;
 }

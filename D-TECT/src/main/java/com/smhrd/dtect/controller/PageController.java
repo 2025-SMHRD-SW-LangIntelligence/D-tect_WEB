@@ -2,6 +2,7 @@ package com.smhrd.dtect.controller;
 
 import java.util.ArrayList;
 
+import com.smhrd.dtect.repository.UserRepository;
 import com.smhrd.dtect.security.CustomUser;
 import com.smhrd.dtect.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,10 +19,12 @@ public class PageController {
 	
     private final AdminService adminService;
     private final UserService userService;
+    private final UserRepository userRepository;
 
-    public PageController(AdminService adminService, UserService userService) {
+    public PageController(AdminService adminService, UserService userService, UserRepository userRepository) {
         this.adminService = adminService;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 	
     /* 공용 페이지 */
@@ -153,7 +156,22 @@ public class PageController {
     /* 관리자 페이지 */
 
     @GetMapping(value = "/adminMainPage")
-    public String admin() {
+    public String admin(@AuthenticationPrincipal CustomUser principal, Model model) {
+        if (principal == null || principal.getMember() == null) {
+            return "redirect:/loginPage";
+        }
+
+        var member = principal.getMember();
+        Long memIdx = member.getMemIdx();
+
+        // 관리자(나) 포인트
+        Long myPoint = userRepository.findByMember_MemIdx(memIdx)
+                .map(u -> u.getPoint() == null ? 0L : u.getPoint())
+                .orElse(0L);
+
+        model.addAttribute("displayName", member.getName());
+        model.addAttribute("myPoint", myPoint);
+
         return "admin/admin_page";    				// 관리자 메인 페이지
     }
     

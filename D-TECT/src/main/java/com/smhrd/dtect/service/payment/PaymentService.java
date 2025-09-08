@@ -6,8 +6,11 @@ import com.smhrd.dtect.dto.payment.TossConfirmRequest;
 import com.smhrd.dtect.dto.payment.TossConfirmResponse;
 import com.smhrd.dtect.entity.Matching;
 import com.smhrd.dtect.entity.MatchingStatus;
+import com.smhrd.dtect.entity.MemRole;
+import com.smhrd.dtect.entity.User;
 import com.smhrd.dtect.entity.payment.*;
 import com.smhrd.dtect.repository.MatchingRepository;
+import com.smhrd.dtect.repository.UserRepository;
 import com.smhrd.dtect.repository.payment.InvoiceRepository;
 import com.smhrd.dtect.repository.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final MatchingRepository matchingRepository;
     private final RestTemplate restTemplate;
+    private final UserRepository userRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -190,6 +194,30 @@ public class PaymentService {
             if (m != null && m.getStatus() != MatchingStatus.PAID) {
                 m.setStatus(MatchingStatus.PAID);
                 matchingRepository.save(m);
+            }
+        }
+        Integer amount = inv.getAmountTotal();
+        if (amount != null && amount > 0) {
+            long perAdmin = (amount * 3L) / 100L;         // 수수료 3%
+            long expertShare = amount - perAdmin;      // 전문가 몫
+
+            // 1) 전문가 적립
+            if (inv.getExpert() != null) {
+                var expert = inv.getExpert();
+                Long cur = (expert.getPoint() == null) ? 0L : expert.getPoint();
+                expert.setPoint(cur + expertShare);
+            }
+
+            // 2) ADMIN에게 3%씩 적립
+            if (perAdmin > 0L) {
+                var admins = userRepository.findByMember_MemRole(MemRole.ADMIN);
+                if (admins != null && !admins.isEmpty()) {
+                    for (var admin : admins) {
+                        Long cur = (admin.getPoint() == null) ? 0L : admin.getPoint();
+                        admin.setPoint(cur + perAdmin);
+                    }
+                    userRepository.saveAll(admins);
+                }
             }
         }
 
