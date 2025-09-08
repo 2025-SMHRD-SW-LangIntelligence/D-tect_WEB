@@ -102,7 +102,7 @@
     <td>
       <img src = "https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=Figma&logoColor=white"/>
       <img src = "https://img.shields.io/badge/n8n-ea4b71?style=for-the-badge&logo=n8n&logoColor=white">
-      <img src = "https://https://img.shields.io/badge/PDF.co-ff550d?style=for-the-badge&logo=n8n&logoColor=white">
+      <img src = "https://https://img.shields.io/badge/PDF.co-ff550d?style=for-the-badge&logo=PDF.co&logoColor=white">
     </td>
   </tr>
 </table>
@@ -180,6 +180,7 @@
     <td align="center"><a href="https://github.com/자신의username작성해주세요" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
