@@ -295,12 +295,19 @@
 </table>
 
 ## 트러블 슈팅
-
-<table>
-  <tr>
-    <td></td>
-  </tr>
-</table>
+<ol>
+  <li>NCP Object Storage 직접 접근 시 403 오류</li>
+  <ul>
+    <li>원인 : 버킷 생성시 비공개로 설정해둬서 직접 접근이 불가능</li>
+    <li>해결법 : S3Presinger를 사용하여 Presigned URL을 생성하여클라이언트에 주는 방식으로 해결</li>
+  </ul>
+  <li>설치형(Electron) 에이전트가 필요해 사용자 진입 장벽이 높고, OS권한, 서명 이슈로 배포와 운영이 복잡함</li>
+  <ul>
+    <li>대안으로 Screen Capture API로 전환</li>
+    <li>결정 : 웹 기반으로 변경(설치 없이 사용)</li>
+    <li>성과 : 설치없이 캡처 시작, 배포 단순화</li>
+  </ul>
+</ol>
 
 ## 팀원 역할
 <table>
@@ -342,6 +349,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
