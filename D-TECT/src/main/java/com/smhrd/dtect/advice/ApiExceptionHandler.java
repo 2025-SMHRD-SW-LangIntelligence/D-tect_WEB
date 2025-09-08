@@ -2,13 +2,19 @@ package com.smhrd.dtect.advice;
 
 import java.util.Map;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -59,5 +65,38 @@ public class ApiExceptionHandler {
         // log.error("Unhandled", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "서버 오류가 발생했습니다."));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException e) {
+        String msg = (e.getMessage() == null || e.getMessage().isBlank())
+                ? "접근 권한이 없습니다."
+                : e.getMessage();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", msg));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUpload(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(Map.of("message", "파일이 너무 큽니다"));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<Map<String, String>> handleMultipart(MultipartException e) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("message", "멀티파트 요청을 확인해 주세요"));
+    }
+
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            ConstraintViolationException.class
+    })
+    public ResponseEntity<Map<String, String>> handleParams(Exception e) {
+        String msg = "요청 파라미터가 올바르지 않습니다.";
+        if (e instanceof MissingServletRequestParameterException m) {
+            msg = "필수 파라미터가 없습니다: " + m.getParameterName();
+        }
+        return ResponseEntity.badRequest().body(Map.of("message", msg));
     }
 }
