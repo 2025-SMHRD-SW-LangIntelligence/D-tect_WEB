@@ -22,7 +22,7 @@ public class UploadFile {
     
     // 자료 인코딩
     @Lob
-    @Column(name = "upload_encoding", columnDefinition = "MEDIUMBLOB")
+    @Column(name = "upload_encoding", columnDefinition = "LONGBLOB")
     private byte[] uploadEncoding;
 
     // 자료 벡터
