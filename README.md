@@ -26,7 +26,7 @@
 ## 기술 스텍
 <table>
   <tr>
-    <td>운영체제</td>
+    <td>운영<br>체제</td>
     <td>
       <img src = "https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white">
       <img src = "https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black">
@@ -45,7 +45,7 @@
     </td>
   </tr>
   <tr>
-    <td>프로그램</td>
+    <td>프로<br>그램</td>
     <td>
       <img src = "https://img.shields.io/badge/Eclipse-2C2255?style=for-the-badge&logo=Eclipse&logoColor=white"/> 
       <img src = "https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white">
@@ -56,7 +56,7 @@
     </td>
   </tr>
   <tr>
-    <td>프레임<br>워크</td>
+    <td>Flame<br>Work</td>
     <td>
       <img src = "https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white">
       <img src = "https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=Spring%20Security&logoColor=white">
@@ -64,13 +64,13 @@
     </td>
   </tr>
   <tr>
-    <td>데이터<br>베이스</td>
+    <td>DataBase</td>
     <td>
       <img src = "https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white">
     </td>
   </tr>
   <tr>
-    <td>라이브러리</td>
+    <td>Library</td>
     <td>
       <img src = "https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white">
       <img src = "https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white">
@@ -86,24 +86,24 @@
     </td>
   </tr>
   <tr>
-    <td>서버환경</td>
+    <td>서버<br>환경</td>
     <td>
       <img src = "https://img.shields.io/badge/Apache%20Tomcat%209.0-D22128?style=for-the-badge&logo=Apache%20Tomcat&logoColor=white">
     </td>
   </tr>
   <tr>
-    <td>클라우드</td>
+    <td>클라<br>우드</td>
     <td>
       <img src = "https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=Amazon%20S3&logoColor=white">
       <img src = "https://img.shields.io/badge/Naver%20Cloud%20Platform-00db88?style=for-the-badge&logo=Naver%20Cloud%20Platform&logoColor=white">
     </td>
   </tr>
   <tr>
-    <td>데이터셋</td>
+    <td>DataSet</td>
     <td>https://github.com/smilegate-ai/korean_unsmile_dataset</td>
   </tr>
   <tr>
-    <td>프로그램</td>
+    <td>프로<br>그램</td>
     <td>
       <img src = "https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=Figma&logoColor=white"/>
       <img src = "https://img.shields.io/badge/n8n-ea4b71?style=for-the-badge&logo=n8n&logoColor=white">
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
