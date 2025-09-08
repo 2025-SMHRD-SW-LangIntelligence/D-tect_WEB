@@ -153,6 +153,9 @@
 
 <table>
   <tr>
+    <td colspan = 2><h3>공통 화면</h3></td>
+  </tr>
+  <tr>
   <td>시작 화면</td>
     <td>
       <img width="1920" height="914" alt="Image" src="https://github.com/user-attachments/assets/8523ae9e-8cb3-4c41-bd59-d3e75d7cb6ae" />
@@ -171,7 +174,7 @@
       <img width="1902" height="913" alt="Image" src="https://github.com/user-attachments/assets/9f0c5b4e-1afe-4779-8b67-a948ff345103" />
     </td>
   </tr>
-    <td><h3>일반 회원 화면</h3></td>
+    <td colspan = 2><h3>일반 회원 화면</h3></td>
   </tr>
   <tr>
     <td>메인 화면</td>
@@ -216,7 +219,7 @@
     </td>
   </tr>
   <tr>
-    <td><h3>전문가 회원 화면</h3></td>
+    <td colspan = 2><h3>전문가 회원 화면</h3></td>
   </tr>
   <tr>
     <td>전문가 메인 화면</td>
@@ -237,7 +240,7 @@
     </td>
   </tr>
   <tr>
-    <td><h3>관리자 화면</h3></td>
+    <td colspan = 2><h3>관리자 화면</h3></td>
   </tr>
   <tr>
     <td>관리자 메인 화면</td>
@@ -292,6 +295,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
