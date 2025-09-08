@@ -103,7 +103,7 @@
     <td>https://github.com/smilegate-ai/korean_unsmile_dataset</td>
   </tr>
   <tr>
-    <td>사용<br>프로그램</td>
+    <td>프로그램</td>
     <td>
       <img src = "https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=Figma&logoColor=white"/>
       <img src = "https://img.shields.io/badge/n8n-ea4b71?style=for-the-badge&logo=n8n&logoColor=white">
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
