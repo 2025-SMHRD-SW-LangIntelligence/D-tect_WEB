@@ -3,10 +3,18 @@
 <head>
 	<meta charset="UTF-8" />
 	<title>Chatbot</title>
+
+	<meta name="mypage-url" content="/userMainPage" />
+
 	<link rel="stylesheet" th:href="@{/css/user/bot.css}" />
 </head>
 <body>
-<section class="bot-panel">
+<section class="bot-panel" data-endpoint="">
+	<!-- ✅ 채팅 카드 '밖', 패널 왼쪽 상단 -->
+	<div class="panel-actions">
+		<a id="gotoMyPageBtn" class="goto-btn" href="/userMainPage" aria-label="마이페이지로 이동">메인페이지</a>
+	</div>
+
 	<div class="chat-card">
 		<div class="chat-header"></div>
 		<div class="chat-body">
@@ -15,7 +23,7 @@
 	</div>
 
 	<form id="botForm" class="chat-form" autocomplete="off">
-		<textarea id="userInput" class="bot-input" type="text" placeholder="메시지를 입력하세요"></textarea>
+		<textarea id="userInput" class="bot-input" placeholder="메시지를 입력하세요"></textarea>
 		<button id="sendBtn" class="chat-send" type="submit">Send</button>
 	</form>
 </section>

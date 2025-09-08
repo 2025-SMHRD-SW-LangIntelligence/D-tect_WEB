@@ -1,3 +1,5 @@
+import { initProfileEditPopup, setupLogout, setupWithdraw } from '/js/public/common.js';
+
 function getEndpoint() {
   const panel = document.querySelector('.bot-panel');
   let base =
@@ -56,7 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('botForm');
   const input = document.getElementById('userInput');
   const log = document.getElementById('chatLog');
+  const gotoBtn = document.getElementById('gotoMyPageBtn');
   if (!form || !input || !log) return;
+
+  // 메인페이지 버튼임
+  // 마이페이지 버튼 아님
+  const metaMyPage = document.querySelector('meta[name="mypage-url"]')?.content?.trim();
+  if (gotoBtn && metaMyPage) gotoBtn.setAttribute('href', metaMyPage);
 
   let isSending = false;
   let isComposing = false;
