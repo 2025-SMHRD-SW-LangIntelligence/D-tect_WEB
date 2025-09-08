@@ -310,10 +310,10 @@
       <img width = "200" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5">
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/b15649bc-cea6-4062-a812-03d8f0f1cb4e">
+      <img width = "200" src = "https://github.com/user-attachments/assets/e2bb464c-e10b-4e53-906a-fd527a11b54e">
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/4a4741ad-bccd-4963-9239-09221fdc5ce5">
+      <img width = "200" src = "https://github.com/user-attachments/assets/c4814b51-5174-4850-bcc3-80323f095f6f">
     </td>
     <td>
       <img width = "200" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d">
@@ -340,6 +340,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
