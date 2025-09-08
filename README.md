@@ -81,7 +81,7 @@
       <img src = "https://img.shields.io/badge/Toss%20Api-003ef5?style=for-the-badge&logo=Toss%20Api&logoColor=white">
       <img src = "https://img.shields.io/badge/Transformer-ef695c?style=for-the-badge&logo=Transformer&logoColor=white">
       <img src = "https://img.shields.io/badge/LangChain-1c3c3c?style=for-the-badge&logo=LangChain&logoColor=white">
-      <img src = "https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000">
+      <img src = "https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=000">
       <img src = "https://img.shields.io/badge/Google%20Cloud%20Vision%20API-4080fc?style=for-the-badge&logo=Google%20Cloud%20Vision%20API&logoColor=white">
     </td>
   </tr>
