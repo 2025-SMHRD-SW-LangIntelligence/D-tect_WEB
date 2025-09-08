@@ -315,7 +315,7 @@
       <img width = "150" src = "https://github.com/user-attachments/assets/b15649bc-cea6-4062-a812-03d8f0f1cb4e"/>
     </td>
     <td align="center">
-      <img width = "150" src = "https://github.com/user-attachments/assets/5a956a7c-ed4d-4b63-8d64-a4b12fb28a53"/>
+      <img width = "150" src = "https://github.com/user-attachments/assets/bc2eb0a8-1f18-455f-906d-5a2afa078265"/>
     </td>
     <td align="center">
       <img width = "150" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d"/>
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
