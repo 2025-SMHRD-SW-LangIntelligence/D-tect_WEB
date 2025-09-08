@@ -159,7 +159,7 @@
 
 <table>
   <tr>
-    <td colspan = "2"><h3>공통 화면</h3></td>
+    <td colspan = "2"><h3 align="center">공통 화면</h3></td>
   </tr>
   <tr>
   <td>시작 페이지</td>
@@ -176,7 +176,7 @@
   <tr>
     <td>회원 유형 선택 페이지</td>
     <td>
-      <img width="1920" height="915" alt="Image" src="https://github.com/user-attachments/assets/217ea8fb-226e-43db-b9ab-e3bf28174e4f" />
+      <img width="1920" height="915" alt="Image" src="https://github.com/user-attachments/assets/0e14a429-b064-45bf-b38f-e76753f013a2" />
     </td>
   </tr>
   <tr>
@@ -221,7 +221,7 @@
       <img width="1902" height="913" alt="Image" src="https://github.com/user-attachments/assets/9f0c5b4e-1afe-4779-8b67-a948ff345103" />
     </td>
   </tr>
-    <td colspan = "2"><h3>일반 회원 화면</h3></td>
+    <td colspan = "2"><h3 align="center">일반 회원 화면</h3></td>
   </tr>
   <tr>
     <td>메인 페이지</td>
@@ -266,7 +266,7 @@
     </td>
   </tr>
   <tr>
-    <td colspan = "2"><h3>전문가 회원 화면</h3></td>
+    <td colspan = "2"><h3 align="center">전문가 회원 화면</h3></td>
   </tr>
   <tr>
     <td>전문가 메인 페이지</td>
@@ -281,7 +281,7 @@
     </td>
   </tr>
   <tr>
-    <td><h3 colspan = "2">관리자 화면</h3></td>
+    <td colspan = "2"><h3 align="center">관리자 화면</h3></td>
   </tr>
   <tr>
     <td>관리자 메인 페이지</td>
@@ -296,9 +296,7 @@
 
 <table>
   <tr>
-    <td>
-
-    </td>
+    <td></td>
   </tr>
 </table>
 
@@ -312,21 +310,21 @@
       <img src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5">
     </td>
     <td>
-      <img src = "https://github.com/user-attachments/assets/18b5b8fd-c5af-43ec-b9f4-e8b5d49e4a28">
+      <img src = "https://github.com/user-attachments/assets/b15649bc-cea6-4062-a812-03d8f0f1cb4e">
     </td>
     <td>
-      <img src = "https://github.com/user-attachments/assets/3cfd1ad5-6b4a-4141-940c-2f3b9e2c655b">
+      <img src = "https://github.com/user-attachments/assets/4a4741ad-bccd-4963-9239-09221fdc5ce5">
     </td>
     <td>
       <img src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d">
     </td>
   </tr>
   <tr>
-    <td>정광원(팀장)</td>
-    <td>고해석(팀원)</td>
-    <td>정동인(팀원)</td>
-    <td>김영훈(팀원)</td>
-    <td>이준섭(팀원)</td>
+    <td align="center">정광원(팀장)</td>
+    <td align="center">고해석(팀원)</td>
+    <td align="center">정동인(팀원)</td>
+    <td align="center">김영훈(팀원)</td>
+    <td align="center">이준섭(팀원)</td>
   </tr>
   <tr>
     <td>PM, Front-End, 모델링, 산출문서작성</td>
@@ -342,8 +340,6 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
-
-
 
 
 
