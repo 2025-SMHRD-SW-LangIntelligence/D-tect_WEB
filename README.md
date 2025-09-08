@@ -298,20 +298,20 @@
 ## 팀원 역할
 <table>
   <tr>
-    <td>
-      <img align="center" width = "150" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899"/>
+    <td align="center">
+      <img width = "150" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899"/>
     </td>
-    <td>
-      <img align="center" width = "150" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5"/>
+    <td align="center">
+      <img width = "150" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5"/>
     </td>
-    <td>
-      <img align="center" width = "150" src = "https://github.com/user-attachments/assets/86d70b95-c801-4ab2-91cc-1fce9e6adf35"/>
+    <td align="center">
+      <img width = "150" src = "https://github.com/user-attachments/assets/86d70b95-c801-4ab2-91cc-1fce9e6adf35"/>
     </td>
-    <td>
-      <img align="center" width = "150" src = "https://github.com/user-attachments/assets/6e0c9363-7491-4a7e-a8ec-745b9442444c"/>
+    <td align="center">
+      <img width = "150" src = "https://github.com/user-attachments/assets/6e0c9363-7491-4a7e-a8ec-745b9442444c"/>
     </td>
-    <td>
-      <img align="center" width = "150" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d"/>
+    <td align="center">
+      <img width = "150" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d"/>
     </td>
   </tr>
   <tr>
@@ -336,6 +336,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
