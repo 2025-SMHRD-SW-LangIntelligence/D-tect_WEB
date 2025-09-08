@@ -1,9 +1,5 @@
 # D-tect(팀명 : 패스파인더)
-<style>
-  .face{
-    width : 200
-  }
-</style>
+
 ## 서비스 소개
 <ul>
   <li>서비스명 : 화면 자동캡쳐기능을 통한 사이버 불링 탐색 시스템</li>
@@ -263,19 +259,19 @@
 <table>
   <tr>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899" width = "150" height = "200">
+      <img class = "face" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899" height = "200">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5" width = "150" height = "200">
+      <img class = "face" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5" height = "200">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/18b5b8fd-c5af-43ec-b9f4-e8b5d49e4a28" width = "150" height = "200">
+      <img class = "face" src = "https://github.com/user-attachments/assets/18b5b8fd-c5af-43ec-b9f4-e8b5d49e4a28" height = "200">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/3cfd1ad5-6b4a-4141-940c-2f3b9e2c655b" width = "150" height = "200">
+      <img class = "face" src = "https://github.com/user-attachments/assets/3cfd1ad5-6b4a-4141-940c-2f3b9e2c655b" height = "200">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d" width = "150" height = "200">
+      <img class = "face" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d" height = "200">
     </td>
   </tr>
   <tr>
@@ -299,6 +295,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
