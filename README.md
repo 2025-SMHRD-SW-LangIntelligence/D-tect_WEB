@@ -80,7 +80,7 @@
       <img src = "https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white">
       <img src = "https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white">
       <img src = "https://img.shields.io/badge/Thymeleaf-%23005C0F.svg?style=for-the-badge&logo=Thymeleaf&logoColor=white">
-      <img src = "https://img.shields.io/badge/Kakao%20Map%20Api-007CE2?style=for-the-badge&logo=KaKao%20Map%20Api&logoColor=white">
+      <img src = "https://img.shields.io/badge/Kakao%20Map%20Api-ffe500?style=for-the-badge&logo=KaKao%20Map%20Api&logoColor=white">
       <img src = "https://img.shields.io/badge/Gmail%20Api-4285f4?style=for-the-badge&logo=Gmail%20Api&logoColor=white">
       <img src = "https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white">
       <img src = "https://img.shields.io/badge/toss%20Api-003ef5?style=for-the-badge&logo=toss%20Api&logoColor=white">
@@ -295,6 +295,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
