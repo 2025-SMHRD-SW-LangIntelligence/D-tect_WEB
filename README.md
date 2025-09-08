@@ -325,6 +325,12 @@
     <td align="center">정동인(팀원)</td>
     <td align="center">김영훈(팀원)</td>
     <td align="center">이준섭(팀원)</td>
+     <td>
+      <img width = "200" src = "https://github.com/user-attachments/assets/e2bb464c-e10b-4e53-906a-fd527a11b54e">
+    </td>
+    <td>
+      <img width = "200" src = "https://github.com/user-attachments/assets/c4814b51-5174-4850-bcc3-80323f095f6f">
+    </td>
   </tr>
   <tr>
     <td>PM, Front-End, 모델링, 산출문서작성</td>
@@ -340,6 +346,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
