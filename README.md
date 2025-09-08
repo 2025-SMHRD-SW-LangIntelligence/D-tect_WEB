@@ -7,11 +7,10 @@
 
 ## 프로젝트 기간
 <ul>
-  <li>2025.08.11 ~ 2025.09.10</li>
+  <li>2025.08.11 ~ 2025.09.10(30일)</li>
 </ul>
 
 ## 주요 기능
-
 <ol>
   <li>사이버불링 발생 시 분석 버튼을 클릭하여 화면 자동 캡처</li>
   <li>캡처된 스크린샷에서 OCR을 통한 텍스트 추출</li>
@@ -31,6 +30,7 @@
     <td>
       <img src = "https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white">
       <img src = "https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black">
+      <img src = "https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white">
     </td>
   </tr>
   <tr>
@@ -41,6 +41,7 @@
       <img src = "https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E">
       <img src = "https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white">
       <img src = "https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54">
+      <img src = "https://img.shields.io/badge/JSON-000?style=for-the-badge&logo=json&logoColor=fff">
     </td>
   </tr>
   <tr>
@@ -55,17 +56,11 @@
     </td>
   </tr>
   <tr>
-    <td>사용 인프라</td>
-    <td>
-      <img src = "https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
-      <img src = "https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=Amazon%20S3&logoColor=white">
-    </td>
-  </tr>
-  <tr>
     <td>사용 프레임워크</td>
     <td>
       <img src = "https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white">
       <img src = "https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=Spring%20Security&logoColor=white">
+      <img src = "https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi">
     </td>
   </tr>
   <tr>
@@ -81,15 +76,23 @@
       <img src = "https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white">
       <img src = "https://img.shields.io/badge/Thymeleaf-%23005C0F.svg?style=for-the-badge&logo=Thymeleaf&logoColor=white">
       <img src = "https://img.shields.io/badge/Kakao%20Map%20Api-ffe500?style=for-the-badge&logo=KaKao%20Map%20Api&logoColor=white">
-      <img src = "https://img.shields.io/badge/Gmail%20Api-4285f4?style=for-the-badge&logo=Gmail%20Api&logoColor=white">
+      <img src = "https://img.shields.io/badge/Gmail%20Api-D14836?style=for-the-badge&logo=gmail&logoColor=white">
       <img src = "https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white">
-      <img src = "https://img.shields.io/badge/toss%20Api-003ef5?style=for-the-badge&logo=toss%20Api&logoColor=white">
+      <img src = "https://img.shields.io/badge/Toss%20Api-003ef5?style=for-the-badge&logo=Toss%20Api&logoColor=white">
+      <img src = "https://img.shields.io/badge/Transformer-ef695c?style=for-the-badge&logo=Transformer&logoColor=white">
+      <img src = "https://img.shields.io/badge/LangChain-1c3c3c?style=for-the-badge&logo=LangChain&logoColor=white">
     </td>
   </tr>
   <tr>
     <td>사용 서버환경</td>
     <td>
       <img src = "https://img.shields.io/badge/Apache%20Tomcat%209.0-D22128?style=for-the-badge&logo=Apache%20Tomcat&logoColor=white">
+    </td>
+  </tr>
+  <tr>
+    <td>사용 클라우드 환경</td>
+    <td>
+      <img src = "https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=Amazon%20S3&logoColor=white">
       <img src = "https://img.shields.io/badge/Naver%20Cloud%20Platform-00db88?style=for-the-badge&logo=Naver%20Cloud%20Platform&logoColor=white">
     </td>
   </tr>
@@ -102,6 +105,9 @@
     <td>
       <img src = "https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=Figma&logoColor=white"/>
       <img src = "https://img.shields.io/badge/n8n-ea4b71?style=for-the-badge&logo=n8n&logoColor=white">
+      <img src = "https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white">
+      <img src = "https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+      <img src = "https://img.shields.io/badge/Miri%20Canvas-00d4da?style=for-the-badge&logo=Miri%20Canvas&logoColor=white">
     </td>
   </tr>
 </table>
@@ -153,9 +159,6 @@
 
 <table>
   <tr>
-    <td colspan = 2><h3>공통 화면</h3></td>
-  </tr>
-  <tr>
   <td>시작 화면</td>
     <td>
       <img width="1920" height="914" alt="Image" src="https://github.com/user-attachments/assets/8523ae9e-8cb3-4c41-bd59-d3e75d7cb6ae" />
@@ -174,7 +177,7 @@
       <img width="1902" height="913" alt="Image" src="https://github.com/user-attachments/assets/9f0c5b4e-1afe-4779-8b67-a948ff345103" />
     </td>
   </tr>
-    <td colspan = 2><h3>일반 회원 화면</h3></td>
+    <td><h3>일반 회원 화면</h3></td>
   </tr>
   <tr>
     <td>메인 화면</td>
@@ -219,7 +222,7 @@
     </td>
   </tr>
   <tr>
-    <td colspan = 2><h3>전문가 회원 화면</h3></td>
+    <td><h3>전문가 회원 화면</h3></td>
   </tr>
   <tr>
     <td>전문가 메인 화면</td>
@@ -240,7 +243,7 @@
     </td>
   </tr>
   <tr>
-    <td colspan = 2><h3>관리자 화면</h3></td>
+    <td><h3>관리자 화면</h3></td>
   </tr>
   <tr>
     <td>관리자 메인 화면</td>
@@ -253,25 +256,31 @@
 
 ## 트러블 슈팅
 
+<table>
+  <tr>
+    <td>
 
+    </td>
+  </tr>
+</table>
 
 ## 팀원 역할
 <table>
   <tr>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899" height = "200">
+      <img src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5" height = "200">
+      <img src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/18b5b8fd-c5af-43ec-b9f4-e8b5d49e4a28" height = "200">
+      <img src = "https://github.com/user-attachments/assets/18b5b8fd-c5af-43ec-b9f4-e8b5d49e4a28">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/3cfd1ad5-6b4a-4141-940c-2f3b9e2c655b" height = "200">
+      <img src = "https://github.com/user-attachments/assets/3cfd1ad5-6b4a-4141-940c-2f3b9e2c655b">
     </td>
     <td>
-      <img class = "face" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d" height = "200">
+      <img src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d">
     </td>
   </tr>
   <tr>
@@ -295,12 +304,6 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
-
-
-
-
-
-
 
 
 
