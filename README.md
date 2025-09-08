@@ -81,6 +81,7 @@
       <img src = "https://img.shields.io/badge/Toss%20Api-003ef5?style=for-the-badge&logo=Toss%20Api&logoColor=white">
       <img src = "https://img.shields.io/badge/Transformer-ef695c?style=for-the-badge&logo=Transformer&logoColor=white">
       <img src = "https://img.shields.io/badge/LangChain-1c3c3c?style=for-the-badge&logo=LangChain&logoColor=white">
+      <img src = "https://img.shields.io/badge/Google%20Cloud%20Vision%20API-4080fc?style=for-the-badge&logo=Google%20Cloud%20Vision%20API&logoColor=white">
     </td>
   </tr>
   <tr>
@@ -294,24 +295,29 @@
 
 ## 트러블 슈팅
 
+<table>
+  <tr>
+    <td></td>
+  </tr>
+</table>
 
 ## 팀원 역할
 <table>
   <tr>
-    <td align="center">
-      <img width = "150" src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899"/>
+    <td>
+      <img src = "https://github.com/user-attachments/assets/4849d112-6c76-4ed7-a400-67a49f514899">
     </td>
-    <td align="center">
-      <img width = "150" src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5"/>
+    <td>
+      <img src = "https://github.com/user-attachments/assets/527f0ac7-82d0-4553-bd99-ec7ad13a41b5">
     </td>
-    <td align="center">
-      <img width = "150" src = "https://github.com/user-attachments/assets/86d70b95-c801-4ab2-91cc-1fce9e6adf35"/>
+    <td>
+      <img src = "https://github.com/user-attachments/assets/b15649bc-cea6-4062-a812-03d8f0f1cb4e">
     </td>
-    <td align="center">
-      <img width = "150" src = "https://github.com/user-attachments/assets/6e0c9363-7491-4a7e-a8ec-745b9442444c"/>
+    <td>
+      <img src = "https://github.com/user-attachments/assets/4a4741ad-bccd-4963-9239-09221fdc5ce5">
     </td>
-    <td align="center">
-      <img width = "150" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d"/>
+    <td>
+      <img src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d">
     </td>
   </tr>
   <tr>
@@ -321,7 +327,6 @@
     <td align="center">김영훈(팀원)</td>
     <td align="center">이준섭(팀원)</td>
   </tr>
-
   <tr>
     <td>PM, Front-End, 모델링, 산출문서작성</td>
     <td>Back-End, GitHub관리, 산출문서작성</td>
@@ -336,19 +341,6 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
