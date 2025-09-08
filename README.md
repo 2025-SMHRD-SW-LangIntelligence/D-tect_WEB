@@ -308,7 +308,7 @@
       <img width = "200" src = "https://github.com/user-attachments/assets/e2bb464c-e10b-4e53-906a-fd527a11b54e">
     </td>
     <td>
-      <img width = "200" src = "https://github.com/user-attachments/assets/99a00b6f-8654-4fad-a4d2-639b8b8601eb">
+      <img width = "200" src = "https://github.com/user-attachments/assets/50da7596-e6e4-4c6a-87f2-10be0d1bc80d">
     </td>
     <td>
       <img width = "200" src = "https://github.com/user-attachments/assets/7dc9c777-6af3-458d-bd4c-0399e3f6f54d">
@@ -321,6 +321,7 @@
     <td align="center">김영훈(팀원)</td>
     <td align="center">이준섭(팀원)</td>
   </tr>
+
   <tr>
     <td>PM, Front-End, 모델링, 산출문서작성</td>
     <td>Back-End, GitHub관리, 산출문서작성</td>
@@ -335,6 +336,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
