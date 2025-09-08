@@ -64,7 +64,7 @@
     </td>
   </tr>
   <tr>
-    <td>DataBase</td>
+    <td>데이터<br>베이스</td>
     <td>
       <img src = "https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white">
     </td>
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
