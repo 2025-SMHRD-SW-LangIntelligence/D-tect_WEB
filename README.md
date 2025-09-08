@@ -176,7 +176,7 @@
   <tr>
     <td>회원 유형 선택 페이지</td>
     <td>
-      <img width="1920" height="915" alt="Image" src="https://github.com/user-attachments/assets/0e14a429-b064-45bf-b38f-e76753f013a2" />
+      <img width="1920" height="915" alt="Image" src="https://github.com/user-attachments/assets/217ea8fb-226e-43db-b9ab-e3bf28174e4f" />
     </td>
   </tr>
   <tr>
@@ -342,6 +342,7 @@
     <td align="center"><a href="https://github.com/goodluckgoodjob" target='_blank'>github</a></td>
   </tr>
 </table>
+
 
 
 
