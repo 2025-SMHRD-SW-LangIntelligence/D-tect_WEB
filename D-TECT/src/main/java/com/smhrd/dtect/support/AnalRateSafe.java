@@ -1,6 +1,6 @@
 package com.smhrd.dtect.support;
 
-import com.smhrd.dtect.entity.AnalRate;
+import com.smhrd.dtect.entity.analysis.AnalRate;
 
 import java.util.Locale;
 import java.util.Map;

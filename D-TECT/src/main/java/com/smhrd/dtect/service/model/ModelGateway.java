@@ -1,6 +1,6 @@
 package com.smhrd.dtect.service.model;
 
-import com.smhrd.dtect.dto.ModelMessage;
+import com.smhrd.dtect.dto.model.ModelMessage;
 import java.util.List;
 
 public interface ModelGateway {

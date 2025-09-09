@@ -2,7 +2,13 @@ package com.smhrd.dtect.security;
 
 import java.io.IOException;
 
-import com.smhrd.dtect.entity.*;
+import com.smhrd.dtect.entity.expert.Expert;
+import com.smhrd.dtect.entity.expert.ExpertStatus;
+import com.smhrd.dtect.entity.member.MemRole;
+import com.smhrd.dtect.entity.member.Member;
+import com.smhrd.dtect.entity.member.MemberStatus;
+import com.smhrd.dtect.security.custom.CustomOAuth2User;
+import com.smhrd.dtect.security.custom.CustomUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -11,8 +17,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.smhrd.dtect.repository.ExpertRepository;
-import com.smhrd.dtect.repository.MemberRepository;
+import com.smhrd.dtect.repository.expert.ExpertRepository;
+import com.smhrd.dtect.repository.member.MemberRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

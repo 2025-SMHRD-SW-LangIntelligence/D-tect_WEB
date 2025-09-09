@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smhrd.dtect.dto.BotMessageRequest;
-import com.smhrd.dtect.dto.BotMessageResponse;
+import com.smhrd.dtect.dto.bot.BotMessageRequest;
+import com.smhrd.dtect.dto.bot.BotMessageResponse;
 
 import lombok.RequiredArgsConstructor;
 

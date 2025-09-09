@@ -1,10 +1,9 @@
 package com.smhrd.dtect.web;
 
-import com.smhrd.dtect.security.CustomUser;
-import com.smhrd.dtect.service.PrincipalIdService;
+import com.smhrd.dtect.security.custom.CustomUser;
+import com.smhrd.dtect.service.user.PrincipalIdService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;

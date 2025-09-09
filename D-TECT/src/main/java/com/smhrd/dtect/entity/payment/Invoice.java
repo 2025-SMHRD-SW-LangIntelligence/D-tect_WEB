@@ -1,9 +1,9 @@
 package com.smhrd.dtect.entity.payment;
 
-import com.smhrd.dtect.entity.Expert;
-import com.smhrd.dtect.entity.Matching;
-import com.smhrd.dtect.entity.Member;
-import com.smhrd.dtect.entity.User;
+import com.smhrd.dtect.entity.expert.Expert;
+import com.smhrd.dtect.entity.matching.Matching;
+import com.smhrd.dtect.entity.member.Member;
+import com.smhrd.dtect.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,0 +1,212 @@
+package com.smhrd.dtect.controller.matching;
+
+import com.smhrd.dtect.dto.matching.MatchingDetailDto;
+import com.smhrd.dtect.entity.expert.Expert;
+import com.smhrd.dtect.entity.matching.Matching;
+import com.smhrd.dtect.entity.matching.MatchingStatus;
+import com.smhrd.dtect.repository.expert.ExpertRepository;
+import com.smhrd.dtect.repository.matching.MatchingRepository;
+import com.smhrd.dtect.service.file.FileService;
+import com.smhrd.dtect.service.matching.MatchingService;
+import lombok.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@Controller
+@RequiredArgsConstructor
+public class MatchingController {
+
+    private final MatchingService matchingService;
+    private final MatchingRepository matchingRepository;
+    private final ExpertRepository expertRepository;
+    private final FileService fileService;
+
+    // 1) 전문가 선택 페이지
+    @GetMapping("/matching/select")
+    public String selectPage(@RequestParam Long userId, Model model) {
+        model.addAttribute("userId", userId);
+        return "user/lawyers_select";
+    }
+
+    @GetMapping("/matching/inquiry")
+    public String inquiryPage(@RequestParam Long userId,
+                              @RequestParam Long expertId,
+                              @RequestParam(required = false) String error,
+                              Model model) {
+        Expert expert = expertRepository.findById(expertId)
+                .orElseThrow(() -> new IllegalArgumentException("전문가 없음: " + expertId));
+
+        model.addAttribute("userId", userId);
+        model.addAttribute("expert", expert);
+        model.addAttribute("consultTypes", CONSULT_TYPES);
+        model.addAttribute("error", error); // [추가]
+        return "user/inquiry_checkout";
+    }
+
+    // 2) 매칭 요청 (첨부 1개 선택 가능)
+    @PostMapping(value = "/matching/request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String request(@RequestParam Long userId,
+                          @RequestParam Long expertId,
+                          @RequestParam(required = false) String message,
+                          @RequestParam String requestReason,
+                          @RequestParam(name = "attachment") MultipartFile attachment,
+                          RedirectAttributes ra) throws Exception {
+
+        if (attachment == null || attachment.isEmpty()) {
+            ra.addFlashAttribute("toast", "PDF 첨부는 필수입니다.");
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId;
+        }
+
+        String filename = Optional.ofNullable(attachment.getOriginalFilename()).orElse("");
+        String contentType = Optional.ofNullable(attachment.getContentType()).orElse("");
+        boolean pdfByName = filename.toLowerCase().endsWith(".pdf");
+        boolean pdfByMime = MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType);
+        if (!(pdfByName || pdfByMime)) {
+            ra.addFlashAttribute("toast", "PDF 파일만 첨부할 수 있습니다.");
+            return "redirect:/matching/inquiry?userId=" + userId + "&expertId=" + expertId;
+        }
+
+        Matching created = matchingService.request(userId, expertId, message, requestReason, attachment);
+
+        return "redirect:/mypage/user/" + userId
+                + "?submitted=1&matchingId=" + created.getMatchingIdx();
+    }
+
+
+    // 3) 첨부파일 다운로드(매칭 생성 시 첨부)
+    @GetMapping("/matching/file/{matchingId}")
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long matchingId) {
+        Matching m = matchingRepository.findById(matchingId).orElse(null);
+        if (m == null) return ResponseEntity.notFound().build();
+
+        byte[] bytes = matchingService.downloadAttachment(matchingId);
+        if (bytes == null) return ResponseEntity.notFound().build();
+
+        String filename = (StringUtils.hasText(m.getMatchingFile())) ? m.getMatchingFile() : "attachment.bin";
+        String encoded  = URLEncoder.encode(filename, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(bytes);
+    }
+
+    @PostMapping(value = "/api/matching/{matchingId}/approve", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> approveApi(@PathVariable Long matchingId) {
+        matchingService.approve(matchingId);
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.APPROVED.name());
+    }
+
+    @PostMapping(value = "/api/matching/{matchingId}/reject", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> rejectApi(@PathVariable Long matchingId) {
+        matchingService.reject(matchingId);
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.REJECTED.name());
+    }
+
+    @PostMapping(value = "/api/matching/{matchingId}/complete", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> completeApi(@PathVariable Long matchingId) {
+        matchingService.complete(matchingId);
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.COMPLETED.name());
+    }
+
+    @PostMapping(value = "/api/matching/{matchingId}/cancel", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> cancelApi(@PathVariable Long matchingId) {
+        matchingService.cancel(matchingId);
+        return Map.of("ok", true, "id", matchingId, "status", MatchingStatus.CANCELED.name());
+    }
+
+    @GetMapping(value = "/api/users/{userId}/ongoing-experts", produces = "application/json")
+    @ResponseBody
+    public List<Long> ongoingExperts(@PathVariable Long userId) {
+        return matchingRepository.findOngoingExpertIds(
+                userId,
+                List.of(MatchingStatus.PENDING, MatchingStatus.APPROVED)
+        );
+    }
+
+    @PatchMapping(value="/api/matching/{matchingId}/status", consumes="application/json", produces="application/json")
+    @ResponseBody
+    public Map<String,Object> updateStatus(@PathVariable Long matchingId, @RequestBody Map<String,String> body){
+        String to = String.valueOf(body.get("status")).toUpperCase();
+        if ("PENDING".equals(to)) throw new IllegalArgumentException("PENDING 으로 변경할 수 없습니다.");
+
+        switch (to){
+            case "APPROVED" -> matchingService.approve(matchingId);
+            case "REJECTED" -> matchingService.reject(matchingId);
+            case "COMPLETED"-> matchingService.complete(matchingId);
+            case "CANCELED" -> matchingService.cancel(matchingId);
+            default -> throw new IllegalArgumentException("알 수 없는 상태: "+to);
+        }
+        return Map.of("ok", true, "id", matchingId, "status", to);
+    }
+
+    private static final List<ConsultType> CONSULT_TYPES = List.of(
+            new ConsultType("VIOLENCE",  "폭력"),
+            new ConsultType("DEFAMATION","명예훼손"),
+            new ConsultType("SEXUAL",    "성범죄"),
+            new ConsultType("BULLYING",  "따돌림/집단괴롭힘"),
+            new ConsultType("CHANTAGE",  "협박/갈취"),
+            new ConsultType("EXTORTION", "공갈/강요")
+    );
+
+    @Data
+    @AllArgsConstructor
+    public static class ConsultType {
+        private String code;
+        private String label;
+    }
+
+    @GetMapping(value = "/api/matching/{matchingId}", produces = "application/json")
+    @ResponseBody
+    public MatchingDetailDto matchingDetail(@PathVariable Long matchingId) {
+        Matching m = matchingService.get(matchingId)
+                .orElseThrow(() -> new IllegalArgumentException("매칭 없음: " + matchingId));
+
+        String userName = "";
+        try {
+            if (m.getUser() != null) {
+                    userName = m.getUser().getMember().getName();
+            }
+        } catch (Exception ignored) {}
+
+        // 코드 → 라벨 매핑
+        String reasonCode  = m.getRequestReason();
+        String reasonLabel = CONSULT_TYPES.stream()
+                .filter(ct -> ct.getCode().equalsIgnoreCase(reasonCode))
+                .map(ConsultType::getLabel)
+                .findFirst()
+                .orElse(reasonCode);
+
+        String fileUrl = "/matching/file/" + m.getMatchingIdx();
+
+        return MatchingDetailDto.builder()
+                .id(m.getMatchingIdx())
+                .requestedAt(m.getRequestedAt() != null ? m.getRequestedAt().toString() : null)
+                .userName(userName)
+                .message(m.getRequestMessage())
+                .reasonCode(reasonCode)
+                .reasonLabel(reasonLabel)
+                .status(m.getStatus() != null ? m.getStatus().name() : "PENDING")
+                .attachmentUrl(fileUrl)
+                .build();
+    }
+
+
+}

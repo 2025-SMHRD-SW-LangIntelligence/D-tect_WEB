@@ -1,10 +1,11 @@
 package com.smhrd.dtect.config;
 
-import com.smhrd.dtect.security.CustomOAuth2UserService;
+import com.smhrd.dtect.security.custom.CustomOAuth2UserService;
 import com.smhrd.dtect.security.FormFailureHandler;
-import com.smhrd.dtect.security.OAuth2FailureHandler;
+import com.smhrd.dtect.security.oauth.OAuth2FailureHandler;
 import com.smhrd.dtect.security.RoleBasedAuthenticationSuccessHandler;
 import com.smhrd.dtect.security.SmartLogoutSuccessHandler;
+import com.smhrd.dtect.service.user.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,7 @@ public class SecurityConfiguration {
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(PasswordEncoder encoder,
-                                                               com.smhrd.dtect.service.UserDetailsServiceImpl userDetailsServiceimpl) {
+                                                               UserDetailsServiceImpl userDetailsServiceimpl) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsServiceimpl);
         provider.setPasswordEncoder(encoder);

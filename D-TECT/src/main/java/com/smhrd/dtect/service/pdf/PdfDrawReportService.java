@@ -1,7 +1,7 @@
 package com.smhrd.dtect.service.pdf;
 
-import com.smhrd.dtect.entity.AnalRate;
-import com.smhrd.dtect.entity.FieldName;
+import com.smhrd.dtect.entity.analysis.AnalRate;
+import com.smhrd.dtect.entity.field.FieldName;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;

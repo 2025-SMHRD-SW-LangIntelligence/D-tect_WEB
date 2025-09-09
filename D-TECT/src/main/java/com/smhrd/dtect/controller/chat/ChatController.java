@@ -1,0 +1,155 @@
+package com.smhrd.dtect.controller.chat;
+
+import com.smhrd.dtect.dto.chat.ChatDto;
+import com.smhrd.dtect.entity.chat.Chat;
+import com.smhrd.dtect.entity.chat.ChatSenderType;
+import com.smhrd.dtect.entity.upload.Upload;
+import com.smhrd.dtect.entity.file.UploadFile;
+import com.smhrd.dtect.entity.matching.Matching;
+import com.smhrd.dtect.repository.upload.UploadFileRepository;
+import com.smhrd.dtect.repository.upload.UploadRepository;
+import com.smhrd.dtect.service.chat.ChatService;
+import com.smhrd.dtect.service.file.FileService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/chat")
+public class ChatController {
+
+    private final ChatService chatService;
+    private final FileService fileService;
+    private final UploadFileRepository uploadFileRepository;
+    private final UploadRepository uploadRepository;
+
+    @GetMapping("/{matchingId}/messages")
+    public List<ChatDto> list(@PathVariable Long matchingId,
+                              @RequestParam Long meMemIdx) {
+        return chatService.listMessages(matchingId, meMemIdx).stream()
+                .map(ChatDto::from)
+                .toList();
+    }
+
+    @PostMapping("/{matchingId}/messages")
+    public ChatDto post(@PathVariable Long matchingId,
+                        @RequestParam Long meMemIdx,
+                        @RequestParam String content,
+                        @RequestParam(required = false) String file) {
+        Chat c = chatService.writeMessage(matchingId, meMemIdx, content, file);
+        return ChatDto.from(c);
+    }
+
+    @GetMapping(value = "/{matchingId}/files", produces = "application/json")
+    public List<Map<String, Object>> listFiles(@PathVariable Long matchingId) {
+        List<Upload> ups = fileService.findUploadsByMatching(matchingId);
+        List<Map<String, Object>> out = new ArrayList<>();
+
+        for (Upload u : ups) {
+            String role = Optional.ofNullable(u.getUploaderType())
+                    .map(Enum::name).orElse("UNKNOWN"); // USER / EXPERT / UNKNOWN
+            String roleLower = "unknown";
+            if ("EXPERT".equals(role)) roleLower = "expert";
+            else if ("USER".equals(role)) roleLower = "user";
+
+            if (u.getUploadFileList() == null) continue;
+            for (UploadFile f : u.getUploadFileList()) {
+                Map<String, Object> by = new HashMap<>();
+                by.put("role", roleLower);
+
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("id",   f.getFileIdx());
+                row.put("name", f.getFileName());
+                row.put("url",  "/api/chat/file/" + f.getFileIdx());
+                row.put("ts",   (u.getCreatedAt() != null) ? u.getCreatedAt().getTime() : null);
+                row.put("by",   by);
+
+                out.add(row);
+            }
+        }
+        return out;
+    }
+
+    @PostMapping(value = "/{matchingId}/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = "application/json")
+    public List<Map<String, Object>> uploadFiles(
+            @PathVariable Long matchingId,
+            @RequestParam("file") List<MultipartFile> files,
+            @RequestParam Long meMemIdx
+    ) throws Exception {
+
+        // 1) 파일 저장
+        Upload saved = fileService.uploadFiles(matchingId, files);
+
+        // 2) 업로더 역할 기록
+        ChatSenderType type = ChatSenderType.USER;
+        // var 사용 금지(Java 8 호환)
+        Matching m = saved.getMatching();
+        Long userMem   = (m.getUser()!=null && m.getUser().getMember()!=null)    ? m.getUser().getMember().getMemIdx()    : null;
+        Long expertMem = (m.getExpert()!=null && m.getExpert().getMember()!=null)? m.getExpert().getMember().getMemIdx()  : null;
+        if (Objects.equals(meMemIdx, expertMem)) type = ChatSenderType.EXPERT;
+        else if (Objects.equals(meMemIdx, userMem)) type = ChatSenderType.USER;
+        saved.setUploaderType(type);
+        uploadRepository.save(saved);
+
+        String roleLower = (type == ChatSenderType.EXPERT) ? "expert" : "user";
+
+        // 3) 방금 저장된 파일들을 DB에서 다시 읽음
+        List<UploadFile> freshFiles = uploadFileRepository.findAllByUpload_UploadIdx(saved.getUploadIdx());
+
+        // 4) 각 파일을 "채팅 메시지"로도 남김
+        List<Map<String,Object>> out = new ArrayList<>();
+        for (UploadFile f : freshFiles) {
+            String url = "/api/chat/file/" + f.getFileIdx();
+
+            // 메시지 생성
+            chatService.writeMessage(
+                    matchingId,
+                    meMemIdx,
+                    f.getFileName(),
+                    url
+            );
+
+            Map<String, Object> by = new HashMap<>();
+            by.put("role", roleLower);
+
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id",   f.getFileIdx());
+            row.put("name", f.getFileName());
+            row.put("url",  url);
+            row.put("ts",   (saved.getCreatedAt()!=null) ? saved.getCreatedAt().getTime() : null);
+            row.put("by",   by);
+
+            out.add(row);
+        }
+
+        return out;
+    }
+
+    // 다운로드
+    @GetMapping("/file/{fileId}")
+    public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
+        Optional<UploadFile> opt = uploadFileRepository.findById(fileId);
+        if (!opt.isPresent()) return ResponseEntity.notFound().build();
+
+        UploadFile meta = opt.get();
+        byte[] plain = fileService.downloadFilePlain(fileId);
+        if (plain == null) return ResponseEntity.notFound().build();
+
+        String filename = (meta.getFileName() != null) ? meta.getFileName() : "download.bin";
+        String encoded  = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(plain);
+    }
+}

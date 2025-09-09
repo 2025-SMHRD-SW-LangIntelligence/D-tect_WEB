@@ -1,8 +1,10 @@
 package com.smhrd.dtect.service.pdf;
 
-import com.smhrd.dtect.entity.*;
-import com.smhrd.dtect.repository.AnalysisRepository;
-import com.smhrd.dtect.repository.CaseRepository;
+import com.smhrd.dtect.entity.analysis.AnalRate;
+import com.smhrd.dtect.entity.analysis.Analysis;
+import com.smhrd.dtect.entity.field.FieldName;
+import com.smhrd.dtect.repository.analysis.AnalysisRepository;
+import com.smhrd.dtect.repository.analysis_case.CaseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;

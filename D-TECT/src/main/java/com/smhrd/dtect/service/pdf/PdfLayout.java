@@ -1,6 +1,6 @@
 package com.smhrd.dtect.service.pdf;
 
-import com.smhrd.dtect.entity.FieldName;
+import com.smhrd.dtect.entity.field.FieldName;
 import java.util.EnumMap;
 import java.util.Map;
 

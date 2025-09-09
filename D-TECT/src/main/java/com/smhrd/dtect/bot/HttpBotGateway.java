@@ -8,8 +8,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import com.smhrd.dtect.dto.BotMessageRequest;
-import com.smhrd.dtect.dto.BotMessageResponse;
+import com.smhrd.dtect.dto.bot.BotMessageRequest;
+import com.smhrd.dtect.dto.bot.BotMessageResponse;
 
 import lombok.RequiredArgsConstructor;
 

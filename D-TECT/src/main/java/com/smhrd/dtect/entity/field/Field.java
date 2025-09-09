@@ -1,0 +1,42 @@
+package com.smhrd.dtect.entity.field;
+
+
+import com.smhrd.dtect.entity.expert.Expert;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "tb_field")
+public class Field {
+	
+	// 분야 인덱스
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "field_idx")
+    private Long fieldIdx;
+
+    // 회원 인덱스
+	@ManyToOne
+	@JoinColumn(name = "expert_idx", nullable = false)
+    private Expert expert;
+
+    // 전문 분야
+	@Column(name = "field_name", nullable = false)
+	@Enumerated(EnumType.STRING)
+    private FieldName fieldName;
+	
+}

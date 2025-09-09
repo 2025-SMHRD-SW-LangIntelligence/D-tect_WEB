@@ -1,7 +1,7 @@
 package com.smhrd.dtect.service.model;
 
 import com.smhrd.dtect.config.ModelProperties;
-import com.smhrd.dtect.dto.ModelMessage;
+import com.smhrd.dtect.dto.model.ModelMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
